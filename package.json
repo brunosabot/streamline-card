@@ -1,0 +1,17 @@
+{
+  "name": "streamline-card",
+  "version": "0.0.1",
+  "description": "",
+  "type": "module",
+  "main": "src/streamline-card.js",
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "vite": "^5.3.5"
+  }
+}

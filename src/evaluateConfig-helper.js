@@ -23,7 +23,9 @@ export default function evaluateConfig(config, hass) {
           }
         }
       }
-      delete config[key];
+      if (key.endsWith("_javascript")) {
+        delete config[key];
+      }
     } else if (typeof config[key] === "object") {
       evaluateConfig(config[key], hass);
     } else if (key.endsWith("_javascript")) {

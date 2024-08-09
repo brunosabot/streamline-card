@@ -51,6 +51,8 @@ First, you need to define your templates.
 
 The templates are defined in an object at the root of your lovelace configuration. This object needs to be named `streamline_templates`.
 
+#### Basic templates
+
 This object needs to contains your templates declaration, each template has a name and can contain variables. A variable needs to be enclosed in double square brackets `[[variable_name]]`. It will later be replaced by a real value when you instantiate a card which uses this template. If a variable is alone on it's line, enclose it in single quotes: `'[[variable_name]]'`.
 
 You can also define default values for your variables in the `default` object.
@@ -95,9 +97,10 @@ streamline_templates:
     default:
       - icon: fire
     card:
-      type: custom:button-card
+      type: custom:bubble-card
       name: "[[name]]"
       icon: "mdi:[[icon]]"
+      entity: "[[entity]]"
 
   my_second_template: # This is the name of another template
     card:
@@ -105,10 +108,75 @@ streamline_templates:
       cards:
         - type: horizontal-stack
           cards:
-            - type: custom:button-card
+            - type: custom:bubble-card
               entity: "[[entity_1]]"
-            - type: custom:button-card
+            - type: custom:bubble-card
               entity: "[[entity_2]]"
+```
+
+#### Advanced templates
+
+Every key of the template could be using a javascript expression. This could be useful if you want to condition the display of a card based on some advanced logic. Every key of the template that should be executed as JavaScript must end with `_javascript`.
+
+For example, you can use this feature to display a different entity depending on a boolean status:
+
+```yaml
+streamline_templates:
+  my_advanced_template: # This is the name of a template
+    card:
+      type: custom:bubble-card
+      name: "[[name]]"
+      icon: "mdi:[[icon]]"
+      # This entity is a JavaScript expression
+      entity_javascript: "states[input_boolean.vacation_mode].state === 'on' ? 'weather.vacation_city' : 'sensor.home_city';"
+```
+
+If you have deep nested objects, you can use the same syntax everywhere:
+
+```yaml
+streamline_templates:
+  my_advanced_template: # This is the name of a template
+    card:
+      type: custom:bubble-card
+      name: "[[name]]"
+      icon: "mdi:[[icon]]"
+      sub_button:
+        - name: Min
+          # This icon is a JavaScript expression
+          icon_javascript: "states[input_boolean.vacation_mode].state === 'on' ? 'mdi:thermometer-off' : 'mdi:thermometer'"
+          entity: "[[entity]]"
+          attribute: forecast[0].templow
+          show_background: false
+          show_attribute: true
+```
+
+And if you have an array of simple items, you can also use the following syntax:
+
+```yaml
+streamline_templates:
+  my_advanced_template: # This is the name of a template
+    card:
+      type: custom:bubble-card
+      name: "[[name]]"
+      icon: "mdi:[[icon]]"
+      # This will create an array with the result of each JavaScript expression
+      example_javascript:
+        - "Math.random()"
+        - "Math.random()"
+        - "Math.random()"
+```
+
+Finally, you can combine classic variables and javascript expressions in the same template:
+
+```yaml
+streamline_templates:
+  my_advanced_template: # This is the name of a template
+    card:
+      type: custom:bubble-card
+      name: "[[name]]"
+      icon: "mdi:[[icon]]"
+      # This entity is a JavaScript expression using the toggle variable
+      entity_javascript: "states['[[toggle]]'].state === 'on' ? 'weather.vacation_city' : 'sensor.home_city';"
 ```
 
 ### Using the card

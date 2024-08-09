@@ -1,6 +1,7 @@
 import deepReplace from "./deepReplace-helper";
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
 import { version } from "../package.json";
+import evaluateConfig from "./evaluateConfig-helper";
 
 export {};
 
@@ -13,6 +14,7 @@ export {};
     _editMode = false;
     _isConnected = false;
     _config = {};
+    _originalConfig = {};
     _hass = {};
     _card;
     _shadow;
@@ -62,10 +64,11 @@ export {};
 
     set hass(hass) {
       this._hass = hass;
+      this.parseConfig();
       this.updateCardHass();
     }
 
-    parseConfig(config) {
+    parseConfig() {
       const lovelace = getLovelace() || getLovelaceCast();
       if (!lovelace.config && !lovelace.config.streamline_templates) {
         throw new Error(
@@ -74,10 +77,10 @@ export {};
       }
 
       const templateConfig =
-        lovelace.config.streamline_templates[this._config.template];
+        lovelace.config.streamline_templates[this._originalConfig.template];
       if (!templateConfig) {
         throw new Error(
-          `The template "${config.template}" doesn't exist in streamline_templates`
+          `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`
         );
       } else if (!(templateConfig.card || templateConfig.element)) {
         throw new Error(
@@ -87,13 +90,16 @@ export {};
         throw new Error("You can define a card and an element in the template");
       }
 
-      this._config = deepReplace(config.variables, templateConfig);
+      this._config = deepReplace(
+        this._originalConfig.variables,
+        templateConfig
+      );
+      evaluateConfig(this._config, this._hass);
     }
 
     async setConfig(config) {
-      this._config = config;
-
-      this.parseConfig(config);
+      this._originalConfig = config;
+      this.parseConfig();
 
       if (this._card === undefined) {
         if (this._config.type === undefined) {

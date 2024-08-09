@@ -38,7 +38,7 @@ function getLovelace() {
   }
   return null;
 }
-const version = "0.0.2";
+const version = "0.0.3";
 function evaluateConfig(config, hass) {
   const configKeys = Object.keys(config);
   for (let key of configKeys)
@@ -57,7 +57,7 @@ function evaluateConfig(config, hass) {
             config[keyWithoutJavascript][i] = void 0;
           }
         }
-      delete config[key];
+      key.endsWith("_javascript") && delete config[key];
     } else if (typeof config[key] == "object")
       evaluateConfig(config[key], hass);
     else if (key.endsWith("_javascript")) {

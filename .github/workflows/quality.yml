@@ -59,3 +59,28 @@ jobs:
 
       - name: Code Formatting
         run: pnpm run audit:format
+
+  code-build:
+    name: Build code
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Code Checkout
+        uses: "actions/checkout@v4"
+
+      - name: Pnpm Installation
+        uses: pnpm/action-setup@v3
+        with:
+            version: 9.x
+
+      - name: NodeJS Initialization
+        uses: actions/setup-node@v4
+        with:
+            node-version: 20
+            cache: 'pnpm'
+
+      - name: Dependencies Installation
+        run: pnpm i
+        shell: bash
+
+      - name: Build Code
+        run: pnpm run build

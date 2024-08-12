@@ -8,8 +8,8 @@
     "dev": "vite build --watch --mode development",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "test:unit": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "author": "",
   "license": "MIT",

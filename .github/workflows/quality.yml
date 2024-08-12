@@ -1,0 +1,36 @@
+name: Code Quality workflow
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  unit-testing:
+    name: Vitest unit testing
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Code Checkout
+        uses: "actions/checkout@v4"
+
+      - name: Pnpm Installation
+        uses: pnpm/action-setup@v3
+        with:
+            version: 9.x
+
+      - name: NodeJS Initialization
+        uses: actions/setup-node@v4
+        with:
+            node-version: 20
+            cache: 'pnpm'
+
+      - name: Dependencies Installation
+        run: pnpm i
+        shell: bash
+
+      - name: Seeding Variable Creation
+        run: echo "CURRENT_TIME=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Tests Run With Seeding
+        run: pnpm run test:unit --sequence.seed=$CURRENT_TIME

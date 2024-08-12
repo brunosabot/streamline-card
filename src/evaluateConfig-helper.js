@@ -6,7 +6,7 @@ export default function evaluateConfig(config, hass) {
       for (let i = 0; i < config[key].length; i++) {
         if (typeof config[key][i] === "object") {
           evaluateConfig(config[key][i], hass);
-        } else {
+        } else if (key.endsWith("_javascript")) {
           const states = hass?.states ?? undefined;
           const user = hass?.user ?? undefined;
           const prefix = `

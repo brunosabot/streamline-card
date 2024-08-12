@@ -7,11 +7,16 @@
   "scripts": {
     "dev": "vite build --watch --mode development",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "coverage": "vitest run --coverage"
   },
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "vite": "^5.3.5"
+  "dependencies": {},
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.0.5",
+    "vite": "^5.3.5",
+    "vitest": "^2.0.5"
   }
 }

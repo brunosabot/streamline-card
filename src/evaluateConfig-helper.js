@@ -3,6 +3,7 @@ export default function evaluateConfig(config, hass) {
 
   for (let key of configKeys) {
     if (config[key] instanceof Array) {
+      let hasError = false;
       for (let i = 0; i < config[key].length; i++) {
         if (typeof config[key][i] === "object") {
           evaluateConfig(config[key][i], hass);
@@ -16,15 +17,21 @@ export default function evaluateConfig(config, hass) {
           const keyWithoutJavascript = key.replace("_javascript", "");
           const stringToEvaluatate = `${prefix} ${config[key][i]}`;
           try {
-            config[keyWithoutJavascript] = config[keyWithoutJavascript] || {};
+            config[keyWithoutJavascript] = config[keyWithoutJavascript] || [];
             config[keyWithoutJavascript][i] = eval(stringToEvaluatate);
           } catch (error) {
+            hasError = true;
+            console.error(error);
             config[keyWithoutJavascript][i] = undefined;
           }
         }
       }
       if (key.endsWith("_javascript")) {
-        delete config[key];
+        if (hasError) {
+          delete config[key.replace("_javascript", "")];
+        } else {
+          delete config[key];
+        }
       }
     } else if (typeof config[key] === "object") {
       evaluateConfig(config[key], hass);
@@ -41,6 +48,7 @@ export default function evaluateConfig(config, hass) {
         config[keyWithoutJavascript] = eval(stringToEvaluatate);
         delete config[key];
       } catch (error) {
+        console.error(error);
         config[keyWithoutJavascript] = undefined;
       }
     }

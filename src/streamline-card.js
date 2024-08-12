@@ -74,7 +74,7 @@ export {};
       const lovelace = getLovelace() || getLovelaceCast();
       if (!lovelace.config && !lovelace.config.streamline_templates) {
         throw new Error(
-          "The object streamline_templates doesn't exist in your main lovelace config."
+          "The object streamline_templates doesn't exist in your main lovelace config.",
         );
       }
 
@@ -82,11 +82,11 @@ export {};
         lovelace.config.streamline_templates[this._originalConfig.template];
       if (!templateConfig) {
         throw new Error(
-          `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`
+          `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`,
         );
       } else if (!(templateConfig.card || templateConfig.element)) {
         throw new Error(
-          "You should define either a card or an element in the template"
+          "You should define either a card or an element in the template",
         );
       } else if (templateConfig.card && templateConfig.element) {
         throw new Error("You can define a card and an element in the template");
@@ -94,7 +94,7 @@ export {};
 
       this._config = deepReplace(
         this._originalConfig.variables,
-        templateConfig
+        templateConfig,
       );
 
       const hassState = this._hass?.states ?? undefined;
@@ -140,6 +140,6 @@ export {};
   console.info(
     `%c Streamline Card %c ${version}`,
     "background-color:#c2b280;color:#242424;padding:4px 4px 4px 8px;border-radius:20px 0 0 20px;font-family:sans-serif;",
-    "background-color:#5297ff;color:#242424;padding:4px 8px 4px 4px;border-radius:0 20px 20px 0;font-family:sans-serif;"
+    "background-color:#5297ff;color:#242424;padding:4px 8px 4px 4px;border-radius:0 20px 20px 0;font-family:sans-serif;",
   );
 })();

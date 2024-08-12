@@ -1,9 +1,9 @@
-export function getLovelaceCast() {
+export const getLovelaceCast = () => {
   let root = document.querySelector("hc-main");
-  root = root && root.shadowRoot;
-  root = root && root.querySelector("hc-lovelace");
-  root = root && root.shadowRoot;
-  root = root && root.querySelector("hui-view");
+  root &&= root.shadowRoot;
+  root &&= root.querySelector("hc-lovelace");
+  root &&= root.shadowRoot;
+  root &&= root.querySelector("hui-view");
 
   if (root) {
     const ll = root.lovelace;
@@ -12,22 +12,20 @@ export function getLovelaceCast() {
   }
 
   return null;
-}
+};
 
-export function getLovelace() {
+export const getLovelace = () => {
   let root = document.querySelector("home-assistant");
-  root = root && root.shadowRoot;
-  root = root && root.querySelector("home-assistant-main");
-  root = root && root.shadowRoot;
-  root =
-    root &&
-    root.querySelector(
-      "app-drawer-layout partial-panel-resolver, ha-drawer partial-panel-resolver",
-    );
+  root &&= root.shadowRoot;
+  root &&= root.querySelector("home-assistant-main");
+  root &&= root.shadowRoot;
+  root &&= root.querySelector(
+    "app-drawer-layout partial-panel-resolver, ha-drawer partial-panel-resolver",
+  );
   root = (root && root.shadowRoot) || root;
-  root = root && root.querySelector("ha-panel-lovelace");
-  root = root && root.shadowRoot;
-  root = root && root.querySelector("hui-root");
+  root &&= root.querySelector("ha-panel-lovelace");
+  root &&= root.shadowRoot;
+  root &&= root.querySelector("hui-root");
 
   if (root) {
     const ll = root.lovelace;
@@ -36,4 +34,4 @@ export function getLovelace() {
   }
 
   return null;
-}
+};

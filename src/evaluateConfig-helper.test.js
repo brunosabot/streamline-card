@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import evaluateConfig from "./evaluateConfig-helper.js";
 import hass from "./__fixtures__/hass.fixture.js";
 
@@ -83,40 +83,25 @@ describe("Given the evaluateConfig function", () => {
   });
 
   describe("When passing an empty hass object", () => {
-    it("should display a log, not throw an error and return the config untouched", () => {
+    it("should throw an error", () => {
       const config = {
         saber_count_javascript:
           "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
       };
 
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-      evaluateConfig(config);
-      expect(config).toEqual({
-        saber_count_javascript:
-          "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
-      });
-      expect(spy).toHaveBeenCalledTimes(1);
+      expect(() => evaluateConfig(config)).toThrowError();
     });
   });
 
   describe("When passing an empty hass object on an array", () => {
-    it("should display a log, not throw an error and return the config untouched", () => {
+    it("should throw an error", () => {
       const config = {
         saber_count_javascript: [
           "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
         ],
       };
 
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-      evaluateConfig(config);
-      expect(config).toEqual({
-        saber_count_javascript: [
-          "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
-        ],
-      });
-      expect(spy).toHaveBeenCalledTimes(1);
+      expect(() => evaluateConfig(config)).toThrowError();
     });
   });
 });

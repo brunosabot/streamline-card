@@ -4,20 +4,19 @@ import deepReplace from "./deepReplace-helper";
 describe("Given the deepReplace function", () => {
   describe("When passing a template config with no variables and no default variable", () => {
     it("should return the template config untouched", () => {
-      const variables = undefined;
       const templateConfig = {
         card: {
-          type: "custom:button-card",
           entity: "input_boolean.test",
           name: "[[name]]",
+          type: "custom:button-card",
         },
       };
 
-      const result = deepReplace(variables, templateConfig);
+      const result = deepReplace(templateConfig);
       expect(result).toEqual({
-        type: "custom:button-card",
         entity: "input_boolean.test",
         name: "[[name]]",
+        type: "custom:button-card",
       });
     });
   });
@@ -26,19 +25,19 @@ describe("Given the deepReplace function", () => {
     it("should replace the default variable", () => {
       const variables = [];
       const templateConfig = {
-        default: [{ name: "Ashoka Tano" }],
         card: {
-          type: "custom:button-card",
           entity: "input_boolean.test",
           name: "[[name]]",
+          type: "custom:button-card",
         },
+        default: [{ name: "Ashoka Tano" }],
       };
 
-      const result = deepReplace(variables, templateConfig);
+      const result = deepReplace(templateConfig, variables);
       expect(result).toEqual({
-        type: "custom:button-card",
         entity: "input_boolean.test",
         name: "Ashoka Tano",
+        type: "custom:button-card",
       });
     });
   });
@@ -47,19 +46,19 @@ describe("Given the deepReplace function", () => {
     it("should replace the variables", () => {
       const variables = [{ name: "Obi Wan Kenobi" }];
       const templateConfig = {
-        default: [{ name: "Ashoka Tano" }],
         card: {
-          type: "custom:button-card",
           entity: "input_boolean.test",
           name: "[[name]]",
+          type: "custom:button-card",
         },
+        default: [{ name: "Ashoka Tano" }],
       };
 
-      const result = deepReplace(variables, templateConfig);
+      const result = deepReplace(templateConfig, variables);
       expect(result).toEqual({
-        type: "custom:button-card",
         entity: "input_boolean.test",
         name: "Obi Wan Kenobi",
+        type: "custom:button-card",
       });
     });
   });
@@ -68,19 +67,19 @@ describe("Given the deepReplace function", () => {
     it("should replace the variables", () => {
       const variables = [{ saber_count: 7 }];
       const templateConfig = {
-        default: [{ saber_count: 1 }],
         card: {
-          type: "custom:button-card",
           entity: "input_boolean.test",
           saber_count: "[[saber_count]]",
+          type: "custom:button-card",
         },
+        default: [{ saber_count: 1 }],
       };
 
-      const result = deepReplace(variables, templateConfig);
+      const result = deepReplace(templateConfig, variables);
       expect(result).toEqual({
-        type: "custom:button-card",
         entity: "input_boolean.test",
         saber_count: 7,
+        type: "custom:button-card",
       });
     });
   });
@@ -89,19 +88,19 @@ describe("Given the deepReplace function", () => {
     it("should replace the variables", () => {
       const variables = [{ is_jedi_master: true }];
       const templateConfig = {
-        default: [{ is_jedi_master: false }],
         card: {
-          type: "custom:button-card",
           entity: "input_boolean.test",
           is_jedi_master: "[[is_jedi_master]]",
+          type: "custom:button-card",
         },
+        default: [{ is_jedi_master: false }],
       };
 
-      const result = deepReplace(variables, templateConfig);
+      const result = deepReplace(templateConfig, variables);
       expect(result).toEqual({
-        type: "custom:button-card",
         entity: "input_boolean.test",
         is_jedi_master: true,
+        type: "custom:button-card",
       });
     });
   });
@@ -110,18 +109,18 @@ describe("Given the deepReplace function", () => {
     it("should replace the variables", () => {
       const variables = [{ user: { name: "Obi Wan Kenobi" } }];
       const templateConfig = {
-        default: [{ user: { name: "Darth Vader" } }],
         card: {
-          type: "custom:button-card",
           entity: "input_boolean.test",
+          type: "custom:button-card",
           user: "[[user]]",
         },
+        default: [{ user: { name: "Darth Vader" } }],
       };
 
-      const result = deepReplace(variables, templateConfig);
+      const result = deepReplace(templateConfig, variables);
       expect(result).toEqual({
-        type: "custom:button-card",
         entity: "input_boolean.test",
+        type: "custom:button-card",
         user: { name: "Obi Wan Kenobi" },
       });
     });
@@ -133,16 +132,16 @@ describe("Given the deepReplace function", () => {
       const templateConfig = {
         default: [{ user: { name: "Darth Vader" } }],
         element: {
-          type: "custom:button-card",
           entity: "input_boolean.test",
+          type: "custom:button-card",
           user: "[[user]]",
         },
       };
 
-      const result = deepReplace(variables, templateConfig);
+      const result = deepReplace(templateConfig, variables);
       expect(result).toEqual({
-        type: "custom:button-card",
         entity: "input_boolean.test",
+        type: "custom:button-card",
         user: { name: "Obi Wan Kenobi" },
       });
     });

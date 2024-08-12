@@ -1,56 +1,55 @@
-export default function evaluateConfig(config, hass) {
+const getPrefixFromHass = (hass) => {
+  const states = hass?.states ?? undefined;
+  const user = hass?.user ?? undefined;
+  return `
+    var states = ${JSON.stringify(states)};
+    var user = ${JSON.stringify(user)};
+  `;
+};
+
+// eslint-disable-next-line no-eval
+const doEval = (string) => eval(string);
+
+const evaluateConfig = (config, hass) => {
   const configKeys = Object.keys(config);
 
-  for (let key of configKeys) {
+  for (const key of configKeys) {
     if (config[key] instanceof Array) {
-      let hasError = false;
-      for (let i = 0; i < config[key].length; i++) {
-        if (typeof config[key][i] === "object") {
-          evaluateConfig(config[key][i], hass);
+      let latestError = undefined;
+      for (let index = 0; index < config[key].length; index += 1) {
+        if (typeof config[key][index] === "object") {
+          evaluateConfig(config[key][index], hass);
         } else if (key.endsWith("_javascript")) {
-          const states = hass?.states ?? undefined;
-          const user = hass?.user ?? undefined;
-          const prefix = `
-            var states = ${JSON.stringify(states)};
-            var user = ${JSON.stringify(user)};
-          `;
+          const prefix = getPrefixFromHass(hass);
           const keyWithoutJavascript = key.replace("_javascript", "");
-          const stringToEvaluatate = `${prefix} ${config[key][i]}`;
           try {
-            config[keyWithoutJavascript] = config[keyWithoutJavascript] || [];
-            config[keyWithoutJavascript][i] = eval(stringToEvaluatate);
+            config[keyWithoutJavascript] ||= [];
+            config[keyWithoutJavascript][index] = doEval(
+              `${prefix} ${config[key][index]}`,
+            );
           } catch (error) {
-            hasError = true;
-            console.error(error);
-            config[keyWithoutJavascript][i] = undefined;
+            latestError = error;
           }
         }
       }
       if (key.endsWith("_javascript")) {
-        if (hasError) {
-          delete config[key.replace("_javascript", "")];
-        } else {
+        if (typeof latestError === "undefined") {
           delete config[key];
+        } else {
+          delete config[key.replace("_javascript", "")];
+          throw latestError;
         }
       }
     } else if (typeof config[key] === "object") {
       evaluateConfig(config[key], hass);
     } else if (key.endsWith("_javascript")) {
-      const states = hass?.states ?? undefined;
-      const user = hass?.user ?? undefined;
-      const prefix = `
-        var states = ${JSON.stringify(states)};
-        var user = ${JSON.stringify(user)};
-      `;
+      const prefix = getPrefixFromHass(hass);
       const keyWithoutJavascript = key.replace("_javascript", "");
-      const stringToEvaluatate = `${prefix} ${config[key]}`;
-      try {
-        config[keyWithoutJavascript] = eval(stringToEvaluatate);
-        delete config[key];
-      } catch (error) {
-        console.error(error);
-        config[keyWithoutJavascript] = undefined;
-      }
+
+      config[keyWithoutJavascript] = doEval(`${prefix} ${config[key]}`);
+      delete config[key];
     }
   }
-}
+};
+
+export default evaluateConfig;

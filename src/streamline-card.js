@@ -1,11 +1,9 @@
-import deepReplace from "./deepReplace-helper";
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
-import { version } from "../package.json";
+import deepReplace from "./deepReplace-helper";
 import evaluateConfig from "./evaluateConfig-helper";
+import { version } from "../package.json";
 
-export {};
-
-(async function () {
+(async function initializeStreamlineCard() {
   const HELPERS = window.loadCardHelpers
     ? await window.loadCardHelpers()
     : undefined;
@@ -55,11 +53,19 @@ export {};
       this._isConnected = false;
     }
 
+    get editMode() {
+      return this._editMode;
+    }
+
     set editMode(editMode) {
       if (editMode !== this._editMode) {
         this._editMode = editMode;
         this.updateCardEditMode();
       }
+    }
+
+    get hass() {
+      return this._hass;
     }
 
     set hass(hass) {
@@ -93,22 +99,22 @@ export {};
       }
 
       this._config = deepReplace(
-        this._originalConfig.variables,
         templateConfig,
+        this._originalConfig.variables,
       );
 
       const hassState = this._hass?.states ?? undefined;
-      if (hassState !== undefined) {
+      if (typeof hassState !== "undefined") {
         evaluateConfig(this._config, this._hass);
       }
     }
 
-    async setConfig(config) {
+    setConfig(config) {
       this._originalConfig = config;
       this.parseConfig();
 
-      if (this._card === undefined) {
-        if (this._config.type === undefined) {
+      if (typeof this._card === "undefined") {
+        if (typeof this._config.type === "undefined") {
           throw new Error("[Streamline Card] You need to define a type");
         }
         this._card = HELPERS.createCardElement(this._config);
@@ -129,17 +135,20 @@ export {};
 
   customElements.define("streamline-card", StreamlineCard);
 
-  window.customCards = window.customCards || [];
+  window.customCards ||= [];
   window.customCards.push({
-    type: "streamline-card",
+    description: "A config simplifier.",
     name: "Streamline Card",
     preview: false,
-    description: "A config simplifier.",
+    type: "streamline-card",
   });
 
+  // eslint-disable-next-line no-console
   console.info(
     `%c Streamline Card %c ${version}`,
     "background-color:#c2b280;color:#242424;padding:4px 4px 4px 8px;border-radius:20px 0 0 20px;font-family:sans-serif;",
     "background-color:#5297ff;color:#242424;padding:4px 8px 4px 4px;border-radius:0 20px 20px 0;font-family:sans-serif;",
   );
 })();
+
+export {};

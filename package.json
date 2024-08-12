@@ -9,14 +9,23 @@
     "build": "vite build",
     "preview": "vite preview",
     "audit:format": "prettier -c src/",
+    "audit:lint": "eslint src/",
     "fix:format": "prettier --write src/",
+    "fix:lint": "eslint --fix src/",
     "test:unit": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^9.9.0",
     "@vitest/coverage-v8": "^2.0.5",
+    "eslint": "~9.9.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^17.10.2",
+    "eslint-plugin-promise": "^7.1.0",
+    "globals": "^15.9.0",
     "prettier": "^3.3.3",
     "vite": "^5.3.5",
     "vitest": "^2.0.5"

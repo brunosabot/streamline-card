@@ -1,4 +1,4 @@
-export default function deepReplace(variables, templateConfig) {
+export default function deepReplace(templateConfig, variables) {
   if (!variables && !templateConfig.default) {
     return templateConfig.card;
   }
@@ -13,18 +13,17 @@ export default function deepReplace(variables, templateConfig) {
     ? JSON.stringify(templateConfig.card)
     : JSON.stringify(templateConfig.element);
   variableArray.forEach((variable) => {
-    const key = Object.keys(variable)[0];
-    const value = Object.values(variable)[0];
+    const [key] = Object.keys(variable);
+    const [value] = Object.values(variable);
     if (typeof value === "number" || typeof value === "boolean") {
-      const rxp2 = new RegExp(`"\\[\\[${key}\\]\\]"`, "gm");
+      const rxp2 = new RegExp(`"\\[\\[${key}\\]\\]"`, "gmu");
       jsonConfig = jsonConfig.replace(rxp2, value);
-    }
-    if (typeof value === "object") {
-      const rxp2 = new RegExp(`"\\[\\[${key}\\]\\]"`, "gm");
+    } else if (typeof value === "object") {
+      const rxp2 = new RegExp(`"\\[\\[${key}\\]\\]"`, "gmu");
       const valueString = JSON.stringify(value);
       jsonConfig = jsonConfig.replace(rxp2, valueString);
     } else {
-      const rxp = new RegExp(`\\[\\[${key}\\]\\]`, "gm");
+      const rxp = new RegExp(`\\[\\[${key}\\]\\]`, "gmu");
       jsonConfig = jsonConfig.replace(rxp, value);
     }
   });

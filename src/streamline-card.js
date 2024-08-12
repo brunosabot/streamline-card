@@ -38,8 +38,8 @@ export {};
     }
 
     updateCardConfig() {
-      if (this._isConnected && this._card && this._config.card) {
-        this._card.setConfig?.(this._config.card);
+      if (this._isConnected && this._card && this._config) {
+        this._card.setConfig?.(this._config);
       }
     }
 
@@ -65,6 +65,8 @@ export {};
     set hass(hass) {
       this._hass = hass;
       this.parseConfig();
+
+      this.updateCardConfig();
       this.updateCardHass();
     }
 
@@ -94,7 +96,11 @@ export {};
         this._originalConfig.variables,
         templateConfig
       );
-      evaluateConfig(this._config, this._hass);
+
+      const hassState = this._hass?.states ?? undefined;
+      if (hassState !== undefined) {
+        evaluateConfig(this._config, this._hass);
+      }
     }
 
     async setConfig(config) {

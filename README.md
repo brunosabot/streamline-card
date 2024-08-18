@@ -1,6 +1,6 @@
 # Streamline Card
 
-![readme-images-streamline-card](streamline-card.jpg)
+![streamline-card-header](https://github.com/user-attachments/assets/cd24710d-2dc5-48a8-8a35-bf3e6390833b)
 
 Streamline your Lovelace configuration with with a card template system.
 

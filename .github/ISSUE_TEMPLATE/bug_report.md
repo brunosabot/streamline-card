@@ -40,7 +40,7 @@ Your code here
 
 - OS: [e.g. iOS]
 - Browser/App: [e.g. chrome, safari]
-- Bubble Card version: [e.g. 2.0.4]
+- Streamline Card version: [e.g. 2.0.4]
 - Home Assistant version: [e.g. 2024.6.4]
 
 **Additional context**  

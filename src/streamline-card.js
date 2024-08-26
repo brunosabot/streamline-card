@@ -38,6 +38,13 @@ import { version } from "../package.json";
     updateCardConfig() {
       if (this._isConnected && this._card && this._config) {
         this._card.setConfig?.(this._config);
+
+        if (this._config.visibility) {
+          this.parentNode.config = {
+            ...this.parentNode.config,
+            visibility: this._config.visibility,
+          };
+        }
       }
     }
 

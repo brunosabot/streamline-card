@@ -1,3 +1,4 @@
+import "./streamline-card-editor";
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
 import deepReplace from "./deepReplace-helper";
 import evaluateConfig from "./evaluateConfig-helper";
@@ -136,6 +137,10 @@ import { version } from "../package.json";
 
     getLayoutOptions() {
       return this._card?.getLayoutOptions?.();
+    }
+
+    static getConfigElement() {
+      return document.createElement("streamline-card-editor");
     }
   }
 

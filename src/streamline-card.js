@@ -11,10 +11,10 @@ import { version } from "../package.json";
   class StreamlineCard extends HTMLElement {
     _editMode = false;
     _isConnected = false;
-    _config = {};
-    _originalConfig = {};
-    _hass = {};
-    _card;
+    _config = undefined;
+    _originalConfig = undefined;
+    _hass = undefined;
+    _card = undefined;
     _shadow;
     _accessedProperties = new Set();
 
@@ -110,8 +110,7 @@ import { version } from "../package.json";
         this._originalConfig.variables,
       );
 
-      const hassState = this._hass?.states ?? undefined;
-      if (typeof hassState !== "undefined") {
+      if (typeof this._hass !== "undefined") {
         evaluateConfig(this._config, this._hass);
       }
     }

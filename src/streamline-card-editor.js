@@ -48,16 +48,35 @@ class StreamlineCardEditor extends HTMLElement {
     const newConfig = {};
     newConfig.type = formattedConfig.type;
     newConfig.template = formattedConfig.template ?? firstTemplate ?? "";
-    newConfig.variables = [...formattedConfig.variables];
-    // eslint-disable-next-line no-warning-comments
-    // TODO: Initialize variables
+    newConfig.variables = formattedConfig.variables ?? [];
+    const newConfigWithDefaults = this.setVariablesDefault(newConfig);
 
-    if (deepEqual(newConfig, this._config) === false) {
-      this._config = newConfig;
+    if (deepEqual(newConfigWithDefaults, this._config) === false) {
+      this._config = newConfigWithDefaults;
       fireEvent(this, "config-changed", { config: newConfig });
     }
 
     this.render();
+  }
+
+  setVariablesDefault(newConfig) {
+    const variables = this.getVariablesForTemplate(newConfig.template);
+
+    variables.forEach((variable, index) => {
+      if (typeof newConfig.variables[index] === "undefined") {
+        newConfig.variables[index] = { [variable]: "" };
+
+        if (variable.toLowerCase().includes("entity")) {
+          const entityList = Object.keys(this._hass.states);
+          const randomEntity =
+            entityList[Math.floor(Math.random() * entityList.length)];
+
+          newConfig.variables[index] = { [variable]: randomEntity };
+        }
+      }
+    });
+
+    return newConfig;
   }
 
   initialize() {
@@ -154,7 +173,6 @@ class StreamlineCardEditor extends HTMLElement {
 
   static getIconSchema(name) {
     return {
-      context: { icon_entity: "entity" },
       name,
       selector: { icon: {} },
       title: name,
@@ -203,9 +221,11 @@ class StreamlineCardEditor extends HTMLElement {
   }
 
   render() {
+    const schema = this.getSchema();
+
     this.elements.form.hass = this._hass;
     this.elements.form.data = this._config;
-    this.elements.form.schema = this.getSchema();
+    this.elements.form.schema = schema;
   }
 }
 

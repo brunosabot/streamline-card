@@ -1,6 +1,6 @@
 const isPrimitive = (obj) => obj !== Object(obj);
 
-export const deepEqual = (obj1, obj2) => {
+const deepEqual = (obj1, obj2) => {
   if (obj1 === obj2) {
     return true;
   }
@@ -26,3 +26,5 @@ export const deepEqual = (obj1, obj2) => {
 
   return true;
 };
+
+export default deepEqual;

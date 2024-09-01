@@ -1,5 +1,7 @@
 import "./streamline-card-editor";
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
+import deepClone from "./deepClone-helper";
+import deepEqual from "./deepEqual-helper";
 import deepReplace from "./deepReplace-helper";
 import evaluateConfig from "./evaluateConfig-helper";
 import { version } from "../package.json";
@@ -78,13 +80,17 @@ import { version } from "../package.json";
 
     set hass(hass) {
       this._hass = hass;
-      this.parseConfig();
 
-      this.updateCardConfig();
+      const hasConfigChanged = this.parseConfig();
+      if (hasConfigChanged) {
+        this.updateCardConfig();
+      }
+
       this.updateCardHass();
     }
 
     parseConfig() {
+      const oldParsedConfig = deepClone(this._config ?? {});
       const lovelace = getLovelace() || getLovelaceCast();
       if (!lovelace.config && !lovelace.config.streamline_templates) {
         throw new Error(
@@ -114,11 +120,21 @@ import { version } from "../package.json";
       if (typeof this._hass !== "undefined") {
         evaluateConfig(this._config, this._hass);
       }
+
+      const newParsedConfig = deepClone(this._config);
+      const hasConfigChanged =
+        deepEqual(oldParsedConfig, newParsedConfig) === false;
+
+      return hasConfigChanged;
     }
 
     setConfig(config) {
       this._originalConfig = config;
-      this.parseConfig();
+
+      const hasConfigChanged = this.parseConfig();
+      if (hasConfigChanged === false) {
+        return;
+      }
 
       if (typeof this._card === "undefined") {
         if (typeof this._config.type === "undefined") {

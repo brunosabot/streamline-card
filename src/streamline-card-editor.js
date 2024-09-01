@@ -1,6 +1,6 @@
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
-import { deepEqual } from "./deepEqual-helper";
-import { fireEvent } from "./fireEvent-helper";
+import deepEqual from "./deepEqual-helper";
+import fireEvent from "./fireEvent-helper";
 
 export {};
 

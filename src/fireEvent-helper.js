@@ -1,4 +1,4 @@
-export const fireEvent = (node, type, detail = {}) => {
+const fireEvent = (node, type, detail = {}) => {
   const event = new Event(type, {
     bubbles: true,
     cancelable: false,
@@ -11,3 +11,5 @@ export const fireEvent = (node, type, detail = {}) => {
 
   return event;
 };
+
+export default fireEvent;

@@ -94,7 +94,11 @@ class StreamlineCardEditor extends HTMLElement {
     this.elements.form = document.createElement("ha-form");
     this.elements.form.classList.add("streamline-card-form");
     this.elements.form.addEventListener("value-changed", (ev) => {
-      const newConfig = StreamlineCardEditor.formatConfig(ev.detail.value);
+      let newConfig = StreamlineCardEditor.formatConfig(ev.detail.value);
+      if (this._config.template !== newConfig.template) {
+        newConfig.variables = [];
+        newConfig = this.setVariablesDefault(newConfig);
+      }
 
       fireEvent(this, "config-changed", { config: newConfig });
       this._config = newConfig;

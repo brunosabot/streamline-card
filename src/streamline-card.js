@@ -2,8 +2,7 @@ import "./streamline-card-editor";
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
 import deepClone from "./deepClone-helper";
 import deepEqual from "./deepEqual-helper";
-import evaluateJavascript from "./evaluateJavascript-helper";
-import evaluateVariables from "./evaluateVariables-helper";
+import evaluateConfig from "./evaluteConfig-helper";
 import { version } from "../package.json";
 
 (async function initializeStreamlineCard() {
@@ -40,7 +39,14 @@ import { version } from "../package.json";
 
     updateCardConfig() {
       if (this._isConnected && this._card && this._config) {
-        this._card.setConfig?.(this._config);
+        // If the card is errored, try to recreate it
+        if (this._card.nodeName === "HUI-ERROR-CARD") {
+          this._shadow.removeChild(this._card);
+          this._card = HELPERS.createCardElement(this._config);
+          this._shadow.appendChild(this._card);
+        } else {
+          this._card.setConfig?.(this._config);
+        }
 
         if (this._config.visibility) {
           this.parentNode.config = {
@@ -112,14 +118,11 @@ import { version } from "../package.json";
         throw new Error("You can define a card and an element in the template");
       }
 
-      this._config = evaluateVariables(
+      this._config = evaluateConfig(
         templateConfig,
         this._originalConfig.variables,
+        this._hass,
       );
-
-      if (typeof this._hass !== "undefined") {
-        evaluateJavascript(this._config, this._hass);
-      }
 
       const newParsedConfig = deepClone(this._config);
       const hasConfigChanged =

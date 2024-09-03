@@ -82,12 +82,14 @@ class StreamlineCardEditor extends HTMLElement {
   initialize() {
     this.elements = {};
 
+    this.elements.error = document.createElement("ha-alert");
+    this.elements.error.setAttribute("alert-type", "error");
+    this.elements.error.classList.add("streamline-card-form__error");
+
     this.elements.style = document.createElement("style");
     this.elements.style.innerHTML = `
-      .streamline-card-form > * {
-        display: block;
-        margin-top: 8px;
-        width: 100%;
+      .streamline-card-form__error {
+        margin-bottom: 8px;
       }
     `;
 
@@ -105,6 +107,7 @@ class StreamlineCardEditor extends HTMLElement {
       this.render();
     });
 
+    this._shadow.appendChild(this.elements.error);
     this._shadow.appendChild(this.elements.form);
     this._shadow.appendChild(this.elements.style);
   }
@@ -227,9 +230,21 @@ class StreamlineCardEditor extends HTMLElement {
   render() {
     const schema = this.getSchema();
 
+    const areAllPrimitives = this._config.variables.every((variable) =>
+      Object.values(variable).every((value) => typeof value !== "object"),
+    );
+
+    if (areAllPrimitives === false) {
+      this.elements.error.style.display = "block";
+      this.elements.error.innerText = `Object and array variables are not supported in the visual editor.`;
+      this.elements.form.schema = [schema[0]];
+    } else {
+      this.elements.error.style.display = "none";
+      this.elements.form.schema = schema;
+    }
+
     this.elements.form.hass = this._hass;
     this.elements.form.data = this._config;
-    this.elements.form.schema = schema;
   }
 }
 

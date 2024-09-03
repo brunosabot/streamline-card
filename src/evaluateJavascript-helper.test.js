@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import evaluateConfig from "./evaluateConfig-helper.js";
+import evaluateConfig from "./evaluateJavascript-helper.js";
 import hass from "./__fixtures__/hass.fixture.js";
 
 describe("Given the evaluateConfig function", () => {

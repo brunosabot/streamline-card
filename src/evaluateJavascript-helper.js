@@ -10,7 +10,7 @@ const getPrefixFromHass = (hass) => {
 // eslint-disable-next-line no-eval
 const doEval = (string) => eval(string);
 
-const evaluateConfig = (config, hass) => {
+const evaluateJavascript = (config, hass) => {
   const configKeys = Object.keys(config);
 
   for (const key of configKeys) {
@@ -18,7 +18,7 @@ const evaluateConfig = (config, hass) => {
       let latestError = undefined;
       for (let index = 0; index < config[key].length; index += 1) {
         if (typeof config[key][index] === "object") {
-          evaluateConfig(config[key][index], hass);
+          evaluateJavascript(config[key][index], hass);
         } else if (key.endsWith("_javascript")) {
           const prefix = getPrefixFromHass(hass);
           const keyWithoutJavascript = key.replace("_javascript", "");
@@ -41,7 +41,7 @@ const evaluateConfig = (config, hass) => {
         }
       }
     } else if (typeof config[key] === "object") {
-      evaluateConfig(config[key], hass);
+      evaluateJavascript(config[key], hass);
     } else if (key.endsWith("_javascript")) {
       const prefix = getPrefixFromHass(hass);
       const keyWithoutJavascript = key.replace("_javascript", "");
@@ -50,6 +50,8 @@ const evaluateConfig = (config, hass) => {
       delete config[key];
     }
   }
+
+  return config;
 };
 
-export default evaluateConfig;
+export default evaluateJavascript;

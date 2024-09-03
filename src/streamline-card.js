@@ -2,8 +2,8 @@ import "./streamline-card-editor";
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
 import deepClone from "./deepClone-helper";
 import deepEqual from "./deepEqual-helper";
-import deepReplace from "./deepReplace-helper";
-import evaluateConfig from "./evaluateConfig-helper";
+import evaluateJavascript from "./evaluateJavascript-helper";
+import evaluateVariables from "./evaluateVariables-helper";
 import { version } from "../package.json";
 
 (async function initializeStreamlineCard() {
@@ -112,13 +112,13 @@ import { version } from "../package.json";
         throw new Error("You can define a card and an element in the template");
       }
 
-      this._config = deepReplace(
+      this._config = evaluateVariables(
         templateConfig,
         this._originalConfig.variables,
       );
 
       if (typeof this._hass !== "undefined") {
-        evaluateConfig(this._config, this._hass);
+        evaluateJavascript(this._config, this._hass);
       }
 
       const newParsedConfig = deepClone(this._config);

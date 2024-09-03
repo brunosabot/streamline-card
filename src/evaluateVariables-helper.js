@@ -4,7 +4,11 @@ export const replaceWithKeyValue = (stringTemplate, key, value) => {
   } else if (typeof value === "object") {
     return stringTemplate
       .replaceAll(`"[[${key}]]"`, JSON.stringify(value))
-      .replaceAll(`[[${key}]]`, JSON.stringify(value));
+      .replaceAll(`'[[${key}]]'`, JSON.stringify(value).replaceAll('"', '\\"'))
+      .replaceAll(
+        `\`[[${key}]]\``,
+        JSON.stringify(value).replaceAll('"', '\\"'),
+      );
   }
   return stringTemplate.replaceAll(`[[${key}]]`, value);
 };

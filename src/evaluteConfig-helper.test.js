@@ -286,5 +286,53 @@ describe("Given the evaluateConfig function", () => {
         type: "vertical-stack",
       });
     });
+
+    it("should evaluate the javascript and the variables", () => {
+      const variables = [];
+      const templateConfig = {
+        card: {
+          cards_2_javascript: "`[[cards]]`",
+          cards_javascript: "'[[cards]]'",
+          type: "vertical-stack",
+        },
+        default: [
+          {
+            cards: [
+              {
+                entity: "person.palpatine",
+                type: "custom:button-card",
+              },
+            ],
+          },
+        ],
+      };
+
+      const hass = {
+        states: {
+          "input_text.system": {
+            attributes: {
+              governor: "person.palpatine",
+            },
+          },
+        },
+      };
+
+      const result = evaluateConfig(templateConfig, variables, hass);
+      expect(result).toEqual({
+        cards: [
+          {
+            entity: "person.palpatine",
+            type: "custom:button-card",
+          },
+        ],
+        cards_2: [
+          {
+            entity: "person.palpatine",
+            type: "custom:button-card",
+          },
+        ],
+        type: "vertical-stack",
+      });
+    });
   });
 });

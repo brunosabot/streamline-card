@@ -1,8 +1,8 @@
-import js from "@eslint/js";
 import globals from "globals";
+import js from "@eslint/js";
 
 export default [
-  // js.configs.all.recommended,
+  // Js.configs.all.recommended,
   {
     languageOptions: { globals: globals.browser },
     rules: {
@@ -22,6 +22,7 @@ export default [
   {
     files: ["src/**/*.test.js"],
     rules: {
+      "max-lines": ["off"],
       "max-lines-per-function": ["off"],
       "no-magic-numbers": ["off"],
       "no-template-curly-in-string": ["off"],

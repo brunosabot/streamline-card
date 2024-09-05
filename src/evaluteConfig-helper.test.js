@@ -335,4 +335,34 @@ describe("Given the evaluateConfig function", () => {
       });
     });
   });
+
+  describe("When we evaluate an object access", () => {
+    it("should render the value of the object", () => {
+      const variables = [];
+      const templateConfig = {
+        card: {
+          title_javascript: "('[[testing]]').text",
+          type: "custom:mushroom-title-card",
+        },
+        default: [
+          {
+            testing: {
+              text: "hello",
+            },
+          },
+        ],
+      };
+
+      const hass = {
+        states: {},
+      };
+
+      const result = evaluateConfig(templateConfig, variables, hass);
+
+      expect(result).toEqual({
+        title: "hello",
+        type: "custom:mushroom-title-card",
+      });
+    });
+  });
 });

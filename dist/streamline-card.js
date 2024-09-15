@@ -1,6 +1,6 @@
 var m = Object.defineProperty;
-var u = (e, a, t) => a in e ? m(e, a, { enumerable: !0, configurable: !0, writable: !0, value: t }) : e[a] = t;
-var l = (e, a, t) => u(e, typeof a != "symbol" ? a + "" : a, t);
+var p = (e, a, t) => a in e ? m(e, a, { enumerable: !0, configurable: !0, writable: !0, value: t }) : e[a] = t;
+var l = (e, a, t) => p(e, typeof a != "symbol" ? a + "" : a, t);
 const getLovelaceCast = () => {
   let e = document.querySelector("hc-main");
   if (e && (e = e.shadowRoot), e && (e = e.querySelector("hc-lovelace")), e && (e = e.shadowRoot), e && (e = e.querySelector("hui-view")), e) {
@@ -62,16 +62,16 @@ class StreamlineCardEditor extends HTMLElement {
     this._hass = t, this.render();
   }
   setConfig(t) {
-    const s = StreamlineCardEditor.formatConfig(t), [n] = Object.keys(this._templates), i = {};
-    i.type = s.type, i.template = s.template ?? n ?? "", i.variables = s.variables ?? [];
-    const r = this.setVariablesDefault(i);
-    deepEqual(r, this._config) === !1 && (this._config = r, fireEvent(this, "config-changed", { config: i })), this.render();
+    const s = StreamlineCardEditor.formatConfig(t), [r] = Object.keys(this._templates), i = {};
+    i.type = s.type, i.template = s.template ?? r ?? "", i.variables = s.variables ?? [];
+    const n = this.setVariablesDefault(i);
+    deepEqual(n, this._config) === !1 && (this._config = n, fireEvent(this, "config-changed", { config: i })), this.render();
   }
   setVariablesDefault(t) {
-    return this.getVariablesForTemplate(t.template).forEach((n, i) => {
-      if (typeof t.variables[i] > "u" && (t.variables[i] = { [n]: "" }, n.toLowerCase().includes("entity"))) {
-        const r = Object.keys(this._hass.states), o = r[Math.floor(Math.random() * r.length)];
-        t.variables[i] = { [n]: o };
+    return this.getVariablesForTemplate(t.template).forEach((r, i) => {
+      if (typeof t.variables[i] > "u" && (t.variables[i] = { [r]: "" }, r.toLowerCase().includes("entity"))) {
+        const n = Object.keys(this._hass.states), o = n[Math.floor(Math.random() * n.length)];
+        t.variables[i] = { [r]: o };
       }
     }), t;
   }
@@ -80,19 +80,19 @@ class StreamlineCardEditor extends HTMLElement {
       .streamline-card-form__error {
         margin-bottom: 8px;
       }
-    `, this.elements.form = document.createElement("ha-form"), this.elements.form.classList.add("streamline-card-form"), this.elements.form.addEventListener("value-changed", (t) => {
+    `, this.elements.form = document.createElement("ha-form"), this.elements.form.classList.add("streamline-card-form"), this.elements.form.computeLabel = StreamlineCardEditor.computeLabel, this.elements.form.addEventListener("value-changed", (t) => {
       let s = StreamlineCardEditor.formatConfig(t.detail.value);
       this._config.template !== s.template && (s.variables = [], s = this.setVariablesDefault(s)), fireEvent(this, "config-changed", { config: s }), this._config = s, this.render();
     }), this._shadow.appendChild(this.elements.error), this._shadow.appendChild(this.elements.form), this._shadow.appendChild(this.elements.style);
   }
   getVariablesForTemplate(t) {
-    const s = {}, n = this._templates[t];
-    if (typeof n > "u")
+    const s = {}, r = this._templates[t];
+    if (typeof r > "u")
       throw new Error(
         `The template "${t}" doesn't exist in streamline_templates`
       );
-    const i = JSON.stringify(n), r = /\[\[(?<name>.*?)\]\]/gu;
-    return i.matchAll(r).forEach(([, o]) => {
+    const i = JSON.stringify(r), n = /\[\[(?<name>.*?)\]\]/gu;
+    return i.matchAll(n).forEach(([, o]) => {
       s[o] = o;
     }), Object.keys(s).sort((o, c) => {
       const h = Object.keys(this._config.variables).find(
@@ -104,10 +104,10 @@ class StreamlineCardEditor extends HTMLElement {
     });
   }
   static formatConfig(t) {
-    const s = { ...t }, n = s.variables ?? {};
+    const s = { ...t }, r = s.variables ?? {};
     s.variables = [];
-    for (const [i, r] of Object.entries(n))
-      s.variables[Number(i)] = r;
+    for (const [i, n] of Object.entries(r))
+      s.variables[Number(i)] = n;
     return s;
   }
   static getTemplateSchema(t) {
@@ -129,29 +129,26 @@ class StreamlineCardEditor extends HTMLElement {
   static getEntitySchema(t) {
     return {
       name: t,
-      selector: { entity: {} },
-      title: t
+      selector: { entity: {} }
     };
   }
   static getIconSchema(t) {
     return {
       name: t,
-      selector: { icon: {} },
-      title: t
+      selector: { icon: {} }
     };
   }
   static getDefaultSchema(t) {
     return {
       name: t,
-      selector: { text: {} },
-      title: t
+      selector: { text: {} }
     };
   }
   static getVariableSchema(t, s) {
-    let n = StreamlineCardEditor.getDefaultSchema(s);
-    return s.toLowerCase().includes("entity") ? n = StreamlineCardEditor.getEntitySchema(s) : s.toLowerCase().includes("icon") && (n = StreamlineCardEditor.getIconSchema(s)), {
+    let r = StreamlineCardEditor.getDefaultSchema(s);
+    return s.toLowerCase().includes("entity") ? r = StreamlineCardEditor.getEntitySchema(s) : s.toLowerCase().includes("icon") && (r = StreamlineCardEditor.getIconSchema(s)), {
       name: t,
-      schema: [n],
+      schema: [r],
       type: "grid"
     };
   }
@@ -170,10 +167,16 @@ class StreamlineCardEditor extends HTMLElement {
       }
     ];
   }
+  static computeLabel(t) {
+    const s = t.name.replace(/[-_]+/gu, " "), r = s.charAt(0).toUpperCase() + s.slice(1);
+    return this.hass.localize(
+      `ui.panel.lovelace.editor.card.generic.${t.name}`
+    ) || r;
+  }
   render() {
     const t = this.getSchema();
     this._config.variables.every(
-      (n) => Object.values(n).every((i) => typeof i != "object")
+      (r) => Object.values(r).every((i) => typeof i != "object")
     ) === !1 ? (this.elements.error.style.display = "block", this.elements.error.innerText = "Object and array variables are not supported in the visual editor.", this.elements.form.schema = [t[0]]) : (this.elements.error.style.display = "none", this.elements.form.schema = t), this.elements.form.hass = this._hass, this.elements.form.data = this._config;
   }
 }
@@ -188,40 +191,40 @@ const deepClone = (e) => structuredClone ? structuredClone(e) : JSON.parse(JSON.
   const t = Object.keys(e);
   for (const s of t)
     if (e[s] instanceof Array) {
-      let n;
+      let r;
       for (let i = 0; i < e[s].length; i += 1)
         if (typeof e[s][i] == "object")
           evaluateJavascript(e[s][i], a);
         else if (s.endsWith("_javascript")) {
-          const r = getPrefixFromHass(a), o = s.replace("_javascript", "");
+          const n = getPrefixFromHass(a), o = s.replace("_javascript", "");
           try {
             e[o] || (e[o] = []), e[o][i] = doEval(
-              `${r} ${e[s][i]}`
+              `${n} ${e[s][i]}`
             );
           } catch (c) {
-            n = c;
+            r = c;
           }
         }
       if (s.endsWith("_javascript"))
-        if (typeof n > "u")
+        if (typeof r > "u")
           delete e[s];
         else
-          throw delete e[s.replace("_javascript", "")], n;
+          throw delete e[s.replace("_javascript", "")], r;
     } else if (typeof e[s] == "object")
       evaluateJavascript(e[s], a);
     else if (s.endsWith("_javascript")) {
-      const n = getPrefixFromHass(a), i = s.replace("_javascript", "");
-      e[i] = doEval(`${n} ${e[s]}`), delete e[s];
+      const r = getPrefixFromHass(a), i = s.replace("_javascript", "");
+      e[i] = doEval(`${r} ${e[s]}`), delete e[s];
     }
   return e;
 }, replaceWithKeyValue = (e, a, t) => typeof t == "number" || typeof t == "boolean" ? e.replaceAll(`"[[${a}]]"`, t) : typeof t == "object" ? e.replaceAll(`"[[${a}]]"`, JSON.stringify(t)).replaceAll(`'[[${a}]]'`, JSON.stringify(t).replaceAll('"', '\\"')).replaceAll(
   `\`[[${a}]]\``,
   JSON.stringify(t).replaceAll('"', '\\"')
 ) : e.replaceAll(`[[${a}]]`, t), getVariables = (e, a = []) => [...e.default ?? [], ...a].reduce(
-  (s, n) => ({
+  (s, r) => ({
     ...s,
-    ...Object.entries(n).reduce(
-      (i, [r, o]) => ({ ...i, [r]: o }),
+    ...Object.entries(r).reduce(
+      (i, [n, o]) => ({ ...i, [n]: o }),
       {}
     )
   }),
@@ -234,15 +237,15 @@ function evaluateVariables(e, a) {
     e.card ?? e.element
   );
   const s = getVariables(e, a);
-  return Object.entries(s).forEach(([n, i]) => {
-    t = replaceWithKeyValue(t, n, i);
+  return Object.entries(s).forEach(([r, i]) => {
+    t = replaceWithKeyValue(t, r, i);
   }), JSON.parse(t);
 }
 function evaluateConfig(e, a, t) {
   let s = evaluateVariables(e, a);
   return typeof t < "u" && (s = evaluateJavascript(s, t)), s;
 }
-const version = "0.0.7";
+const version = "0.0.8";
 (async function e() {
   const a = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {
@@ -265,8 +268,8 @@ const version = "0.0.7";
       this._isConnected && this._card && (this._card.editMode = this._editMode);
     }
     updateCardConfig() {
-      var i, r;
-      this._isConnected && this._card && this._config && (this._card.nodeName === "HUI-ERROR-CARD" ? (this._shadow.removeChild(this._card), this._card = a.createCardElement(this._config), this._shadow.appendChild(this._card)) : (r = (i = this._card).setConfig) == null || r.call(i, this._config), this._config.visibility && (this.parentNode.config = {
+      var i, n;
+      this._isConnected && this._card && this._config && (this._card.nodeName === "HUI-ERROR-CARD" ? (this._shadow.removeChild(this._card), this.createCard(), this._shadow.appendChild(this._card)) : (n = (i = this._card).setConfig) == null || n.call(i, this._config), this._config.visibility && (this.parentNode.config = {
         ...this.parentNode.config,
         visibility: this._config.visibility
       }));
@@ -290,15 +293,14 @@ const version = "0.0.7";
       this._hass = i, this.parseConfig() && this.updateCardConfig(), this.updateCardHass();
     }
     parseConfig() {
-      const i = deepClone(this._config ?? {}), r = getLovelace() || getLovelaceCast();
-      if (!r.config && !r.config.streamline_templates)
+      const i = deepClone(this._config ?? {}), n = getLovelace() || getLovelaceCast();
+      if (!n.config && !n.config.streamline_templates)
         throw new Error(
           "The object streamline_templates doesn't exist in your main lovelace config."
         );
-      const o = r.config.streamline_templates[this._originalConfig.template];
-      if (o)
-        if (o.card || o.element) {
-          if (o.card && o.element)
+      if (this._templateConfig = n.config.streamline_templates[this._originalConfig.template], this._templateConfig)
+        if (this._templateConfig.card || this._templateConfig.element) {
+          if (this._templateConfig.card && this._templateConfig.element)
             throw new Error("You can define a card and an element in the template");
         } else throw new Error(
           "You should define either a card or an element in the template"
@@ -307,30 +309,35 @@ const version = "0.0.7";
         `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`
       );
       this._config = evaluateConfig(
-        o,
+        this._templateConfig,
         this._originalConfig.variables,
         this._hass
       );
-      const c = deepClone(this._config);
-      return deepEqual(i, c) === !1;
+      const o = deepClone(this._config);
+      return deepEqual(i, o) === !1;
     }
     setConfig(i) {
       if (this._originalConfig = i, this.parseConfig() !== !1) {
         if (typeof this._card > "u") {
           if (typeof this._config.type > "u")
             throw new Error("[Streamline Card] You need to define a type");
-          this._card = a.createCardElement(this._config), this._shadow.appendChild(this._card);
+          this.createCard(), this._shadow.appendChild(this._card);
         }
         this.updateCardConfig();
       }
     }
     getCardSize() {
-      var i, r;
-      return ((r = (i = this._card) == null ? void 0 : i.getCardSize) == null ? void 0 : r.call(i)) ?? 1;
+      var i, n;
+      return ((n = (i = this._card) == null ? void 0 : i.getCardSize) == null ? void 0 : n.call(i)) ?? 1;
     }
     getLayoutOptions() {
-      var i, r;
-      return (r = (i = this._card) == null ? void 0 : i.getLayoutOptions) == null ? void 0 : r.call(i);
+      var i, n;
+      return (n = (i = this._card) == null ? void 0 : i.getLayoutOptions) == null ? void 0 : n.call(i);
+    }
+    createCard() {
+      this._templateConfig.card ? this._card = a.createCardElement(this._config) : this._templateConfig.element && (this._card = a.createHuiElement(this._config), this._config.style && Object.keys(this._config.style).forEach((i) => {
+        this.style.setProperty(i, this._config.style[i]);
+      }));
     }
     static getConfigElement() {
       return document.createElement("streamline-card-editor");

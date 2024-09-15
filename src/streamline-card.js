@@ -42,7 +42,7 @@ import { version } from "../package.json";
         // If the card is errored, try to recreate it
         if (this._card.nodeName === "HUI-ERROR-CARD") {
           this._shadow.removeChild(this._card);
-          this._card = HELPERS.createCardElement(this._config);
+          this.createCard();
           this._shadow.appendChild(this._card);
         } else {
           this._card.setConfig?.(this._config);
@@ -104,22 +104,22 @@ import { version } from "../package.json";
         );
       }
 
-      const templateConfig =
+      this._templateConfig =
         lovelace.config.streamline_templates[this._originalConfig.template];
-      if (!templateConfig) {
+      if (!this._templateConfig) {
         throw new Error(
           `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`,
         );
-      } else if (!(templateConfig.card || templateConfig.element)) {
+      } else if (!(this._templateConfig.card || this._templateConfig.element)) {
         throw new Error(
           "You should define either a card or an element in the template",
         );
-      } else if (templateConfig.card && templateConfig.element) {
+      } else if (this._templateConfig.card && this._templateConfig.element) {
         throw new Error("You can define a card and an element in the template");
       }
 
       this._config = evaluateConfig(
-        templateConfig,
+        this._templateConfig,
         this._originalConfig.variables,
         this._hass,
       );
@@ -143,7 +143,7 @@ import { version } from "../package.json";
         if (typeof this._config.type === "undefined") {
           throw new Error("[Streamline Card] You need to define a type");
         }
-        this._card = HELPERS.createCardElement(this._config);
+        this.createCard();
         this._shadow.appendChild(this._card);
       }
 
@@ -156,6 +156,19 @@ import { version } from "../package.json";
 
     getLayoutOptions() {
       return this._card?.getLayoutOptions?.();
+    }
+
+    createCard() {
+      if (this._templateConfig.card) {
+        this._card = HELPERS.createCardElement(this._config);
+      } else if (this._templateConfig.element) {
+        this._card = HELPERS.createHuiElement(this._config);
+        if (this._config.style) {
+          Object.keys(this._config.style).forEach((prop) => {
+            this.style.setProperty(prop, this._config.style[prop]);
+          });
+        }
+      }
     }
 
     static getConfigElement() {

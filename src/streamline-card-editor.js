@@ -95,6 +95,7 @@ class StreamlineCardEditor extends HTMLElement {
 
     this.elements.form = document.createElement("ha-form");
     this.elements.form.classList.add("streamline-card-form");
+    this.elements.form.computeLabel = StreamlineCardEditor.computeLabel;
     this.elements.form.addEventListener("value-changed", (ev) => {
       let newConfig = StreamlineCardEditor.formatConfig(ev.detail.value);
       if (this._config.template !== newConfig.template) {
@@ -174,7 +175,6 @@ class StreamlineCardEditor extends HTMLElement {
     return {
       name,
       selector: { entity: {} },
-      title: name,
     };
   }
 
@@ -182,7 +182,6 @@ class StreamlineCardEditor extends HTMLElement {
     return {
       name,
       selector: { icon: {} },
-      title: name,
     };
   }
 
@@ -190,7 +189,6 @@ class StreamlineCardEditor extends HTMLElement {
     return {
       name,
       selector: { text: {} },
-      title: name,
     };
   }
 
@@ -225,6 +223,17 @@ class StreamlineCardEditor extends HTMLElement {
         type: "expandable",
       },
     ];
+  }
+
+  static computeLabel(schema) {
+    const schemaName = schema.name.replace(/[-_]+/gu, " ");
+    const defaultLabel =
+      schemaName.charAt(0).toUpperCase() + schemaName.slice(1);
+    const translation = this.hass.localize(
+      `ui.panel.lovelace.editor.card.generic.${schema.name}`,
+    );
+
+    return translation || defaultLabel;
   }
 
   render() {

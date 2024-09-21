@@ -1,3 +1,5 @@
+import formatVariables from "./formatVariables-helper";
+
 export const replaceWithKeyValue = (stringTemplate, key, value) => {
   if (typeof value === "number" || typeof value === "boolean") {
     return stringTemplate.replaceAll(`"[[${key}]]"`, value);
@@ -13,21 +15,6 @@ export const replaceWithKeyValue = (stringTemplate, key, value) => {
   return stringTemplate.replaceAll(`[[${key}]]`, value);
 };
 
-export const getVariables = (templateConfig, variables = []) => {
-  const defaults = templateConfig.default ?? [];
-
-  return [...defaults, ...variables].reduce(
-    (acc, variable) => ({
-      ...acc,
-      ...Object.entries(variable).reduce(
-        (acc2, [key, value]) => ({ ...acc2, [key]: value }),
-        {},
-      ),
-    }),
-    {},
-  );
-};
-
 export default function evaluateVariables(templateConfig, variables) {
   if (!variables && !templateConfig.default) {
     return templateConfig.card;
@@ -37,7 +24,10 @@ export default function evaluateVariables(templateConfig, variables) {
     templateConfig.card ?? templateConfig.element,
   );
 
-  const variablesObject = getVariables(templateConfig, variables);
+  const variablesObject = {
+    ...formatVariables(templateConfig.default ?? {}),
+    ...formatVariables(variables),
+  };
 
   Object.entries(variablesObject).forEach(([key, value]) => {
     stringTemplate = replaceWithKeyValue(stringTemplate, key, value);

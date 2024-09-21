@@ -1,10 +1,9 @@
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
 import deepEqual from "./deepEqual-helper";
 import fireEvent from "./fireEvent-helper";
+import formatVariables from "./formatVariables-helper";
 
-export {};
-
-class StreamlineCardEditor extends HTMLElement {
+export class StreamlineCardEditor extends HTMLElement {
   _card = undefined;
   _hass = undefined;
   _shadow;
@@ -26,7 +25,7 @@ class StreamlineCardEditor extends HTMLElement {
     this._config = {
       template: Object.keys(this._templates)[0],
       type: "streamline-card",
-      variables: [],
+      variables: {},
     };
 
     this.initialize();
@@ -48,7 +47,7 @@ class StreamlineCardEditor extends HTMLElement {
     const newConfig = {};
     newConfig.type = formattedConfig.type;
     newConfig.template = formattedConfig.template ?? firstTemplate ?? "";
-    newConfig.variables = formattedConfig.variables ?? [];
+    newConfig.variables = formattedConfig.variables ?? {};
     const newConfigWithDefaults = this.setVariablesDefault(newConfig);
 
     if (deepEqual(newConfigWithDefaults, this._config) === false) {
@@ -62,17 +61,18 @@ class StreamlineCardEditor extends HTMLElement {
   setVariablesDefault(newConfig) {
     const variables = this.getVariablesForTemplate(newConfig.template);
 
-    variables.forEach((variable, index) => {
-      if (typeof newConfig.variables[index] === "undefined") {
-        newConfig.variables[index] = { [variable]: "" };
+    variables.forEach((variable) => {
+      if (
+        variable.toLowerCase().includes("entity") &&
+        newConfig.variables[variable] === ""
+      ) {
+        const entityList = Object.keys(this._hass.states);
+        const randomEntity =
+          entityList[Math.floor(Math.random() * entityList.length)];
 
-        if (variable.toLowerCase().includes("entity")) {
-          const entityList = Object.keys(this._hass.states);
-          const randomEntity =
-            entityList[Math.floor(Math.random() * entityList.length)];
-
-          newConfig.variables[index] = { [variable]: randomEntity };
-        }
+        newConfig.variables[variable] = randomEntity;
+      } else if (!newConfig.variables[variable]) {
+        newConfig.variables[variable] = "";
       }
     });
 
@@ -99,7 +99,7 @@ class StreamlineCardEditor extends HTMLElement {
     this.elements.form.addEventListener("value-changed", (ev) => {
       let newConfig = StreamlineCardEditor.formatConfig(ev.detail.value);
       if (this._config.template !== newConfig.template) {
-        newConfig.variables = [];
+        newConfig.variables = {};
         newConfig = this.setVariablesDefault(newConfig);
       }
 
@@ -126,7 +126,7 @@ class StreamlineCardEditor extends HTMLElement {
     const stringTemplate = JSON.stringify(templateConfig);
     const variablesRegex = /\[\[(?<name>.*?)\]\]/gu;
 
-    stringTemplate.matchAll(variablesRegex).forEach(([, name]) => {
+    [...stringTemplate.matchAll(variablesRegex)].forEach(([, name]) => {
       variables[name] = name;
     });
 
@@ -144,12 +144,8 @@ class StreamlineCardEditor extends HTMLElement {
 
   static formatConfig(config) {
     const newConfig = { ...config };
-    const newVariables = newConfig.variables ?? {};
 
-    newConfig.variables = [];
-    for (const [index, variable] of Object.entries(newVariables)) {
-      newConfig.variables[Number(index)] = variable;
-    }
+    newConfig.variables = { ...formatVariables(newConfig.variables ?? {}) };
 
     return newConfig;
   }
@@ -192,7 +188,7 @@ class StreamlineCardEditor extends HTMLElement {
     };
   }
 
-  static getVariableSchema(index, variable) {
+  static getVariableSchema(variable) {
     let childSchema = StreamlineCardEditor.getDefaultSchema(variable);
 
     if (variable.toLowerCase().includes("entity")) {
@@ -201,11 +197,7 @@ class StreamlineCardEditor extends HTMLElement {
       childSchema = StreamlineCardEditor.getIconSchema(variable);
     }
 
-    return {
-      name: index,
-      schema: [childSchema],
-      type: "grid",
-    };
+    return childSchema;
   }
 
   getSchema() {
@@ -216,8 +208,8 @@ class StreamlineCardEditor extends HTMLElement {
       {
         expanded: true,
         name: "variables",
-        schema: Object.keys(variables).map((key) =>
-          StreamlineCardEditor.getVariableSchema(key, variables[key]),
+        schema: variables.map((key) =>
+          StreamlineCardEditor.getVariableSchema(key),
         ),
         title: "Variables",
         type: "expandable",
@@ -239,8 +231,8 @@ class StreamlineCardEditor extends HTMLElement {
   render() {
     const schema = this.getSchema();
 
-    const areAllPrimitives = this._config.variables.every((variable) =>
-      Object.values(variable).every((value) => typeof value !== "object"),
+    const areAllPrimitives = Object.values(this._config.variables).every(
+      (value) => typeof value !== "object",
     );
 
     if (areAllPrimitives === false) {
@@ -253,7 +245,13 @@ class StreamlineCardEditor extends HTMLElement {
     }
 
     this.elements.form.hass = this._hass;
-    this.elements.form.data = this._config;
+
+    const cleanedConfig = {
+      ...this._config,
+      variables: formatVariables(this._config.variables),
+    };
+
+    this.elements.form.data = cleanedConfig;
   }
 }
 

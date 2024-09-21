@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import evaluateVariables, {
-  getVariables,
   replaceWithKeyValue,
 } from "./evaluateVariables-helper";
 
@@ -46,72 +45,6 @@ describe("Given the replaceWithKeyValue function", () => {
 
       const result = replaceWithKeyValue(stringTemplate, key, value);
       expect(result).toEqual(`{ user: {"name":"Obi Wan Kenobi"} }`);
-    });
-  });
-});
-
-describe("Given the getVariables function", () => {
-  describe("When passing a template config with no default variables no variables", () => {
-    it("should return the template config untouched", () => {
-      const templateConfig = {
-        card: {
-          entity: "input_boolean.test",
-          name: "[[name]]",
-          type: "custom:button-card",
-        },
-      };
-
-      const result = getVariables(templateConfig, []);
-      expect(result).toEqual({});
-    });
-  });
-
-  describe("When passing a template config with no default variables and variables", () => {
-    it("should return the variables as an object", () => {
-      const variables = [{ name: "Obi Wan Kenobi" }];
-      const templateConfig = {
-        card: {
-          entity: "input_boolean.test",
-          name: "[[name]]",
-          type: "custom:button-card",
-        },
-      };
-
-      const result = getVariables(templateConfig, variables);
-      expect(result).toEqual({ name: "Obi Wan Kenobi" });
-    });
-  });
-
-  describe("When passing a template config with default variables and no variables", () => {
-    it("should return the default variables as an object", () => {
-      const templateConfig = {
-        card: {
-          entity: "input_boolean.test",
-          name: "[[name]]",
-          type: "custom:button-card",
-        },
-        default: [{ name: "Ashoka Tano" }],
-      };
-
-      const result = getVariables(templateConfig, []);
-      expect(result).toEqual({ name: "Ashoka Tano" });
-    });
-  });
-
-  describe("When passing a template config with default variables and variables", () => {
-    it("should return the variables as an object, giving priority to the variables", () => {
-      const variables = [{ name: "Obi Wan Kenobi" }];
-      const templateConfig = {
-        card: {
-          entity: "input_boolean.test",
-          name: "[[name]]",
-          type: "custom:button-card",
-        },
-        default: [{ is_jedi_master: true, name: "Ashoka Tano" }],
-      };
-
-      const result = getVariables(templateConfig, variables);
-      expect(result).toEqual({ is_jedi_master: true, name: "Obi Wan Kenobi" });
     });
   });
 });

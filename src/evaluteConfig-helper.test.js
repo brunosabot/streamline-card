@@ -365,4 +365,31 @@ describe("Given the evaluateConfig function", () => {
       });
     });
   });
+
+  describe("When default variables and variables are passed as an object", () => {
+    it("should evaluate the javascript and the variables", () => {
+      const variables = {
+        jedi: "Obi Wan Kenobi",
+      };
+      const templateConfig = {
+        card: {
+          jedi: "[[jedi]]",
+          sith: "[[sith]]",
+        },
+        default: {
+          sith: "Palpatine",
+        },
+      };
+
+      const hass = {
+        states: {},
+      };
+
+      const result = evaluateConfig(templateConfig, variables, hass);
+      expect(result).toEqual({
+        jedi: "Obi Wan Kenobi",
+        sith: "Palpatine",
+      });
+    });
+  });
 });

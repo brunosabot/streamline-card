@@ -1,6 +1,6 @@
 var m = Object.defineProperty;
 var p = (e, a, t) => a in e ? m(e, a, { enumerable: !0, configurable: !0, writable: !0, value: t }) : e[a] = t;
-var l = (e, a, t) => p(e, typeof a != "symbol" ? a + "" : a, t);
+var o = (e, a, t) => p(e, typeof a != "symbol" ? a + "" : a, t);
 const getLovelaceCast = () => {
   let e = document.querySelector("hc-main");
   if (e && (e = e.shadowRoot), e && (e = e.querySelector("hc-lovelace")), e && (e = e.shadowRoot), e && (e = e.querySelector("hui-view")), e) {
@@ -36,13 +36,23 @@ const getLovelaceCast = () => {
   });
   return s.detail = t, e.dispatchEvent(s), s;
 };
+function formatVariables(e) {
+  const a = {};
+  return e instanceof Array ? e.forEach((t) => {
+    Object.entries(t).forEach(([s, r]) => {
+      a[s] = r;
+    });
+  }) : Object.entries(e).forEach(([t, s]) => {
+    a[t] = s;
+  }), a;
+}
 class StreamlineCardEditor extends HTMLElement {
   constructor(t) {
     super();
-    l(this, "_card");
-    l(this, "_hass");
-    l(this, "_shadow");
-    l(this, "_templates", {});
+    o(this, "_card");
+    o(this, "_hass");
+    o(this, "_shadow");
+    o(this, "_templates", {});
     this._card = t, this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
     const s = getLovelace() || getLovelaceCast();
     if (this._templates = s.config.streamline_templates, this._templates === null)
@@ -52,7 +62,7 @@ class StreamlineCardEditor extends HTMLElement {
     this._config = {
       template: Object.keys(this._templates)[0],
       type: "streamline-card",
-      variables: []
+      variables: {}
     }, this.initialize();
   }
   get hass() {
@@ -63,16 +73,16 @@ class StreamlineCardEditor extends HTMLElement {
   }
   setConfig(t) {
     const s = StreamlineCardEditor.formatConfig(t), [r] = Object.keys(this._templates), i = {};
-    i.type = s.type, i.template = s.template ?? r ?? "", i.variables = s.variables ?? [];
+    i.type = s.type, i.template = s.template ?? r ?? "", i.variables = s.variables ?? {};
     const n = this.setVariablesDefault(i);
     deepEqual(n, this._config) === !1 && (this._config = n, fireEvent(this, "config-changed", { config: i })), this.render();
   }
   setVariablesDefault(t) {
-    return this.getVariablesForTemplate(t.template).forEach((r, i) => {
-      if (typeof t.variables[i] > "u" && (t.variables[i] = { [r]: "" }, r.toLowerCase().includes("entity"))) {
-        const n = Object.keys(this._hass.states), o = n[Math.floor(Math.random() * n.length)];
-        t.variables[i] = { [r]: o };
-      }
+    return this.getVariablesForTemplate(t.template).forEach((r) => {
+      if (r.toLowerCase().includes("entity") && t.variables[r] === "") {
+        const i = Object.keys(this._hass.states), n = i[Math.floor(Math.random() * i.length)];
+        t.variables[r] = n;
+      } else t.variables[r] || (t.variables[r] = "");
     }), t;
   }
   initialize() {
@@ -82,7 +92,7 @@ class StreamlineCardEditor extends HTMLElement {
       }
     `, this.elements.form = document.createElement("ha-form"), this.elements.form.classList.add("streamline-card-form"), this.elements.form.computeLabel = StreamlineCardEditor.computeLabel, this.elements.form.addEventListener("value-changed", (t) => {
       let s = StreamlineCardEditor.formatConfig(t.detail.value);
-      this._config.template !== s.template && (s.variables = [], s = this.setVariablesDefault(s)), fireEvent(this, "config-changed", { config: s }), this._config = s, this.render();
+      this._config.template !== s.template && (s.variables = {}, s = this.setVariablesDefault(s)), fireEvent(this, "config-changed", { config: s }), this._config = s, this.render();
     }), this._shadow.appendChild(this.elements.error), this._shadow.appendChild(this.elements.form), this._shadow.appendChild(this.elements.style);
   }
   getVariablesForTemplate(t) {
@@ -92,11 +102,11 @@ class StreamlineCardEditor extends HTMLElement {
         `The template "${t}" doesn't exist in streamline_templates`
       );
     const i = JSON.stringify(r), n = /\[\[(?<name>.*?)\]\]/gu;
-    return i.matchAll(n).forEach(([, o]) => {
-      s[o] = o;
-    }), Object.keys(s).sort((o, c) => {
+    return [...i.matchAll(n)].forEach(([, l]) => {
+      s[l] = l;
+    }), Object.keys(s).sort((l, c) => {
       const h = Object.keys(this._config.variables).find(
-        (d) => Object.hasOwn(this._config.variables[d], o)
+        (d) => Object.hasOwn(this._config.variables[d], l)
       ), f = Object.keys(this._config.variables).find(
         (d) => Object.hasOwn(this._config.variables[d], c)
       );
@@ -104,11 +114,8 @@ class StreamlineCardEditor extends HTMLElement {
     });
   }
   static formatConfig(t) {
-    const s = { ...t }, r = s.variables ?? {};
-    s.variables = [];
-    for (const [i, n] of Object.entries(r))
-      s.variables[Number(i)] = n;
-    return s;
+    const s = { ...t };
+    return s.variables = { ...formatVariables(s.variables ?? {}) }, s;
   }
   static getTemplateSchema(t) {
     return {
@@ -144,13 +151,9 @@ class StreamlineCardEditor extends HTMLElement {
       selector: { text: {} }
     };
   }
-  static getVariableSchema(t, s) {
-    let r = StreamlineCardEditor.getDefaultSchema(s);
-    return s.toLowerCase().includes("entity") ? r = StreamlineCardEditor.getEntitySchema(s) : s.toLowerCase().includes("icon") && (r = StreamlineCardEditor.getIconSchema(s)), {
-      name: t,
-      schema: [r],
-      type: "grid"
-    };
+  static getVariableSchema(t) {
+    let s = StreamlineCardEditor.getDefaultSchema(t);
+    return t.toLowerCase().includes("entity") ? s = StreamlineCardEditor.getEntitySchema(t) : t.toLowerCase().includes("icon") && (s = StreamlineCardEditor.getIconSchema(t)), s;
   }
   getSchema() {
     const t = this.getVariablesForTemplate(this._config.template);
@@ -159,8 +162,8 @@ class StreamlineCardEditor extends HTMLElement {
       {
         expanded: !0,
         name: "variables",
-        schema: Object.keys(t).map(
-          (s) => StreamlineCardEditor.getVariableSchema(s, t[s])
+        schema: t.map(
+          (s) => StreamlineCardEditor.getVariableSchema(s)
         ),
         title: "Variables",
         type: "expandable"
@@ -175,9 +178,14 @@ class StreamlineCardEditor extends HTMLElement {
   }
   render() {
     const t = this.getSchema();
-    this._config.variables.every(
-      (r) => Object.values(r).every((i) => typeof i != "object")
-    ) === !1 ? (this.elements.error.style.display = "block", this.elements.error.innerText = "Object and array variables are not supported in the visual editor.", this.elements.form.schema = [t[0]]) : (this.elements.error.style.display = "none", this.elements.form.schema = t), this.elements.form.hass = this._hass, this.elements.form.data = this._config;
+    Object.values(this._config.variables).every(
+      (i) => typeof i != "object"
+    ) === !1 ? (this.elements.error.style.display = "block", this.elements.error.innerText = "Object and array variables are not supported in the visual editor.", this.elements.form.schema = [t[0]]) : (this.elements.error.style.display = "none", this.elements.form.schema = t), this.elements.form.hass = this._hass;
+    const r = {
+      ...this._config,
+      variables: formatVariables(this._config.variables)
+    };
+    this.elements.form.data = r;
   }
 }
 typeof customElements.get("streamline-card-editor") > "u" && customElements.define("streamline-card-editor", StreamlineCardEditor);
@@ -196,9 +204,9 @@ const deepClone = (e) => structuredClone ? structuredClone(e) : JSON.parse(JSON.
         if (typeof e[s][i] == "object")
           evaluateJavascript(e[s][i], a);
         else if (s.endsWith("_javascript")) {
-          const n = getPrefixFromHass(a), o = s.replace("_javascript", "");
+          const n = getPrefixFromHass(a), l = s.replace("_javascript", "");
           try {
-            e[o] || (e[o] = []), e[o][i] = doEval(
+            e[l] || (e[l] = []), e[l][i] = doEval(
               `${n} ${e[s][i]}`
             );
           } catch (c) {
@@ -220,23 +228,17 @@ const deepClone = (e) => structuredClone ? structuredClone(e) : JSON.parse(JSON.
 }, replaceWithKeyValue = (e, a, t) => typeof t == "number" || typeof t == "boolean" ? e.replaceAll(`"[[${a}]]"`, t) : typeof t == "object" ? e.replaceAll(`"[[${a}]]"`, JSON.stringify(t)).replaceAll(`'[[${a}]]'`, JSON.stringify(t).replaceAll('"', '\\"')).replaceAll(
   `\`[[${a}]]\``,
   JSON.stringify(t).replaceAll('"', '\\"')
-) : e.replaceAll(`[[${a}]]`, t), getVariables = (e, a = []) => [...e.default ?? [], ...a].reduce(
-  (s, r) => ({
-    ...s,
-    ...Object.entries(r).reduce(
-      (i, [n, o]) => ({ ...i, [n]: o }),
-      {}
-    )
-  }),
-  {}
-);
+) : e.replaceAll(`[[${a}]]`, t);
 function evaluateVariables(e, a) {
   if (!a && !e.default)
     return e.card;
   let t = JSON.stringify(
     e.card ?? e.element
   );
-  const s = getVariables(e, a);
+  const s = {
+    ...formatVariables(e.default ?? {}),
+    ...formatVariables(a)
+  };
   return Object.entries(s).forEach(([r, i]) => {
     t = replaceWithKeyValue(t, r, i);
   }), JSON.parse(t);
@@ -245,20 +247,20 @@ function evaluateConfig(e, a, t) {
   let s = evaluateVariables(e, a);
   return typeof t < "u" && (s = evaluateJavascript(s, t)), s;
 }
-const version = "0.0.8";
+const version = "0.0.9";
 (async function e() {
   const a = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {
     constructor() {
       super();
-      l(this, "_editMode", !1);
-      l(this, "_isConnected", !1);
-      l(this, "_config");
-      l(this, "_originalConfig");
-      l(this, "_hass");
-      l(this, "_card");
-      l(this, "_shadow");
-      l(this, "_accessedProperties", /* @__PURE__ */ new Set());
+      o(this, "_editMode", !1);
+      o(this, "_isConnected", !1);
+      o(this, "_config");
+      o(this, "_originalConfig");
+      o(this, "_hass");
+      o(this, "_card");
+      o(this, "_shadow");
+      o(this, "_accessedProperties", /* @__PURE__ */ new Set());
       this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
     }
     updateCardHass() {
@@ -313,8 +315,8 @@ const version = "0.0.8";
         this._originalConfig.variables,
         this._hass
       );
-      const o = deepClone(this._config);
-      return deepEqual(i, o) === !1;
+      const l = deepClone(this._config);
+      return deepEqual(i, l) === !1;
     }
     setConfig(i) {
       if (this._originalConfig = i, this.parseConfig() !== !1) {

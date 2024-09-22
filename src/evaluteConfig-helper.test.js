@@ -392,4 +392,27 @@ describe("Given the evaluateConfig function", () => {
       });
     });
   });
+
+  describe("When the variables is undefined", () => {
+    it("Then it should return the template only with default variables replaced", () => {
+      const variables = undefined;
+      const templateConfig = {
+        card: {
+          entity: "input_boolean.test",
+          name: "[[name]]",
+          type: "custom:button-card",
+          value: "[[value]]",
+        },
+        default: [{ name: "Ashoka Tano" }],
+      };
+
+      const result = evaluateConfig(templateConfig, variables, undefined);
+      expect(result).toEqual({
+        entity: "input_boolean.test",
+        name: "Ashoka Tano",
+        type: "custom:button-card",
+        value: "[[value]]",
+      });
+    });
+  });
 });

@@ -244,10 +244,10 @@ function evaluateVariables(e, a) {
   }), JSON.parse(t);
 }
 function evaluateConfig(e, a, t) {
-  let s = evaluateVariables(e, a);
+  let s = evaluateVariables(e, a ?? {});
   return typeof t < "u" && (s = evaluateJavascript(s, t)), s;
 }
-const version = "0.0.9";
+const version = "0.0.10";
 (async function e() {
   const a = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {

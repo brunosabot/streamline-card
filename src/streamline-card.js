@@ -48,7 +48,13 @@ import { version } from "../package.json";
           this._card.setConfig?.(this._config);
         }
 
-        if (this._config.visibility) {
+        const hasVisibilityChanged =
+          deepEqual(
+            this._config.visibility,
+            this.parentNode.config.visibility,
+          ) === false;
+
+        if (this._config.visibility && hasVisibilityChanged) {
           this.parentNode.config = {
             ...this.parentNode.config,
             visibility: this._config.visibility,

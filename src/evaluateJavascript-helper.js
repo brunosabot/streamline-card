@@ -11,6 +11,7 @@ const getPrefixFromHass = (hass) => {
 const doEval = (string) => eval(string);
 
 const evaluateJavascript = (config, hass) => {
+  let prefix = undefined;
   const configKeys = Object.keys(config);
 
   for (const key of configKeys) {
@@ -20,7 +21,10 @@ const evaluateJavascript = (config, hass) => {
         if (typeof config[key][index] === "object") {
           evaluateJavascript(config[key][index], hass);
         } else if (key.endsWith("_javascript")) {
-          const prefix = getPrefixFromHass(hass);
+          if (prefix === undefined) {
+            prefix = getPrefixFromHass(hass);
+          }
+
           const keyWithoutJavascript = key.replace("_javascript", "");
           try {
             config[keyWithoutJavascript] ||= [];
@@ -43,7 +47,10 @@ const evaluateJavascript = (config, hass) => {
     } else if (typeof config[key] === "object") {
       evaluateJavascript(config[key], hass);
     } else if (key.endsWith("_javascript")) {
-      const prefix = getPrefixFromHass(hass);
+      if (prefix === undefined) {
+        prefix = getPrefixFromHass(hass);
+      }
+
       const keyWithoutJavascript = key.replace("_javascript", "");
 
       config[keyWithoutJavascript] = doEval(`${prefix} ${config[key]}`);

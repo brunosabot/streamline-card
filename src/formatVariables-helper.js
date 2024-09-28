@@ -8,9 +8,7 @@ export default function formatVariables(variables) {
       });
     });
   } else {
-    Object.entries(variables).forEach(([key, value]) => {
-      formattedVariables[key] = value;
-    });
+    return variables;
   }
 
   return formattedVariables;

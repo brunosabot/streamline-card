@@ -1,21 +1,47 @@
 import formatVariables from "./formatVariables-helper";
 
+const primitiveRegexMap = new Map();
+const objectQuotesRegexMap = new Map();
+const objectRegexMap = new Map();
+const basicRegexMap = new Map();
+const escapeQuoteRegex = /"/gmu;
+
 export const replaceWithKeyValue = (stringTemplate, key, value) => {
   if (typeof value === "number" || typeof value === "boolean") {
-    return stringTemplate
-      .replaceAll(`'[[${key}]]'`, value)
-      .replaceAll(`"[[${key}]]"`, value)
-      .replaceAll(`\`[[${key}]]\``, value);
+    let rxp = primitiveRegexMap.get(key);
+    if (rxp === undefined) {
+      rxp = new RegExp(`["'\`]\\[\\[${key}\\]\\]["'\`]`, "gmu");
+      primitiveRegexMap.set(key, rxp);
+    }
+
+    return stringTemplate.replace(rxp, value);
   } else if (typeof value === "object") {
+    const valueString = JSON.stringify(value);
+
+    let rxpQuotes = objectQuotesRegexMap.get(key);
+    if (rxpQuotes === undefined) {
+      rxpQuotes = new RegExp(`"\\[\\[${key}\\]\\]"`, "gmu");
+      objectQuotesRegexMap.set(key, rxpQuotes);
+    }
+
+    let rxp = objectRegexMap.get(key);
+    if (rxp === undefined) {
+      rxp = new RegExp(`['\`]\\[\\[${key}\\]\\]['\`]`, "gmu");
+      objectRegexMap.set(key, rxp);
+    }
+
     return stringTemplate
-      .replaceAll(`"[[${key}]]"`, JSON.stringify(value))
-      .replaceAll(`'[[${key}]]'`, JSON.stringify(value).replaceAll('"', '\\"'))
-      .replaceAll(
-        `\`[[${key}]]\``,
-        JSON.stringify(value).replaceAll('"', '\\"'),
-      );
+      .replace(rxpQuotes, valueString)
+      .replace(rxp, valueString.replace(escapeQuoteRegex, '\\"'));
   }
-  return stringTemplate.replaceAll(`[[${key}]]`, value);
+
+  let rxp = basicRegexMap.get(key);
+  if (rxp === undefined) {
+    rxp = new RegExp(`\\[\\[${key}\\]\\]`, "gmu");
+    basicRegexMap.set(key, rxp);
+  }
+
+  return stringTemplate.replace(rxp, value);
 };
 
 export default function evaluateVariables(templateConfig, variables) {
@@ -23,9 +49,9 @@ export default function evaluateVariables(templateConfig, variables) {
     return templateConfig.card;
   }
 
-  let stringTemplate = JSON.stringify(
-    templateConfig.card ?? templateConfig.element,
-  );
+  let stringTemplate = templateConfig.card
+    ? JSON.stringify(templateConfig.card)
+    : JSON.stringify(templateConfig.element);
 
   const variablesObject = {
     ...formatVariables(templateConfig.default ?? {}),

@@ -12,7 +12,9 @@ describe("Given the evaluateConfig function", () => {
         },
       };
 
-      const result = evaluateConfig(templateConfig, [], undefined);
+      const result = evaluateConfig(templateConfig, [], {
+        hasJavascript: true,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         name: "[[name]]",
@@ -33,7 +35,9 @@ describe("Given the evaluateConfig function", () => {
         default: [{ name: "Ashoka Tano" }],
       };
 
-      const result = evaluateConfig(templateConfig, variables, undefined);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         name: "Ashoka Tano",
@@ -54,7 +58,9 @@ describe("Given the evaluateConfig function", () => {
         default: [{ name: "Ashoka Tano" }],
       };
 
-      const result = evaluateConfig(templateConfig, variables, undefined);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         name: "Obi Wan Kenobi",
@@ -75,7 +81,9 @@ describe("Given the evaluateConfig function", () => {
         default: [{ saber_count: 1 }],
       };
 
-      const result = evaluateConfig(templateConfig, variables, undefined);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         saber_count: 7,
@@ -96,7 +104,9 @@ describe("Given the evaluateConfig function", () => {
         default: [{ is_jedi_master: false }],
       };
 
-      const result = evaluateConfig(templateConfig, variables, undefined);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         is_jedi_master: true,
@@ -117,7 +127,9 @@ describe("Given the evaluateConfig function", () => {
         default: [{ user: { name: "Darth Vader" } }],
       };
 
-      const result = evaluateConfig(templateConfig, variables, undefined);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         type: "custom:button-card",
@@ -138,7 +150,9 @@ describe("Given the evaluateConfig function", () => {
         },
       };
 
-      const result = evaluateConfig(templateConfig, variables, undefined);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         type: "custom:button-card",
@@ -169,7 +183,9 @@ describe("Given the evaluateConfig function", () => {
         ],
       };
 
-      const result = evaluateConfig(templateConfig, variables, undefined);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         is_jedi_master: true,
@@ -197,7 +213,9 @@ describe("Given the evaluateConfig function", () => {
         },
       };
 
-      const result = evaluateConfig(templateConfig, variables, undefined);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         saber_count:
@@ -235,7 +253,10 @@ describe("Given the evaluateConfig function", () => {
         },
       };
 
-      const result = evaluateConfig(templateConfig, variables, hass);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+        hass,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         saber_count: "8",
@@ -275,7 +296,10 @@ describe("Given the evaluateConfig function", () => {
         },
       };
 
-      const result = evaluateConfig(templateConfig, variables, hass);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+        hass,
+      });
       expect(result).toEqual({
         cards: [
           {
@@ -317,7 +341,10 @@ describe("Given the evaluateConfig function", () => {
         },
       };
 
-      const result = evaluateConfig(templateConfig, variables, hass);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+        hass,
+      });
       expect(result).toEqual({
         cards: [
           {
@@ -357,7 +384,10 @@ describe("Given the evaluateConfig function", () => {
         states: {},
       };
 
-      const result = evaluateConfig(templateConfig, variables, hass);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+        hass,
+      });
 
       expect(result).toEqual({
         title: "hello",
@@ -385,7 +415,10 @@ describe("Given the evaluateConfig function", () => {
         states: {},
       };
 
-      const result = evaluateConfig(templateConfig, variables, hass);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+        hass,
+      });
       expect(result).toEqual({
         jedi: "Obi Wan Kenobi",
         sith: "Palpatine",
@@ -406,7 +439,9 @@ describe("Given the evaluateConfig function", () => {
         default: [{ name: "Ashoka Tano" }],
       };
 
-      const result = evaluateConfig(templateConfig, variables, undefined);
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+      });
       expect(result).toEqual({
         entity: "input_boolean.test",
         name: "Ashoka Tano",

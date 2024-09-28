@@ -19,6 +19,7 @@ import { version } from "../package.json";
     _card = undefined;
     _shadow;
     _accessedProperties = new Set();
+    _hasJavascriptTemplate = false;
 
     constructor() {
       super();
@@ -134,7 +135,10 @@ import { version } from "../package.json";
       this._config = evaluateConfig(
         this._templateConfig,
         this._originalConfig.variables,
-        this._hass,
+        {
+          hasJavascript: this._hasJavascriptTemplate,
+          hass: this._hass,
+        },
       );
 
       const newParsedConfig = deepClone(this._config);
@@ -146,6 +150,8 @@ import { version } from "../package.json";
 
     setConfig(config) {
       this._originalConfig = config;
+      this._hasJavascriptTemplate =
+        JSON.stringify(config).includes("_javascript");
 
       const hasConfigChanged = this.parseConfig();
       if (hasConfigChanged === false) {

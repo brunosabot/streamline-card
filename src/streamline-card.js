@@ -74,9 +74,11 @@ import { version } from "../package.json";
     connectedCallback() {
       this._isConnected = true;
 
-      this.updateCardConfig();
-      this.updateCardEditMode();
-      this.updateCardHass();
+      setTimeout(() => {
+        this.updateCardConfig();
+        this.updateCardEditMode();
+        this.updateCardHass();
+      }, 0);
     }
 
     disconnectedCallback() {
@@ -101,12 +103,14 @@ import { version } from "../package.json";
     set hass(hass) {
       this._hass = hass;
 
-      const hasConfigChanged = this.parseConfig();
-      if (hasConfigChanged) {
-        this.updateCardConfig();
-      }
+      setTimeout(() => {
+        const hasConfigChanged = this.parseConfig();
+        if (hasConfigChanged) {
+          this.updateCardConfig();
+        }
 
-      this.updateCardHass();
+        this.updateCardHass();
+      }, 0);
     }
 
     parseConfig() {

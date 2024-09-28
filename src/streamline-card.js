@@ -1,6 +1,5 @@
 import "./streamline-card-editor";
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
-import deepClone from "./deepClone-helper";
 import deepEqual from "./deepEqual-helper";
 import evaluateConfig from "./evaluteConfig-helper";
 import { version } from "../package.json";
@@ -113,8 +112,7 @@ import { version } from "../package.json";
       }, 0);
     }
 
-    parseConfig() {
-      const oldParsedConfig = deepClone(this._config ?? {});
+    prepareConfig() {
       const lovelace = getLovelace() || getLovelaceCast();
       if (!lovelace.config && !lovelace.config.streamline_templates) {
         throw new Error(
@@ -135,6 +133,10 @@ import { version } from "../package.json";
       } else if (this._templateConfig.card && this._templateConfig.element) {
         throw new Error("You can define a card and an element in the template");
       }
+    }
+
+    parseConfig() {
+      const oldParsedConfig = this._config ?? {};
 
       this._config = evaluateConfig(
         this._templateConfig,
@@ -145,15 +147,15 @@ import { version } from "../package.json";
         },
       );
 
-      const newParsedConfig = deepClone(this._config);
       const hasConfigChanged =
-        deepEqual(oldParsedConfig, newParsedConfig) === false;
+        deepEqual(oldParsedConfig, this._config) === false;
 
       return hasConfigChanged;
     }
 
     setConfig(config) {
       this._originalConfig = config;
+      this.prepareConfig();
       this._hasJavascriptTemplate =
         JSON.stringify(config).includes("_javascript");
 

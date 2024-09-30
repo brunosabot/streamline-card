@@ -261,7 +261,7 @@ function evaluateConfig(e, s, t) {
   const { hasJavascript: r, hass: i } = t;
   return r && typeof i < "u" && (a = evaluateJavascript(a, i)), a;
 }
-const version = "0.0.12";
+const version = "0.0.13";
 (async function e() {
   const s = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {
@@ -336,6 +336,9 @@ const version = "0.0.12";
       else throw new Error(
         `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`
       );
+      this._hasJavascriptTemplate = JSON.stringify(
+        this._templateConfig
+      ).includes("_javascript");
     }
     parseConfig() {
       const i = this._config ?? {};
@@ -349,7 +352,7 @@ const version = "0.0.12";
       ), deepEqual(i, this._config) === !1;
     }
     setConfig(i) {
-      if (this._originalConfig = i, this.prepareConfig(), this._hasJavascriptTemplate = JSON.stringify(i).includes("_javascript"), this.parseConfig() !== !1) {
+      if (this._originalConfig = i, this.prepareConfig(), this.parseConfig() !== !1) {
         if (typeof this._card > "u") {
           if (typeof this._config.type > "u")
             throw new Error("[Streamline Card] You need to define a type");

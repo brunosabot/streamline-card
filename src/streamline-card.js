@@ -133,6 +133,10 @@ import { version } from "../package.json";
       } else if (this._templateConfig.card && this._templateConfig.element) {
         throw new Error("You can define a card and an element in the template");
       }
+
+      this._hasJavascriptTemplate = JSON.stringify(
+        this._templateConfig,
+      ).includes("_javascript");
     }
 
     parseConfig() {
@@ -156,8 +160,6 @@ import { version } from "../package.json";
     setConfig(config) {
       this._originalConfig = config;
       this.prepareConfig();
-      this._hasJavascriptTemplate =
-        JSON.stringify(config).includes("_javascript");
 
       const hasConfigChanged = this.parseConfig();
       if (hasConfigChanged === false) {

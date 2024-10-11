@@ -55,6 +55,74 @@ First, you need to define your templates.
 
 The templates are defined in an object at the root of your lovelace configuration. This object needs to be named `streamline_templates`.
 
+#### With the yaml mode
+
+> [!WARNING]
+> The path are put here as examples. you might want to change them to match your needs.
+>
+> Also, you need to understand the principles of yaml and Home Assistant's includes to fully understand this version.
+
+In your lovelace-dashboard.yaml file, you will find the following lines, adjusted to your needs:
+
+```yaml
+ui-example:
+  mode: yaml
+  title: My Example Dsahboard
+  icon: mdi:face-man
+  require_admin: false
+  show_in_sidebar: true
+  filename: lovelace/ui/ui-example.yaml
+```
+
+This will create a new dashboard named `ui-example` with the content of the file `lovelace/ui/ui-example.yaml`. This file name is very important because it is the place where you are going to put your templates.
+
+The file will look like this:
+
+```yaml
+title: "My Example Dashboard"
+
+views:
+  - !include ../views/example/first-view.yaml
+
+streamline_templates: !include_dir_named ../streamline_templates/
+```
+
+or, if you want to inline all your templates:
+
+```yaml
+title: "My Example Dashboard"
+
+views:
+  - !include ../views/example/first-view.yaml
+
+streamline_templates:
+  my_first_template:
+    # ...
+
+  my_second_template:
+    # ...
+```
+
+#### With the UI Mode
+
+> [!WARNING]
+> Even if you are using the UI mode, you need to understand the principles of yaml to make streamline-card work.
+
+When editing your dashboard in UI mode, you can find an option to edit it as a yaml file. For this, open the three dots menu at the top right of the dashboard and click on `Raw configuration editor`. This will open a panel where you can edit your dashboard as a yaml file.
+
+In this file, just add at the top of the file the following lines:
+
+```yaml
+streamline_templates:
+  my_first_template:
+    # ...
+
+  my_second_template:
+    # ...
+```
+
+Next, you can get back to the UI mode and add new streamline-cards to your dashboard with the UI Editor.
+
 #### Basic templates
 
 This object needs to contains your templates declaration, each template has a name and can contain variables. A variable needs to be enclosed in double square brackets `[[variable_name]]`. It will later be replaced by a real value when you instantiate a card which uses this template. If a variable is alone on it's line, enclose it in single quotes: `'[[variable_name]]'`.

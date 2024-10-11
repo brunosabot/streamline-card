@@ -1,16 +1,17 @@
-const getPrefixFromHass = (hass) => {
+const getPrefixFromHass = (hass, variables) => {
   const states = hass?.states ?? undefined;
   const user = hass?.user ?? undefined;
   return `
     var states = ${JSON.stringify(states)};
     var user = ${JSON.stringify(user)};
+    var variables = ${JSON.stringify(variables)};
   `;
 };
 
 // eslint-disable-next-line no-eval
 const doEval = (string) => eval(string);
 
-const evaluateJavascript = (config, hass) => {
+const evaluateJavascript = (config, hass, variables = {}) => {
   let prefix = undefined;
   const configKeys = Object.keys(config);
 
@@ -22,7 +23,7 @@ const evaluateJavascript = (config, hass) => {
           evaluateJavascript(config[key][index], hass);
         } else if (key.endsWith("_javascript")) {
           if (prefix === undefined) {
-            prefix = getPrefixFromHass(hass);
+            prefix = getPrefixFromHass(hass, variables);
           }
 
           const keyWithoutJavascript = key.replace("_javascript", "");
@@ -48,7 +49,7 @@ const evaluateJavascript = (config, hass) => {
       evaluateJavascript(config[key], hass);
     } else if (key.endsWith("_javascript")) {
       if (prefix === undefined) {
-        prefix = getPrefixFromHass(hass);
+        prefix = getPrefixFromHass(hass, variables);
       }
 
       const keyWithoutJavascript = key.replace("_javascript", "");

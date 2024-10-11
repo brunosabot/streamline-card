@@ -104,4 +104,18 @@ describe("Given the evaluateConfig function", () => {
       expect(() => evaluateConfig(config)).toThrowError();
     });
   });
+
+  describe("When passing variables", () => {
+    it("should evaluate the javascript with the variables", () => {
+      const config = {
+        saber_count_javascript:
+          "`${variables.saber_count + variables.saber_count}`",
+      };
+
+      evaluateConfig(config, hass, { saber_count: 7 });
+      expect(config).toEqual({
+        saber_count: "14",
+      });
+    });
+  });
 });

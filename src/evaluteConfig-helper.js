@@ -1,5 +1,6 @@
 import evaluateJavascript from "./evaluateJavascript-helper";
 import evaluateVariables from "./evaluateVariables-helper";
+import formatVariables from "./formatVariables-helper";
 
 export default function evaluateConfig(templateConfig, variables, options) {
   let config = evaluateVariables(templateConfig, variables ?? {});
@@ -7,7 +8,12 @@ export default function evaluateConfig(templateConfig, variables, options) {
   const { hasJavascript, hass } = options;
 
   if (hasJavascript && typeof hass !== "undefined") {
-    config = evaluateJavascript(config, hass);
+    const allVariables = {
+      ...formatVariables(templateConfig.default ?? {}),
+      ...formatVariables(variables ?? {}),
+    };
+
+    config = evaluateJavascript(config, hass, allVariables);
   }
 
   return config;

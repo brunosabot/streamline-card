@@ -269,7 +269,7 @@ function evaluateConfig(e, a, t) {
   }
   return s;
 }
-const version = "0.0.14";
+const version = "0.0.15";
 (async function e() {
   const a = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {
@@ -375,7 +375,7 @@ const version = "0.0.14";
     }
     getLayoutOptions() {
       var i, n;
-      return (n = (i = this._card) == null ? void 0 : i.getLayoutOptions) == null ? void 0 : n.call(i);
+      return ((n = (i = this._card) == null ? void 0 : i.getLayoutOptions) == null ? void 0 : n.call(i)) ?? {};
     }
     createCard() {
       this._templateConfig.card ? this._card = a.createCardElement(this._config) : this._templateConfig.element && (this._card = a.createHuiElement(this._config), this._config.style && Object.keys(this._config.style).forEach((i) => {

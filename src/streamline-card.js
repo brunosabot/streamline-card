@@ -182,7 +182,7 @@ import { version } from "../package.json";
     }
 
     getLayoutOptions() {
-      return this._card?.getLayoutOptions?.();
+      return this._card?.getLayoutOptions?.() ?? {};
     }
 
     createCard() {

@@ -269,7 +269,7 @@ function evaluateConfig(e, a, t) {
   }
   return s;
 }
-const version = "0.0.15";
+const version = "0.0.16";
 (async function e() {
   const a = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {
@@ -324,9 +324,7 @@ const version = "0.0.15";
       return this._hass;
     }
     set hass(i) {
-      this._hass = i, setTimeout(() => {
-        this.parseConfig() && this.updateCardConfig(), this.updateCardHass();
-      }, 0);
+      this._hass = i, this.parseConfig() && this.updateCardConfig(), this.updateCardHass();
     }
     prepareConfig() {
       const i = getLovelace() || getLovelaceCast();

@@ -102,14 +102,12 @@ import { version } from "../package.json";
     set hass(hass) {
       this._hass = hass;
 
-      setTimeout(() => {
-        const hasConfigChanged = this.parseConfig();
-        if (hasConfigChanged) {
-          this.updateCardConfig();
-        }
+      const hasConfigChanged = this.parseConfig();
+      if (hasConfigChanged) {
+        this.updateCardConfig();
+      }
 
-        this.updateCardHass();
-      }, 0);
+      this.updateCardHass();
     }
 
     prepareConfig() {

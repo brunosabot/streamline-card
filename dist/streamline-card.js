@@ -40,8 +40,8 @@ function formatVariables(e) {
   const a = {};
   if (e instanceof Array)
     e.forEach((t) => {
-      Object.entries(t).forEach(([s, r]) => {
-        a[s] = r;
+      Object.entries(t).forEach(([s, n]) => {
+        a[s] = n;
       });
     });
   else
@@ -74,17 +74,17 @@ class StreamlineCardEditor extends HTMLElement {
     this._hass = t, this.render();
   }
   setConfig(t) {
-    const s = StreamlineCardEditor.formatConfig(t), [r] = Object.keys(this._templates), i = {};
-    i.type = s.type, i.template = s.template ?? r ?? "", i.variables = s.variables ?? {};
-    const n = this.setVariablesDefault(i);
-    deepEqual(n, this._config) === !1 && (this._config = n, fireEvent(this, "config-changed", { config: i })), this.render();
+    const s = StreamlineCardEditor.formatConfig(t), [n] = Object.keys(this._templates), i = {};
+    i.type = s.type, i.template = s.template ?? n ?? "", i.variables = s.variables ?? {};
+    const r = this.setVariablesDefault(i);
+    deepEqual(r, this._config) === !1 && (this._config = r, fireEvent(this, "config-changed", { config: i })), this.render();
   }
   setVariablesDefault(t) {
-    return this.getVariablesForTemplate(t.template).forEach((r) => {
-      if (r.toLowerCase().includes("entity") && t.variables[r] === "") {
-        const i = Object.keys(this._hass.states), n = i[Math.floor(Math.random() * i.length)];
-        t.variables[r] = n;
-      } else t.variables[r] || (t.variables[r] = "");
+    return this.getVariablesForTemplate(t.template).forEach((n) => {
+      if (n.toLowerCase().includes("entity") && t.variables[n] === "") {
+        const i = Object.keys(this._hass.states), r = i[Math.floor(Math.random() * i.length)];
+        t.variables[n] = r;
+      } else t.variables[n] || (t.variables[n] = "");
     }), t;
   }
   initialize() {
@@ -98,13 +98,13 @@ class StreamlineCardEditor extends HTMLElement {
     }), this._shadow.appendChild(this.elements.error), this._shadow.appendChild(this.elements.form), this._shadow.appendChild(this.elements.style);
   }
   getVariablesForTemplate(t) {
-    const s = {}, r = this._templates[t];
-    if (typeof r > "u")
+    const s = {}, n = this._templates[t];
+    if (typeof n > "u")
       throw new Error(
         `The template "${t}" doesn't exist in streamline_templates`
       );
-    const i = JSON.stringify(r), n = /\[\[(?<name>.*?)\]\]/gu;
-    return [...i.matchAll(n)].forEach(([, l]) => {
+    const i = JSON.stringify(n), r = /\[\[(?<name>.*?)\]\]/gu;
+    return [...i.matchAll(r)].forEach(([, l]) => {
       s[l] = l;
     }), Object.keys(s).sort((l, c) => {
       const d = Object.keys(this._config.variables).find(
@@ -173,21 +173,21 @@ class StreamlineCardEditor extends HTMLElement {
     ];
   }
   static computeLabel(t) {
-    const s = t.name.replace(/[-_]+/gu, " "), r = s.charAt(0).toUpperCase() + s.slice(1);
+    const s = t.name.replace(/[-_]+/gu, " "), n = s.charAt(0).toUpperCase() + s.slice(1);
     return this.hass.localize(
       `ui.panel.lovelace.editor.card.generic.${t.name}`
-    ) || r;
+    ) || n;
   }
   render() {
     const t = this.getSchema();
     Object.values(this._config.variables).every(
       (i) => typeof i != "object"
     ) === !1 ? (this.elements.error.style.display = "block", this.elements.error.innerText = "Object and array variables are not supported in the visual editor.", this.elements.form.schema = [t[0]]) : (this.elements.error.style.display = "none", this.elements.form.schema = t), this.elements.form.hass = this._hass;
-    const r = {
+    const n = {
       ...this._config,
       variables: formatVariables(this._config.variables)
     };
-    this.elements.form.data = r;
+    this.elements.form.data = n;
   }
 }
 typeof customElements.get("streamline-card-editor") > "u" && customElements.define("streamline-card-editor", StreamlineCardEditor);
@@ -200,10 +200,10 @@ const getPrefixFromHass = (e, a) => {
   `;
 }, doEval = (string) => eval(string), evaluateJavascript = (e, a, t = {}) => {
   let s;
-  const r = Object.keys(e);
-  for (const i of r)
+  const n = Object.keys(e);
+  for (const i of n)
     if (e[i] instanceof Array) {
-      let n;
+      let r;
       for (let l = 0; l < e[i].length; l += 1)
         if (typeof e[i][l] == "object")
           evaluateJavascript(e[i][l], a);
@@ -215,32 +215,32 @@ const getPrefixFromHass = (e, a) => {
               `${s} ${e[i][l]}`
             );
           } catch (d) {
-            n = d;
+            r = d;
           }
         }
       if (i.endsWith("_javascript"))
-        if (typeof n > "u")
+        if (typeof r > "u")
           delete e[i];
         else
-          throw delete e[i.replace("_javascript", "")], n;
+          throw delete e[i.replace("_javascript", "")], r;
     } else if (typeof e[i] == "object")
       evaluateJavascript(e[i], a);
     else if (i.endsWith("_javascript")) {
       s === void 0 && (s = getPrefixFromHass(a, t));
-      const n = i.replace("_javascript", "");
-      e[n] = doEval(`${s} ${e[i]}`), delete e[i];
+      const r = i.replace("_javascript", "");
+      e[r] = doEval(`${s} ${e[i]}`), delete e[i];
     }
   return e;
 }, primitiveRegexMap = /* @__PURE__ */ new Map(), objectQuotesRegexMap = /* @__PURE__ */ new Map(), objectRegexMap = /* @__PURE__ */ new Map(), basicRegexMap = /* @__PURE__ */ new Map(), escapeQuoteRegex = /"/gmu, replaceWithKeyValue = (e, a, t) => {
   if (typeof t == "number" || typeof t == "boolean") {
-    let r = primitiveRegexMap.get(a);
-    return r === void 0 && (r = new RegExp(`["'\`]\\[\\[${a}\\]\\]["'\`]`, "gmu"), primitiveRegexMap.set(a, r)), e.replace(r, t);
+    let n = primitiveRegexMap.get(a);
+    return n === void 0 && (n = new RegExp(`["'\`]\\[\\[${a}\\]\\]["'\`]`, "gmu"), primitiveRegexMap.set(a, n)), e.replace(n, t);
   } else if (typeof t == "object") {
-    const r = JSON.stringify(t);
+    const n = JSON.stringify(t);
     let i = objectQuotesRegexMap.get(a);
     i === void 0 && (i = new RegExp(`"\\[\\[${a}\\]\\]"`, "gmu"), objectQuotesRegexMap.set(a, i));
-    let n = objectRegexMap.get(a);
-    return n === void 0 && (n = new RegExp(`['\`]\\[\\[${a}\\]\\]['\`]`, "gmu"), objectRegexMap.set(a, n)), e.replace(i, r).replace(n, r.replace(escapeQuoteRegex, '\\"'));
+    let r = objectRegexMap.get(a);
+    return r === void 0 && (r = new RegExp(`['\`]\\[\\[${a}\\]\\]['\`]`, "gmu"), objectRegexMap.set(a, r)), e.replace(i, n).replace(r, n.replace(escapeQuoteRegex, '\\"'));
   }
   let s = basicRegexMap.get(a);
   return s === void 0 && (s = new RegExp(`\\[\\[${a}\\]\\]`, "gmu"), basicRegexMap.set(a, s)), e.replace(s, t);
@@ -253,23 +253,23 @@ function evaluateVariables(e, a) {
     ...formatVariables(e.default ?? {}),
     ...formatVariables(a)
   };
-  return Object.entries(s).forEach(([r, i]) => {
-    t = replaceWithKeyValue(t, r, i);
+  return Object.entries(s).forEach(([n, i]) => {
+    t = replaceWithKeyValue(t, n, i);
   }), JSON.parse(t);
 }
 function evaluateConfig(e, a, t) {
   let s = evaluateVariables(e, a ?? {});
-  const { hasJavascript: r, hass: i } = t;
-  if (r && typeof i < "u") {
-    const n = {
+  const { hasJavascript: n, hass: i } = t;
+  if (n && typeof i < "u") {
+    const r = {
       ...formatVariables(e.default ?? {}),
       ...formatVariables(a ?? {})
     };
-    s = evaluateJavascript(s, i, n);
+    s = evaluateJavascript(s, i, r);
   }
   return s;
 }
-const version = "0.0.16";
+const version = "0.0.17";
 (async function e() {
   const a = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {
@@ -293,9 +293,9 @@ const version = "0.0.16";
       this._isConnected && this._card && (this._card.editMode = this._editMode);
     }
     updateCardConfig() {
-      var i, n;
+      var i, r;
       if (this._isConnected && this._card && this._config) {
-        if (this._card.nodeName === "HUI-ERROR-CARD" ? (this._shadow.removeChild(this._card), this.createCard(), this._shadow.appendChild(this._card)) : (n = (i = this._card).setConfig) == null || n.call(i, this._config), this.parentNode.config === void 0 || this._config.visibility === void 0)
+        if (this._card.nodeName === "HUI-ERROR-CARD" ? (this._shadow.removeChild(this._card), this.createCard(), this._shadow.appendChild(this._card)) : (r = (i = this._card).setConfig) == null || r.call(i, this._config), this.parentNode.config === void 0 || this._config.visibility === void 0)
           return;
         deepEqual(
           this._config.visibility,
@@ -368,12 +368,17 @@ const version = "0.0.16";
       }
     }
     getCardSize() {
-      var i, n;
-      return ((n = (i = this._card) == null ? void 0 : i.getCardSize) == null ? void 0 : n.call(i)) ?? 1;
+      var i, r;
+      return ((r = (i = this._card) == null ? void 0 : i.getCardSize) == null ? void 0 : r.call(i)) ?? 1;
     }
+    /** @deprecated Use `getGridOptions` instead */
     getLayoutOptions() {
-      var i, n;
-      return ((n = (i = this._card) == null ? void 0 : i.getLayoutOptions) == null ? void 0 : n.call(i)) ?? {};
+      var i, r;
+      return ((r = (i = this._card) == null ? void 0 : i.getLayoutOptions) == null ? void 0 : r.call(i)) ?? {};
+    }
+    getGridOptions() {
+      var i, r;
+      return ((r = (i = this._card) == null ? void 0 : i.getGridOptions) == null ? void 0 : r.call(i)) ?? {};
     }
     createCard() {
       this._templateConfig.card ? this._card = a.createCardElement(this._config) : this._templateConfig.element && (this._card = a.createHuiElement(this._config), this._config.style && Object.keys(this._config.style).forEach((i) => {

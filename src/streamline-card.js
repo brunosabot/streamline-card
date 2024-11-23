@@ -179,8 +179,13 @@ import { version } from "../package.json";
       return this._card?.getCardSize?.() ?? 1;
     }
 
+    /** @deprecated Use `getGridOptions` instead */
     getLayoutOptions() {
       return this._card?.getLayoutOptions?.() ?? {};
+    }
+
+    getGridOptions() {
+      return this._card?.getGridOptions?.() ?? {};
     }
 
     createCard() {

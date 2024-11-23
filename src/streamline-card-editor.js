@@ -52,7 +52,7 @@ export class StreamlineCardEditor extends HTMLElement {
 
     if (deepEqual(newConfigWithDefaults, this._config) === false) {
       this._config = newConfigWithDefaults;
-      fireEvent(this, "config-changed", { config: newConfig });
+      this.saveConfig(newConfig);
     }
 
     this.render();
@@ -103,9 +103,9 @@ export class StreamlineCardEditor extends HTMLElement {
         newConfig = this.setVariablesDefault(newConfig);
       }
 
-      fireEvent(this, "config-changed", { config: newConfig });
       this._config = newConfig;
       this.render();
+      this.saveConfig(newConfig);
     });
 
     this._shadow.appendChild(this.elements.error);
@@ -132,14 +132,25 @@ export class StreamlineCardEditor extends HTMLElement {
 
     return Object.keys(variables).sort((left, right) => {
       const leftIndex = Object.keys(this._config.variables).find((key) =>
-        Object.hasOwn(this._config.variables[key], left),
+        Object.hasOwn(this._config.variables[key] ?? "", left),
       );
       const rightIndex = Object.keys(this._config.variables).find((key) =>
-        Object.hasOwn(this._config.variables[key], right),
+        Object.hasOwn(this._config.variables[key] ?? "", right),
       );
 
       return leftIndex - rightIndex;
     });
+  }
+
+  saveConfig(newConfig) {
+    const newConfigForSave = JSON.parse(JSON.stringify(newConfig));
+    Object.keys(newConfigForSave.variables).forEach((variable) => {
+      if (newConfigForSave.variables[variable] === "") {
+        delete newConfigForSave.variables[variable];
+      }
+    });
+
+    fireEvent(this, "config-changed", { config: newConfigForSave });
   }
 
   static formatConfig(config) {

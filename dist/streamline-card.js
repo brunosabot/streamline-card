@@ -275,7 +275,7 @@ function evaluateConfig(e, a, t) {
   }
   return s;
 }
-const version = "0.0.18";
+const version = "0.0.19";
 (async function e() {
   const a = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {
@@ -389,7 +389,7 @@ const version = "0.0.18";
     createCard() {
       this._templateConfig.card ? this._card = a.createCardElement(this._config) : this._templateConfig.element && (this._card = a.createHuiElement(this._config), this._config.style && Object.keys(this._config.style).forEach((i) => {
         this.style.setProperty(i, this._config.style[i]);
-      }));
+      })), this._card.getCardSize === void 0 && (this.getCardSize = void 0), this._card.getGridOptions === void 0 && (this.getGridOptions = void 0), this._card.getLayoutOptions === void 0 && (this.getLayoutOptions = void 0);
     }
     static getConfigElement() {
       return document.createElement("streamline-card-editor");

@@ -199,6 +199,16 @@ import { version } from "../package.json";
           });
         }
       }
+
+      if (this._card.getCardSize === undefined) {
+        this.getCardSize = undefined;
+      }
+      if (this._card.getGridOptions === undefined) {
+        this.getGridOptions = undefined;
+      }
+      if (this._card.getLayoutOptions === undefined) {
+        this.getLayoutOptions = undefined;
+      }
     }
 
     static getConfigElement() {

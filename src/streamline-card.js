@@ -26,7 +26,10 @@ import { version } from "../package.json";
     }
 
     updateCardHass() {
-      if (this._isConnected && this._card && this._hass) {
+      if (
+        (this._isConnected && this._card && this._hass) ||
+        (this._hass && this._card.hass === undefined)
+      ) {
         this._card.hass = this._hass;
       }
     }

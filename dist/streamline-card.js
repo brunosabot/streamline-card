@@ -275,7 +275,7 @@ function evaluateConfig(e, a, t) {
   }
   return s;
 }
-const version = "0.0.19";
+const version = "0.0.20";
 (async function e() {
   const a = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {
@@ -293,7 +293,7 @@ const version = "0.0.19";
       this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
     }
     updateCardHass() {
-      this._isConnected && this._card && this._hass && (this._card.hass = this._hass);
+      (this._isConnected && this._card && this._hass || this._hass && this._card.hass === void 0) && (this._card.hass = this._hass);
     }
     updateCardEditMode() {
       this._isConnected && this._card && (this._card.editMode = this._editMode);

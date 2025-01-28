@@ -212,7 +212,7 @@ const getPrefixFromHass = (e, a) => {
       let n;
       for (let l = 0; l < e[i].length; l += 1)
         if (typeof e[i][l] == "object")
-          evaluateJavascript(e[i][l], a);
+          evaluateJavascript(e[i][l], a, t);
         else if (i.endsWith("_javascript")) {
           s === void 0 && (s = getPrefixFromHass(a, t));
           const c = i.replace("_javascript", "");
@@ -230,7 +230,7 @@ const getPrefixFromHass = (e, a) => {
         else
           throw delete e[i.replace("_javascript", "")], n;
     } else if (typeof e[i] == "object")
-      evaluateJavascript(e[i], a);
+      evaluateJavascript(e[i], a, t);
     else if (i.endsWith("_javascript")) {
       s === void 0 && (s = getPrefixFromHass(a, t));
       const n = i.replace("_javascript", "");
@@ -275,7 +275,7 @@ function evaluateConfig(e, a, t) {
   }
   return s;
 }
-const version = "0.0.20";
+const version = "0.0.21";
 (async function e() {
   const a = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {

@@ -20,7 +20,7 @@ const evaluateJavascript = (config, hass, variables = {}) => {
       let latestError = undefined;
       for (let index = 0; index < config[key].length; index += 1) {
         if (typeof config[key][index] === "object") {
-          evaluateJavascript(config[key][index], hass);
+          evaluateJavascript(config[key][index], hass, variables);
         } else if (key.endsWith("_javascript")) {
           if (prefix === undefined) {
             prefix = getPrefixFromHass(hass, variables);
@@ -46,7 +46,7 @@ const evaluateJavascript = (config, hass, variables = {}) => {
         }
       }
     } else if (typeof config[key] === "object") {
-      evaluateJavascript(config[key], hass);
+      evaluateJavascript(config[key], hass, variables);
     } else if (key.endsWith("_javascript")) {
       if (prefix === undefined) {
         prefix = getPrefixFromHass(hass, variables);

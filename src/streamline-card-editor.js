@@ -48,6 +48,12 @@ export class StreamlineCardEditor extends HTMLElement {
     newConfig.type = formattedConfig.type;
     newConfig.template = formattedConfig.template ?? firstTemplate ?? "";
     newConfig.variables = formattedConfig.variables ?? {};
+    if (formattedConfig.grid_options) {
+      newConfig.grid_options = formattedConfig.grid_options;
+    }
+    if (formattedConfig.visibility) {
+      newConfig.visibility = formattedConfig.visibility;
+    }
     const newConfigWithDefaults = this.setVariablesDefault(newConfig);
 
     if (deepEqual(newConfigWithDefaults, this._config) === false) {

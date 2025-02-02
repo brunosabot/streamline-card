@@ -75,7 +75,7 @@ class StreamlineCardEditor extends HTMLElement {
   }
   setConfig(t) {
     const s = StreamlineCardEditor.formatConfig(t), [r] = Object.keys(this._templates), i = {};
-    i.type = s.type, i.template = s.template ?? r ?? "", i.variables = s.variables ?? {};
+    i.type = s.type, i.template = s.template ?? r ?? "", i.variables = s.variables ?? {}, s.grid_options && (i.grid_options = s.grid_options), s.visibility && (i.visibility = s.visibility);
     const n = this.setVariablesDefault(i);
     deepEqual(n, this._config) === !1 && (this._config = n, this.saveConfig(i)), this.render();
   }
@@ -275,7 +275,7 @@ function evaluateConfig(e, a, t) {
   }
   return s;
 }
-const version = "0.0.21";
+const version = "0.0.22";
 (async function e() {
   const a = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class t extends HTMLElement {

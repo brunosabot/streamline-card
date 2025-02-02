@@ -1,280 +1,425 @@
 # Streamline Card
 
-![streamline-card-header](https://github.com/user-attachments/assets/cd24710d-2dc5-48a8-8a35-bf3e6390833b)
+![streamline-card-hero](./images/hero.png)
 
-Streamline your Lovelace configuration with with a card template system.
+Streamline your Lovelace configuration with a powerful card template system.
 
 This card is for [Lovelace](https://www.home-assistant.io/lovelace) on [Home Assistant](https://www.home-assistant.io/).
 
-We all use multiple times the same block of configuration across our lovelace configuration and we don't want to change the same things in a hundred places across our configuration each time we want to modify something.
+## What is This Card?
 
-`streamline-card` to the rescue! This card allows you to reuse multiple times the same configuration in your lovelace configuration to avoid repetition and supports variables and default values.
+Have you ever found yourself copying and pasting the same card configuration over and over in your Home Assistant dashboard? For example, you might have multiple light cards that all look the same, just with different entities. Every time you want to change how these cards look, you have to change each one individually. This is time-consuming and prone to errors.
 
-`streamline-card` is an adaptation of `decluttering-card` by [@brunosabot](https://github.com/brunosabot) which is not maintained anymore.
+This is where `streamline-card` comes to help! It allows you to:
+
+1. Create a template for your cards once
+2. Reuse that template multiple times
+3. Only change the template in one place to update all cards using it
+4. Use variables to customize each instance of the template
+5. Use JavaScript to make your cards dynamic and smart
+
+`streamline-card` is an adaptation by [@brunosabot](https://github.com/brunosabot) of `decluttering-card` which is not maintained anymore.
 
 ## Installation
 
+There are two ways to install this card. The recommended way is through HACS (Home Assistant Community Store), but you can also install it manually.
+
 ### With HACS (Recommended)
 
-This method allows you to get updates directly on the HACS main page
+HACS is like an app store for Home Assistant. It makes installing and updating custom cards much easier. Here's how to install using HACS:
 
-1. If HACS is not installed yet, download it following the instructions on [https://hacs.xyz/docs/use/download/download/](https://hacs.xyz/docs/use/download/download/)
-2. Proceed to the HACS initial configuration following the instructions on [https://hacs.xyz/docs/configuration/basic](https://hacs.xyz/docs/configuration/basic)
-3. On your sidebar go to `HACS`
-4. Click on the three dots button at the top right corner then `Custom repositories`
-5. Put the form:
-   - `https://github.com/brunosabot/streamline-card` as the repository
-   - `Dashboard` as the type
-   - Press `Add`
-6. Now search for `Streamline Card` and then click on the button at the bottom right corner to download it
-7. Go back on your dashboard and click on the icon at the right top corner then on `Edit dashboard`
-8. You can now click on `Add card` in the bottom right corner and search for `Streamline Card`
+1. **Install HACS if you don't have it:**
 
-If it's not working, try to clear your browser cache.
+   - If HACS is not installed yet, download it following the instructions on [https://hacs.xyz/docs/use/download/download/](https://hacs.xyz/docs/use/download/download/)
+   - Follow the HACS initial configuration guide at [https://hacs.xyz/docs/configuration/basic](https://hacs.xyz/docs/configuration/basic)
 
-### Without HACS
+2. **Add the Repository:**
 
-1. Download these files: [streamline-card.js](https://raw.githubusercontent.com/brunosabot/streamline-card/main/dist/streamline-card.js)
-2. Add these files to your `<config>/www` folder
-3. On your dashboard click on the icon at the right top corner then on `Edit dashboard`
-4. Click again on that icon and then click on `Manage resources`
-5. Click on `Add resource`
-6. Copy and paste this: `/local/streamline-card.js?v=1`
-7. Click on `JavaScript Module` then `Create`
-8. Go back and refresh your page
-9. You can now click on `Add card` in the bottom right corner and search for `streamline Card`
-10. After any update of the file you will have to edit `/local/streamline-card.js?v=1` and change the version to any higher number
+   - Go to `HACS` in your Home Assistant sidebar
+   - Click the three dots button (⋮) at the top right corner
+   - Click `Custom repositories`
+   - In the form that appears:
+     - Put `https://github.com/brunosabot/streamline-card` as the repository
+     - Select `Dashboard` as the type
+     - Click `Add`
 
-If it's not working, just try to clear your browser cache.`
+3. **Install the Card:**
+
+   - Search for `Streamline Card` in HACS
+   - Click on the card when you find it
+   - Click the `Download` button at the bottom right
+
+4. **Add to Your Dashboard:**
+   - Go back to your dashboard
+   - Click the menu icon (⋮) at the top right corner
+   - Click `Edit dashboard`
+   - Click `Add card` at the bottom right
+   - Search for `Streamline Card`
+
+If you don't see the card, try clearing your browser cache.
+
+### Manual Installation
+
+If you prefer to install manually or can't use HACS, follow these steps:
+
+1. **Download the Card:**
+   - Download this file: [streamline-card.js](https://raw.githubusercontent.com/brunosabot/streamline-card/main/dist/streamline-card.js)
+   - Save it to your Home Assistant `<config>/www` folder
+2. **Add to Resources:**
+
+   - Go to your dashboard
+   - Click the menu icon (⋮) at the top right
+   - Click `Edit dashboard`
+   - Click the menu icon again
+   - Click `Manage resources`
+   - Click `Add resource`
+   - Enter `/local/streamline-card.js?v=1` in the URL field
+   - Select `JavaScript Module`
+   - Click `Create`
+
+3. **Add to Dashboard:**
+   - Refresh your browser page
+   - Edit your dashboard
+   - Click `Add card`
+   - Search for `Streamline Card`
+
+Note: After updating the file, you'll need to change the version number in the URL (e.g., from `v=1` to `v=2`) to make sure your browser loads the new version.
 
 ## Configuration
 
-### Defining your templates
+Let's learn how to use this card step by step.
 
-First, you need to define your templates.
+### Step 1: Understanding Templates
 
-The templates are defined in an object at the root of your lovelace configuration. This object needs to be named `streamline_templates`.
+A template is like a blueprint for your cards. It defines how your card will look and behave, but leaves certain parts (variables) empty so you can fill them in later.
 
-#### With the yaml mode
-
-> [!WARNING]
-> The path are put here as examples. you might want to change them to match your needs.
->
-> Also, you need to understand the principles of yaml and Home Assistant's includes to fully understand this version.
-
-In your lovelace-dashboard.yaml file, you will find the following lines, adjusted to your needs:
+For example, let's say you want to create a template for a light card. The template might look like this:
 
 ```yaml
-ui-example:
-  mode: yaml
-  title: My Example Dsahboard
-  icon: mdi:face-man
-  require_admin: false
-  show_in_sidebar: true
-  filename: lovelace/ui/ui-example.yaml
+my_light_template:
+  card:
+    type: custom:bubble-card
+    name: "[[room_name]] Light" # This will be filled in later
+    icon: "[[light_icon]]" # This will be filled in later
+    entity: "[[light_entity]]" # This will be filled in later
 ```
 
-This will create a new dashboard named `ui-example` with the content of the file `lovelace/ui/ui-example.yaml`. This file name is very important because it is the place where you are going to put your templates.
+### Step 2: Setting Up Templates
 
-The file will look like this:
+There are two ways to set up your templates: through YAML files or through the UI. Let's look at both methods:
+
+#### Method 1: YAML Configuration (Recommended for Many Templates)
+
+1. **Create a Templates Directory:**
+   Create a folder called `streamline_templates` in your Home Assistant configuration directory.
+
+2. **Add Template Files:**
+   In this folder, create YAML files for your templates. For example, `light_template.yaml`:
+
+   ```yaml
+   default:
+     - light_icon: mdi:ceiling-light
+   card:
+     type: custom:bubble-card
+     name: "[[room_name]] Light"
+     icon: "[[light_icon]]"
+     entity: "[[light_entity]]"
+   ```
+
+3. **Include Templates in Dashboard:**
+   In your dashboard configuration file, add:
+   ```yaml
+   streamline_templates: !include_dir_named ../streamline_templates/
+   ```
+
+#### Method 2: UI Configuration (Easier for Beginners)
+
+1. **Open Raw Editor:**
+
+   - Go to your dashboard
+   - Click the menu icon (⋮)
+   - Click `Raw configuration editor`
+
+2. **Add Templates:**
+   At the top of the file, add:
+   ```yaml
+   streamline_templates:
+     my_light_template:
+       default:
+         - light_icon: mdi:ceiling-light
+       card:
+         type: custom:bubble-card
+         name: "[[room_name]] Light"
+         icon: "[[light_icon]]"
+         entity: "[[light_entity]]"
+   ```
+
+### Step 3: Template Structure
+
+Each template has three main parts:
+
+1. **Template Name:**
+   This is how you'll refer to your template later.
+
+   ```yaml
+   my_light_template: # This is the template name
+   ```
+
+2. **Default Values (Optional):**
+   These are values that will be used if not specified when using the template.
+
+   ```yaml
+   default:
+     - light_icon: mdi:ceiling-light
+   ```
+
+3. **Card Configuration:**
+   This is the actual card configuration, with variables in double brackets.
+
+   ```yaml
+   card: # Use 'card' for normal cards
+     type: custom:bubble-card
+     name: "[[room_name]] Light"
+     icon: "[[light_icon]]"
+     entity: "[[light_entity]]"
+
+   # OR
+
+   element: # Use 'element' for picture-elements
+     type: icon
+     icon: "[[icon]]"
+   ```
+
+### Step 4: Using Variables
+
+Variables are placeholders in your template that get replaced with actual values when you use the template. They are written with double brackets: `[[variable_name]]`
+
+Some important rules about variables:
+
+- Always put them in double brackets: `[[like_this]]`
+- If a variable is alone on a line, put it in single quotes: `'[[variable_name]]'`
+- Variables can be used anywhere in the template
+- You can set default values for variables in the `default` section
+
+### Step 5: Advanced Features - JavaScript Expressions
+
+You can make your templates dynamic using JavaScript. Any key that ends with `_javascript` will be evaluated as JavaScript code.
+
+Here's an example of a dynamic weather card that changes color based on temperature:
 
 ```yaml
-title: "My Example Dashboard"
-
-views:
-  - !include ../views/example/first-view.yaml
-
-streamline_templates: !include_dir_named ../streamline_templates/
+weather_template:
+  card:
+    type: custom:bubble-card
+    card_type: button
+    button_type: state
+    entity: "[[weather_entity]]"
+    styles_javascript: |
+      const temp = states['[[weather_entity]]'].attributes.temperature;
+      return `
+        .bubble-button-card-container {
+          background-color: ${
+            temp < 0 ? 'var(--info-color)' :
+            temp > 30 ? 'var(--error-color)' :
+            'var(--primary-color)'
+          };
+        }
+      `;
 ```
 
-or, if you want to inline all your templates:
+## Real-World Examples
+
+Let's look at some complete examples you can use in your own configuration:
+
+### Example 1: Simple Light Card
 
 ```yaml
-title: "My Example Dashboard"
-
-views:
-  - !include ../views/example/first-view.yaml
-
 streamline_templates:
-  my_first_template:
-    # ...
-
-  my_second_template:
-    # ...
-```
-
-#### With the UI Mode
-
-> [!WARNING]
-> Even if you are using the UI mode, you need to understand the principles of yaml to make streamline-card work.
-
-When editing your dashboard in UI mode, you can find an option to edit it as a yaml file. For this, open the three dots menu at the top right of the dashboard and click on `Raw configuration editor`. This will open a panel where you can edit your dashboard as a yaml file.
-
-In this file, just add at the top of the file the following lines:
-
-```yaml
-streamline_templates:
-  my_first_template:
-    # ...
-
-  my_second_template:
-    # ...
-```
-
-Next, you can get back to the UI mode and add new streamline-cards to your dashboard with the UI Editor.
-
-#### Basic templates
-
-This object needs to contains your templates declaration, each template has a name and can contain variables. A variable needs to be enclosed in double square brackets `[[variable_name]]`. It will later be replaced by a real value when you instantiate a card which uses this template. If a variable is alone on it's line, enclose it in single quotes: `'[[variable_name]]'`.
-
-You can also define default values for your variables in the `default` object.
-
-For a card:
-
-```yaml
-streamline_templates:
-  <template_name>
-    default:  # This is optional
-      - <variable_name>: <variable_value>
-      - <variable_name>: <variable_value>
-      [...]
-    card:  # This is where you put your card config (it can be a card embedding other cards)
-      type: custom:my-super-card
-      [...]
-```
-
-For a Picture-Element:
-
-```yaml
-streamline_templates:
-  <template_name>
-    default:  # This is optional
-      - <variable_name>: <variable_value>
-      - <variable_name>: <variable_value>
-      [...]
-    element:  # This is where you put your element config
-      type: icon
-      [...]
-```
-
-Example in your `lovelace-ui.yaml`:
-
-```yaml
-resources:
-  - url: /local/streamline-card.js
-    type: module
-
-streamline_templates:
-  my_first_template: # This is the name of a template
+  light_template:
     default:
-      - icon: fire
+      - icon: mdi:ceiling-light
     card:
       type: custom:bubble-card
-      name: "[[name]]"
-      icon: "mdi:[[icon]]"
+      card_type: button
+      button_type: "[[type]]"
       entity: "[[entity]]"
+      name: "[[name]]"
+      icon: "[[icon]]"
+      tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
 
-  my_second_template: # This is the name of another template
-    card:
-      type: custom:vertical-stack-in-card
-      cards:
-        - type: horizontal-stack
-          cards:
-            - type: custom:bubble-card
-              entity: "[[entity_1]]"
-            - type: custom:bubble-card
-              entity: "[[entity_2]]"
+# Using the template:
+- type: custom:streamline-card
+  template: light_template
+  variables:
+    - name: Living Room Light
+    - entity: light.living_room
+    - type: slider
 ```
 
-#### Advanced templates
-
-Every key of the template could be using a javascript expression. This could be useful if you want to condition the display of a card based on some advanced logic. Every key of the template that should be executed as JavaScript must end with `_javascript`.
-
-For example, you can use this feature to display a different entity depending on a boolean status:
+### Example 2: Weather Card with Dynamic Styling
 
 ```yaml
 streamline_templates:
-  my_advanced_template: # This is the name of a template
+  weather_card:
     card:
       type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: "[[entity]]"
       name: "[[name]]"
-      icon: "mdi:[[icon]]"
-      # This entity is a JavaScript expression
-      entity_javascript: "states[input_boolean.vacation_mode].state === 'on' ? 'weather.vacation_city' : 'sensor.home_city';"
-```
-
-If you have deep nested objects, you can use the same syntax everywhere:
-
-```yaml
-streamline_templates:
-  my_advanced_template: # This is the name of a template
-    card:
-      type: custom:bubble-card
-      name: "[[name]]"
-      icon: "mdi:[[icon]]"
+      show_state: true
+      scrolling_effect: false
+      card_layout: large
       sub_button:
         - name: Min
-          # This icon is a JavaScript expression
-          icon_javascript: "states[input_boolean.vacation_mode].state === 'on' ? 'mdi:thermometer-off' : 'mdi:thermometer'"
+          icon: mdi:thermometer-low
           entity: "[[entity]]"
           attribute: forecast[0].templow
           show_background: false
           show_attribute: true
+        - name: Wind
+          icon: mdi:weather-windy
+          entity: "[[entity]]"
+          attribute: wind_speed
+          show_background: false
+          show_attribute: true
+      card_mod:
+        style: |
+          .bubble-name {
+              background-color: ${
+                state_attr(config.entity, 'temperature') < 10 ?
+                'var(--info-color)' :
+                state_attr(config.entity, 'temperature') > 30 ?
+                'var(--warning-color)' :
+                ''
+              };
+          }
+
+# Using the template:
+- type: custom:streamline-card
+  template: weather_card
+  variables:
+    - name: Current Weather
+    - entity: weather.home
 ```
 
-And if you have an array of simple items, you can also use the following syntax:
+### Example 3: Alarm Card with State-Based Colors
 
 ```yaml
 streamline_templates:
-  my_advanced_template: # This is the name of a template
+  alarm_template:
+    default:
+      - name: ''
+      - columns: 2
     card:
       type: custom:bubble-card
+      card_type: button
+      button_type: state
+      entity: "[[entity]]"
       name: "[[name]]"
-      icon: "mdi:[[icon]]"
-      # This will create an array with the result of each JavaScript expression
-      example_javascript:
-        - "Math.random()"
-        - "Math.random()"
-        - "Math.random()"
+      show_state: true
+      icon: mdi:alarm-light
+      columns: "[[columns]]"
+      card_layout: large
+      styles: |
+        .bubble-button-card-container {
+          background-color: ${
+            state === 'disarmed' ? 'var(--success-color)' :
+            state === 'triggered' || state ==='pending' ? 'var(--error-color)' :
+            'var(--warning-color)'
+          };
+        }
+
+# Using the template:
+- type: custom:streamline-card
+  template: alarm_template
+  variables:
+    - name: House Alarm
+    - entity: alarm_control_panel.home_alarm
 ```
 
-Finally, you can combine classic variables and javascript expressions in the same template:
+### Example 4: Dynamic Grid of Lights
 
 ```yaml
 streamline_templates:
-  my_advanced_template: # This is the name of a template
+  lights_grid:
+    default:
+      - entity: sensor.number_lights_on
     card:
-      type: custom:bubble-card
-      name: "[[name]]"
-      icon: "mdi:[[icon]]"
-      # This entity is a JavaScript expression using the toggle variable
-      entity_javascript: "states['[[toggle]]'].state === 'on' ? 'weather.vacation_city' : 'sensor.home_city';"
+      type: grid
+      square: false
+      columns: 3
+      cards_javascript: |
+        const onLightEntities = states['[[entity]]'].attributes.lights_on_entity || [];
+
+        return onLightEntities.map(entity => ({
+          type: 'custom:button-card',
+          template: 'light_brightness',
+          entity: entity
+        }));
+
+# Using the template:
+- type: custom:streamline-card
+  template: lights_grid
+  variables:
+    - entity: sensor.active_lights
 ```
 
-### Using the card
+## Tips and Best Practices
 
-| Name      | Type   | Requirement  | Description                                                    |
-| --------- | ------ | ------------ | -------------------------------------------------------------- |
-| type      | string | **Required** | `custom:streamline-card`                                       |
-| template  | object | **Required** | The template to use from `streamline_templates`                |
-| variables | list   | **Optional** | List of variables and their value to replace in the `template` |
+1. **Organizing Templates:**
 
-Example which references the previous templates:
+   - Keep related templates together in the same file
+   - Use clear, descriptive template names
+   - Comment your templates to explain what they do
 
-```yaml
-- type: custom:streamline-card
-  template: my_first_template
-  variables:
-    - name: Test Button
-    - icon: arrow-up
+2. **Variables:**
 
-- type: custom:streamline-card
-  template: my_first_template
-  variables: Default Icon Button
+   - Use descriptive variable names
+   - Set default values for commonly used variables
+   - Keep variable names consistent across related templates
 
-- type: custom:streamline-card
-  template: my_second_template
-  variables:
-    - entity_1: switch.my_switch
-    - entity_2: light.my_light
-```
+3. **JavaScript Usage:**
+
+   - Use JavaScript for dynamic content only when needed
+   - Test your JavaScript expressions thoroughly
+   - Keep the code simple and readable
+
+4. **Performance:**
+   - Don't overuse JavaScript expressions
+   - Avoid complex calculations in templates
+   - Use appropriate card types for your needs
+
+## Troubleshooting
+
+If you're having issues:
+
+1. **Card Not Showing Up:**
+
+   - Clear your browser cache
+   - Check that the resource is properly loaded
+   - Check your browser's console for errors
+
+2. **Template Not Working:**
+
+   - Verify your template syntax
+   - Check that all required variables are provided
+   - Look for YAML formatting errors
+
+3. **JavaScript Errors:**
+   - Check your browser's console for error messages
+   - Verify that your entities exist
+   - Test your JavaScript code separately
+
+## Contributing
+
+Found a bug? Want to add a feature? Feel free to:
+
+1. Open an issue
+2. Submit a pull request
+3. Share your template examples with the community
+
+Your contributions help make this card better for everyone!

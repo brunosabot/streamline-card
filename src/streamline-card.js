@@ -19,10 +19,35 @@ import { version } from "../package.json";
     _shadow;
     _accessedProperties = new Set();
     _hasJavascriptTemplate = false;
+    _pendingUpdates = new Set();
+    _updateScheduled = false;
 
     constructor() {
       super();
       this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
+    }
+
+    queueUpdate(type) {
+      this._pendingUpdates.add(type);
+      if (this._updateScheduled === false) {
+        this._updateScheduled = true;
+        requestAnimationFrame(() => this.flushUpdates());
+      }
+    }
+
+    flushUpdates() {
+      if (this._pendingUpdates.has("config")) {
+        this.updateCardConfig();
+      }
+      if (this._pendingUpdates.has("editMode")) {
+        this.updateCardEditMode();
+      }
+      if (this._pendingUpdates.has("hass")) {
+        this.updateCardHass();
+      }
+
+      this._pendingUpdates.clear();
+      this._updateScheduled = false;
     }
 
     updateCardHass() {
@@ -44,9 +69,11 @@ import { version } from "../package.json";
       if (this._isConnected && this._card && this._config) {
         // If the card is errored, try to recreate it
         if (this._card.nodeName === "HUI-ERROR-CARD") {
-          this._shadow.removeChild(this._card);
-          this.createCard();
-          this._shadow.appendChild(this._card);
+          requestAnimationFrame(() => {
+            this._shadow.removeChild(this._card);
+            this.createCard();
+            this._shadow.appendChild(this._card);
+          });
         } else {
           this._card.setConfig?.(this._config);
         }
@@ -75,12 +102,9 @@ import { version } from "../package.json";
 
     connectedCallback() {
       this._isConnected = true;
-
-      setTimeout(() => {
-        this.updateCardConfig();
-        this.updateCardEditMode();
-        this.updateCardHass();
-      }, 0);
+      this.queueUpdate("config");
+      this.queueUpdate("editMode");
+      this.queueUpdate("hass");
     }
 
     disconnectedCallback() {
@@ -94,7 +118,7 @@ import { version } from "../package.json";
     set editMode(editMode) {
       if (editMode !== this._editMode) {
         this._editMode = editMode;
-        this.updateCardEditMode();
+        this.queueUpdate("editMode");
       }
     }
 
@@ -107,10 +131,10 @@ import { version } from "../package.json";
 
       const hasConfigChanged = this.parseConfig();
       if (hasConfigChanged) {
-        this.updateCardConfig();
+        this.queueUpdate("config");
       }
 
-      this.updateCardHass();
+      this.queueUpdate("hass");
     }
 
     prepareConfig() {
@@ -175,7 +199,7 @@ import { version } from "../package.json";
         this._shadow.appendChild(this._card);
       }
 
-      this.updateCardConfig();
+      this.queueUpdate("config");
     }
 
     getCardSize() {

@@ -1,66 +1,70 @@
-const getPrefixFromHass = (hass, variables) => {
-  const states = hass?.states ?? undefined;
-  const user = hass?.user ?? undefined;
-  const areas = hass?.areas ?? undefined;
-  return `
-    var states = ${JSON.stringify(states)};
-    var user = ${JSON.stringify(user)};
-    var variables = ${JSON.stringify(variables)};
-    var areas = ${JSON.stringify(areas)};
-  `;
+const functionCache = new Map();
+
+const createEvaluationContext = (hass, variables) => ({
+  areas: hass?.areas,
+  states: hass?.states,
+  user: hass?.user,
+  variables,
+});
+
+const createFunction = (code, cacheKey) => {
+  if (!functionCache.has(cacheKey)) {
+    try {
+      functionCache.set(
+        cacheKey,
+        // eslint-disable-next-line no-new-func
+        new Function("states", "user", "variables", "areas", `return ${code}`),
+      );
+    } catch (error) {
+      throw new Error(`Failed to compile JavaScript: ${error.message}`);
+    }
+  }
+  return functionCache.get(cacheKey);
 };
 
-// eslint-disable-next-line no-eval
-const doEval = (string) => eval(string);
+const processValue = (value, context) => {
+  if (typeof value === "string") {
+    const cacheKey = value;
+    const fn = createFunction(value, cacheKey);
 
-const evaluateJavascript = (config, hass, variables = {}) => {
-  let prefix = undefined;
-  const configKeys = Object.keys(config);
+    return fn(context.states, context.user, context.variables, context.areas);
+  }
+  return value;
+};
 
-  for (const key of configKeys) {
-    if (config[key] instanceof Array) {
-      let latestError = undefined;
-      for (let index = 0; index < config[key].length; index += 1) {
-        if (typeof config[key][index] === "object") {
-          evaluateJavascript(config[key][index], hass, variables);
+const processConfig = (template, hass, variables) => {
+  const context = createEvaluationContext(hass, variables);
+
+  for (const [key, value] of Object.entries(template)) {
+    if (Array.isArray(value)) {
+      const newArray = [];
+      for (const item of value) {
+        if (typeof item === "object") {
+          processConfig(item, hass, variables);
+          newArray.push(item);
         } else if (key.endsWith("_javascript")) {
-          if (prefix === undefined) {
-            prefix = getPrefixFromHass(hass, variables);
-          }
-
-          const keyWithoutJavascript = key.replace("_javascript", "");
-          try {
-            config[keyWithoutJavascript] ||= [];
-            config[keyWithoutJavascript][index] = doEval(
-              `${prefix} ${config[key][index]}`,
-            );
-          } catch (error) {
-            latestError = error;
-          }
+          newArray.push(processValue(item, context));
+        } else {
+          newArray.push(item);
         }
       }
       if (key.endsWith("_javascript")) {
-        if (typeof latestError === "undefined") {
-          delete config[key];
-        } else {
-          delete config[key.replace("_javascript", "")];
-          throw latestError;
-        }
+        template[key.replace("_javascript", "")] = newArray;
+        delete template[key];
+      } else {
+        template[key] = newArray;
       }
-    } else if (typeof config[key] === "object") {
-      evaluateJavascript(config[key], hass, variables);
+    } else if (typeof value === "object") {
+      processConfig(value, hass, variables);
     } else if (key.endsWith("_javascript")) {
-      if (prefix === undefined) {
-        prefix = getPrefixFromHass(hass, variables);
-      }
-
-      const keyWithoutJavascript = key.replace("_javascript", "");
-
-      config[keyWithoutJavascript] = doEval(`${prefix} ${config[key]}`);
-      delete config[key];
+      template[key.replace("_javascript", "")] = processValue(value, context);
+      delete template[key];
     }
   }
+};
 
+const evaluateJavascript = (config, hass, variables = {}) => {
+  processConfig(config, hass, variables);
   return config;
 };
 

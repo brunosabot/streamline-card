@@ -4,6 +4,7 @@ const primitiveRegexMap = new Map();
 const objectQuotesRegexMap = new Map();
 const objectRegexMap = new Map();
 const basicRegexMap = new Map();
+const variableCache = new Map();
 const escapeQuoteRegex = /"/gmu;
 
 export const replaceWithKeyValue = (stringTemplate, key, value) => {
@@ -49,18 +50,23 @@ export default function evaluateVariables(templateConfig, variables) {
     return templateConfig.card;
   }
 
-  let stringTemplate = templateConfig.card
-    ? JSON.stringify(templateConfig.card)
-    : JSON.stringify(templateConfig.element);
+  const cacheKey = JSON.stringify({ templateConfig, variables });
+  if (variableCache.has(cacheKey) === false) {
+    let stringTemplate = templateConfig.card
+      ? JSON.stringify(templateConfig.card)
+      : JSON.stringify(templateConfig.element);
 
-  const variablesObject = {
-    ...formatVariables(templateConfig.default ?? {}),
-    ...formatVariables(variables),
-  };
+    const variablesObject = {
+      ...formatVariables(templateConfig.default ?? {}),
+      ...formatVariables(variables),
+    };
 
-  Object.entries(variablesObject).forEach(([key, value]) => {
-    stringTemplate = replaceWithKeyValue(stringTemplate, key, value);
-  });
+    Object.entries(variablesObject).forEach(([key, value]) => {
+      stringTemplate = replaceWithKeyValue(stringTemplate, key, value);
+    });
 
-  return JSON.parse(stringTemplate);
+    variableCache.set(cacheKey, JSON.parse(stringTemplate));
+  }
+
+  return variableCache.get(cacheKey);
 }

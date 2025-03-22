@@ -2,7 +2,17 @@ import "./streamline-card-editor";
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
 import deepEqual from "./deepEqual-helper";
 import evaluateConfig from "./evaluteConfig-helper";
+import evaluateYaml from "./evaluateYaml";
 import { version } from "../package.json";
+
+let isTemplateLoaded = null;
+let remoteTemplates = {};
+
+const thrower = (text) => {
+  if (isTemplateLoaded === true) {
+    throw new Error(text);
+  }
+}
 
 (async function initializeStreamlineCard() {
   const HELPERS = window.loadCardHelpers
@@ -17,6 +27,8 @@ import { version } from "../package.json";
     _hass = undefined;
     _card = undefined;
     _shadow;
+    _inlineTemplates = {};
+    _templates = {};
     _accessedProperties = new Set();
     _hasJavascriptTemplate = false;
     _pendingUpdates = new Set();
@@ -53,7 +65,7 @@ import { version } from "../package.json";
     updateCardHass() {
       if (
         (this._isConnected && this._card && this._hass) ||
-        (this._hass && this._card.hass === undefined)
+        (this._card && this._hass && this._card.hass === undefined)
       ) {
         this._card.hass = this._hass;
       }
@@ -137,34 +149,73 @@ import { version } from "../package.json";
       this.queueUpdate("hass");
     }
 
-    prepareConfig() {
+    fetchTemplate(url) {
+      return fetch(`${url}?t=${new Date().getTime()}`)
+        .then((response) => response.text())
+        .then((text) => {
+          remoteTemplates = evaluateYaml(text);
+          this._templates = { ...remoteTemplates, ...this._inlineTemplates };
+        });
+    }
+
+    getTemplates() {
       const lovelace = getLovelace() || getLovelaceCast();
       if (!lovelace.config && !lovelace.config.streamline_templates) {
-        throw new Error(
+        thrower(
           "The object streamline_templates doesn't exist in your main lovelace config.",
         );
       }
 
-      this._templateConfig =
-        lovelace.config.streamline_templates[this._originalConfig.template];
+      this._inlineTemplates = lovelace.config.streamline_templates;
+      this._templates = { ...remoteTemplates, ...this._inlineTemplates };
+
+      if (isTemplateLoaded === null) {
+        const filename = "streamline-card/streamline_templates.yaml";
+        isTemplateLoaded = this.fetchTemplate(`/hacsfiles/${filename}`)
+          .catch(() => this.fetchTemplate(`/local/${filename}`))
+          .catch(() => this.fetchTemplate(`/local/community/${filename}`));
+      }
+      if (isTemplateLoaded instanceof Promise) {
+        isTemplateLoaded.then(() => {
+          isTemplateLoaded = true;
+
+          if (this._card === undefined) {
+            this.setConfig(this._originalConfig);
+            this.queueUpdate("hass");
+          }
+        })
+      }
+    }
+
+    prepareConfig() {
+      this.getTemplates();
+      this._templateConfig = this._templates[this._originalConfig.template];
+
       if (!this._templateConfig) {
-        throw new Error(
+        return thrower(
           `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`,
         );
       } else if (!(this._templateConfig.card || this._templateConfig.element)) {
-        throw new Error(
+        return thrower(
           "You should define either a card or an element in the template",
         );
       } else if (this._templateConfig.card && this._templateConfig.element) {
-        throw new Error("You can define a card and an element in the template");
+        return thrower("You can define a card and an element in the template");
+        
       }
 
       this._hasJavascriptTemplate = JSON.stringify(
-        this._templateConfig,
+        this._templateConfig ?? "",
       ).includes("_javascript");
+
+      return undefined;
     }
 
     parseConfig() {
+      if (this._templateConfig === undefined) {
+        return false;
+      }
+
       const oldParsedConfig = this._config ?? {};
 
       this._config = evaluateConfig(
@@ -193,7 +244,7 @@ import { version } from "../package.json";
 
       if (typeof this._card === "undefined") {
         if (typeof this._config.type === "undefined") {
-          throw new Error("[Streamline Card] You need to define a type");
+          thrower("[Streamline Card] You need to define a type");
         }
         this.createCard();
         this._shadow.appendChild(this._card);

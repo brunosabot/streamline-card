@@ -9,6 +9,7 @@ export default [
       ...js.configs.all.rules,
       camelcase: ["off"],
       "max-depth": ["off"],
+      "max-lines": ["off"],
       "max-statements": ["off"],
       "no-magic-numbers": ["off"],
       "no-ternary": "off",

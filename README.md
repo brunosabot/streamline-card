@@ -216,7 +216,7 @@ weather_template:
     entity: "[[weather_entity]]"
     styles_javascript: |
       const temp = states['[[weather_entity]]'].attributes.temperature;
-      return `
+      `
         .bubble-button-card-container {
           background-color: ${
             temp < 0 ? 'var(--info-color)' :

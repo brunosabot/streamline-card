@@ -198,11 +198,12 @@ class StreamlineCardEditor extends HTMLElement {
 }
 typeof customElements.get("streamline-card-editor") > "u" && customElements.define("streamline-card-editor", StreamlineCardEditor);
 const getPrefixFromHass = (e, a) => {
-  const t = (e == null ? void 0 : e.states) ?? void 0, s = (e == null ? void 0 : e.user) ?? void 0;
+  const t = (e == null ? void 0 : e.states) ?? void 0, s = (e == null ? void 0 : e.user) ?? void 0, r = (e == null ? void 0 : e.areas) ?? void 0;
   return `
     var states = ${JSON.stringify(t)};
     var user = ${JSON.stringify(s)};
     var variables = ${JSON.stringify(a)};
+    var areas = ${JSON.stringify(r)};
   `;
 }, doEval = (string) => eval(string), evaluateJavascript = (e, a, t = {}) => {
   let s;

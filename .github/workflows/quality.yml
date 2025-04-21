@@ -8,7 +8,7 @@ on:
 jobs:
   unit-testing:
     name: Vitest unit testing
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Code Checkout
@@ -37,7 +37,7 @@ jobs:
 
   code-formatting:
     name: Prettier code formatting
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Code Checkout
         uses: "actions/checkout@v4"
@@ -62,7 +62,7 @@ jobs:
 
   code-linting:
     name: Eslint code linting
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Code Checkout
         uses: "actions/checkout@v4"
@@ -87,7 +87,7 @@ jobs:
 
   code-build:
     name: Build code
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Code Checkout
         uses: "actions/checkout@v4"

@@ -132,6 +132,27 @@ There are two ways to set up your templates: through YAML files or through the U
    streamline_templates: !include_dir_named ../streamline_templates/
    ```
 
+---
+
+##### ⚡️ Automatic Template File Loading and Fallback Locations
+
+> **Note:** An example template file, `streamline_templates.example.yaml`, is provided in the `dist/` directory of this repository. You can copy this file to any of the supported locations (such as `/hacsfiles/streamline-card/`, `/local/streamline-card/`, or `/local/community/streamline-card/`) and rename it to `streamline_templates.yaml` to get started quickly with your own templates.
+
+The `streamline-card` will automatically attempt to load the `streamline_templates.yaml` file from several locations, in the following order:
+
+1. `/hacsfiles/streamline-card/streamline_templates.yaml` (default for HACS installations)
+2. `/local/streamline-card/streamline_templates.yaml` (commonly used for manual installations)
+3. `/local/community/streamline-card/streamline_templates.yaml` (used by some community setups)
+
+If the file is not found in the first location, the card will try the next, and so on. This fallback mechanism ensures maximum compatibility with different Home Assistant setups.
+
+**What does this mean for you?**
+- You can place your `streamline_templates.yaml` file in any of these locations, depending on how you installed the card and your Home Assistant directory structure.
+- Only one file is needed; the card will use the first one it finds.
+- This makes it easy to provide or override templates without modifying the card code.
+
+---
+
 #### Method 2: UI Configuration (Easier for Beginners)
 
 1. **Open Raw Editor:**
@@ -373,6 +394,23 @@ streamline_templates:
   variables:
     - entity: sensor.active_lights
 ```
+
+## 📚 Examples
+
+Explore real-world template examples to help you get started and inspire your own creations:
+
+- [Bubble Light Template](examples/bubble_light.md):
+  - A reusable light control card with toggle, name, icon, and slider/button options. Demonstrates default values for variables.
+- [Bubble Cover Template](examples/bubble_cover.md):
+  - A cover (e.g., window shutter) control card showing dynamic JavaScript styling (`_javascript` suffix) and service call actions in sub-buttons.
+- [Entity List Template](examples/entity_list_template.md):
+  - DRY configuration for a list of similar entities, showing how to use templates and variables for scalable dashboards (Issue #51).
+- [Template Objects with JavaScript](examples/template_objects.md):
+  - Dynamically generate cards using JavaScript and entity attributes for advanced, data-driven dashboards (Issue #39).
+- [Conditional JavaScript Styling](examples/conditional_javascript.md):
+  - Use the `_javascript` suffix for dynamic styling and animations based on entity state (Issue #38).
+
+Each example includes the YAML code, an explanation of its use, and highlights interesting implementation details.
 
 ## Tips and Best Practices
 

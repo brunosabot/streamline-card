@@ -1,10 +1,12 @@
 const getPrefixFromHass = (hass, variables) => {
   const states = hass?.states ?? undefined;
   const user = hass?.user ?? undefined;
+  const areas = hass?.areas ?? undefined;
   return `
     var states = ${JSON.stringify(states)};
     var user = ${JSON.stringify(user)};
     var variables = ${JSON.stringify(variables)};
+    var areas = ${JSON.stringify(areas)};
   `;
 };
 

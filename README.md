@@ -204,6 +204,12 @@ Some important rules about variables:
 ### Step 5: Advanced Features - JavaScript Expressions
 
 You can make your templates dynamic using JavaScript. Any key that ends with `_javascript` will be evaluated as JavaScript code.
+The javascript code has access to the following data
+
+- **states**: An object containing all states
+- **user**: An object containing the current user information, for instance `user.name` or `user.is_admin`
+- **variables**: An object containing all the variables you've defined in your template
+- **areas**: An object containing all areas defined in Home Assistant, for instance you can use `areas.kitchen.icon`
 
 Here's an example of a dynamic weather card that changes color based on temperature:
 

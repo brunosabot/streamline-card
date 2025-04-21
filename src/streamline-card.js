@@ -12,7 +12,7 @@ const thrower = (text) => {
   if (isTemplateLoaded === true) {
     throw new Error(text);
   }
-}
+};
 
 (async function initializeStreamlineCard() {
   const HELPERS = window.loadCardHelpers
@@ -183,7 +183,7 @@ const thrower = (text) => {
             this.setConfig(this._originalConfig);
             this.queueUpdate("hass");
           }
-        })
+        });
       }
     }
 
@@ -201,7 +201,6 @@ const thrower = (text) => {
         );
       } else if (this._templateConfig.card && this._templateConfig.element) {
         return thrower("You can define a card and an element in the template");
-        
       }
 
       this._hasJavascriptTemplate = JSON.stringify(

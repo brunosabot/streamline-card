@@ -43,7 +43,8 @@ const processConfig = (template, hass, variables) => {
           processConfig(item, hass, variables);
           newArray.push(item);
         } else if (key.endsWith("_javascript")) {
-          newArray.push(processValue(item, context));
+          const processedValue = processValue(item, context);
+          newArray.push(processedValue);
         } else {
           newArray.push(item);
         }
@@ -57,7 +58,8 @@ const processConfig = (template, hass, variables) => {
     } else if (typeof value === "object") {
       processConfig(value, hass, variables);
     } else if (key.endsWith("_javascript")) {
-      template[key.replace("_javascript", "")] = processValue(value, context);
+      const processedValue = processValue(value, context);
+      template[key.replace("_javascript", "")] = processedValue;
       delete template[key];
     }
   }

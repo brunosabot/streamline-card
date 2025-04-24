@@ -65,8 +65,8 @@ export default function evaluateVariables(templateConfig, variables) {
       stringTemplate = replaceWithKeyValue(stringTemplate, key, value);
     });
 
-    variableCache.set(cacheKey, JSON.parse(stringTemplate));
+    variableCache.set(cacheKey, stringTemplate);
   }
 
-  return variableCache.get(cacheKey);
+  return JSON.parse(variableCache.get(cacheKey));
 }

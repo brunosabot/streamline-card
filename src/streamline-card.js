@@ -217,8 +217,6 @@ const thrower = (text) => {
 
       const oldParsedConfig = this._config ?? {};
 
-      console.log('Evaluating config...');
-
       this._config = evaluateConfig(
         this._templateConfig,
         this._originalConfig.variables,

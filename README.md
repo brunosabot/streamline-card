@@ -136,13 +136,12 @@ There are two ways to set up your templates: through YAML files or through the U
 
 ##### ⚡️ Automatic Template File Loading and Fallback Locations
 
-> **Note:** An example template file, `streamline_templates.example.yaml`, is provided in the `dist/` directory of this repository. You can copy this file to any of the supported locations (such as `/hacsfiles/streamline-card/`, `/local/streamline-card/`, or `/local/community/streamline-card/`) and rename it to `streamline_templates.yaml` to get started quickly with your own templates.
+> **Note:** An example template file, `streamline_templates.example.yaml`, is provided in the `dist/` directory of this repository. You can copy this file to any of the supported locations (such as `/config/www/community/streamline-card/` or `/config/www/streamline-card/`) and rename it to `streamline_templates.yaml` to get started quickly with your own templates.
 
 The `streamline-card` will automatically attempt to load the `streamline_templates.yaml` file from several locations, in the following order:
 
-1. `/hacsfiles/streamline-card/streamline_templates.yaml` (default for HACS installations)
-2. `/local/streamline-card/streamline_templates.yaml` (commonly used for manual installations)
-3. `/local/community/streamline-card/streamline_templates.yaml` (used by some community setups)
+1. `/config/www/community/streamline-card/streamline_templates.yaml` (default for HACS installations)
+2. `/config/www/streamline-card/streamline_templates.yaml` (commonly used for manual installations)
 
 If the file is not found in the first location, the card will try the next, and so on. This fallback mechanism ensures maximum compatibility with different Home Assistant setups.
 

@@ -13,7 +13,7 @@ const createFunction = (code, cacheKey) => {
       functionCache.set(
         cacheKey,
         // eslint-disable-next-line no-new-func
-        new Function("states", "user", "variables", "areas", `return ${code}`),
+        new Function("states", "user", "variables", "areas", code),
       );
     } catch (error) {
       throw new Error(`Failed to compile JavaScript: ${error.message}`);

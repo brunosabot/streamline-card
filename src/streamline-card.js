@@ -43,7 +43,7 @@ const thrower = (text) => {
       this._pendingUpdates.add(type);
       if (this._updateScheduled === false) {
         this._updateScheduled = true;
-        requestAnimationFrame(() => this.flushUpdates());
+        this.flushUpdates();
       }
     }
 

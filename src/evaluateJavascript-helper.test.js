@@ -7,7 +7,7 @@ describe("Given the evaluateConfig function", () => {
     it("should evaluate the javascript", () => {
       const config = {
         saber_count_javascript:
-          "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
+          "return `${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
       };
 
       evaluateConfig(config, hass);
@@ -20,7 +20,7 @@ describe("Given the evaluateConfig function", () => {
   describe("When passing an object with a javascript suffix with user usage", () => {
     it("should evaluate the javascript with the hass", () => {
       const config = {
-        sample_javascript: "`${user.obiWan.name}`",
+        sample_javascript: "return `${user.obiWan.name}`",
       };
 
       evaluateConfig(config, hass);
@@ -35,7 +35,7 @@ describe("Given the evaluateConfig function", () => {
       const config = {
         obi_wan: {
           saber_count_javascript:
-            "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
+            "return `${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
         },
       };
 
@@ -52,7 +52,7 @@ describe("Given the evaluateConfig function", () => {
     it("should evaluate the javascript", () => {
       const config = {
         saber_count_javascript: [
-          "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
+          "return `${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
         ],
       };
 
@@ -68,9 +68,9 @@ describe("Given the evaluateConfig function", () => {
       const config = {
         jedi: [
           {
-            name_javascript: "`${user.obiWan.name}`",
+            name_javascript: "return `${user.obiWan.name}`",
             saber_count_javascript:
-              "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
+              "return `${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
           },
         ],
       };
@@ -86,7 +86,7 @@ describe("Given the evaluateConfig function", () => {
     it("should throw an error", () => {
       const config = {
         saber_count_javascript:
-          "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
+          "return `${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
       };
 
       expect(() => evaluateConfig(config)).toThrowError();
@@ -97,7 +97,7 @@ describe("Given the evaluateConfig function", () => {
     it("should throw an error", () => {
       const config = {
         saber_count_javascript: [
-          "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
+          "return `${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
         ],
       };
 
@@ -109,7 +109,7 @@ describe("Given the evaluateConfig function", () => {
     it("should evaluate the javascript with the variables", () => {
       const config = {
         saber_count_javascript:
-          "`${variables.saber_count + variables.saber_count}`",
+          "return `${variables.saber_count + variables.saber_count}`",
       };
 
       evaluateConfig(config, hass, { saber_count: 7 });

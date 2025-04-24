@@ -202,7 +202,7 @@ describe("Given the evaluateConfig function", () => {
       const variables = [
         {
           saber_count_javascript:
-            "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
+            "return `${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
         },
       ];
       const templateConfig = {
@@ -219,7 +219,7 @@ describe("Given the evaluateConfig function", () => {
       expect(result).toEqual({
         entity: "input_boolean.test",
         saber_count:
-          "`${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
+          "return `${states['input_number.green_saber_count'].state + states['input_number.blue_saber_count'].state}`",
         type: "custom:button-card",
       });
     });
@@ -236,7 +236,7 @@ describe("Given the evaluateConfig function", () => {
       const templateConfig = {
         card: {
           entity: "input_boolean.test",
-          saber_count_javascript: "[[saber_count]]",
+          saber_count_javascript: "return [[saber_count]]",
           type: "custom:button-card",
         },
       };
@@ -278,7 +278,7 @@ describe("Given the evaluateConfig function", () => {
             cards: [
               {
                 entity_javascript:
-                  "`${states['input_text.system'].attributes.governor}`",
+                  "return `${states['input_text.system'].attributes.governor}`",
                 type: "custom:button-card",
               },
             ],
@@ -315,8 +315,8 @@ describe("Given the evaluateConfig function", () => {
       const variables = [];
       const templateConfig = {
         card: {
-          cards_2_javascript: "`[[cards]]`",
-          cards_javascript: "'[[cards]]'",
+          cards_2_javascript: "return `[[cards]]`",
+          cards_javascript: "return '[[cards]]'",
           type: "vertical-stack",
         },
         default: [
@@ -368,7 +368,7 @@ describe("Given the evaluateConfig function", () => {
       const variables = [];
       const templateConfig = {
         card: {
-          title_javascript: "('[[testing]]').text",
+          title_javascript: "return ('[[testing]]').text",
           type: "custom:mushroom-title-card",
         },
         default: [

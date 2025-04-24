@@ -34,7 +34,7 @@ card:
           entity_id:
             - '[[my]]'
   styles_javascript: |
-    `
+    return `
     .bubble-cover-card-container {
       gap: 8px;
     }

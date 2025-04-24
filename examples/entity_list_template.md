@@ -13,7 +13,7 @@ This template demonstrates how to use streamline-card to efficiently create a li
 card:
   type: entities
   entities_javascript: |
-    variables.list.map(({entity, name}) => ({
+    return variables.list.map(({entity, name}) => ({
       entity: entity,
       name: name,
       secondary_info: 'last-changed',

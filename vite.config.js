@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
         entry: "src/streamline-card.js",
         formats: ["es"],
       },
+      minify: false,
       outDir: path.resolve(targetDirectory),
     },
     test: {

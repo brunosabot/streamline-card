@@ -24,7 +24,7 @@ card:
   cards_javascript: |
     const onLightEntities = states['[[entity]]'].attributes.lights_on_entity || [];
     
-    onLightEntities.map(entity => ({
+    return onLightEntities.map(entity => ({
       type: 'custom:button-card', 
       template: 'light_brightness', 
       entity: entity

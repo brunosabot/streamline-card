@@ -26,7 +26,7 @@ card:
   hold_action:
     action: more-info
   styles_javascript: |
-    `
+    return `
       .bubble-icon {
         animation: ${states['[[entity]]'].state === 'on' ? 'slow-rotate 2s linear infinite' : ''};
       }

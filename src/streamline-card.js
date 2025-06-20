@@ -115,12 +115,15 @@ const thrower = (text) => {
     connectedCallback() {
       if (!this._isConnected) {
         this._isConnected = true;
+         this.queueUpdate("config");
+         this.queueUpdate("editMode");
+         this.queueUpdate("hass");
       }
     }
 
-    disconnectedCallback() {
-      this._isConnected = false;
-    }
+    // disconnectedCallback() {
+    //   this._isConnected = false;
+    // }
 
     get editMode() {
       return this._editMode;

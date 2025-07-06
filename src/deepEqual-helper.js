@@ -1,4 +1,5 @@
 const isPrimitive = (obj) => obj !== Object(obj);
+const isDefined = (obj) => obj !== null && obj !== undefined;
 
 const deepEqual = (obj1, obj2) => {
   if (obj1 === obj2) {
@@ -7,6 +8,10 @@ const deepEqual = (obj1, obj2) => {
 
   if (isPrimitive(obj1) && isPrimitive(obj2)) {
     return obj1 === obj2;
+  }
+
+  if (isDefined(obj1) === false || isDefined(obj2) === false) {
+    return false;
   }
 
   if (Object.keys(obj1).length !== Object.keys(obj2).length) {

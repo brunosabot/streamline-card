@@ -11,11 +11,11 @@ export const replaceWithKeyValue = (stringTemplate, key, value) => {
   if (typeof value === "number" || typeof value === "boolean") {
     let rxp = primitiveRegexMap.get(key);
     if (rxp === undefined) {
-      rxp = new RegExp(`["'\`]\\[\\[${key}\\]\\]["'\`]`, "gmu");
+      rxp = new RegExp(`["'\`]?\\[\\[${key}\\]\\]["'\`]?`, "gmu");
       primitiveRegexMap.set(key, rxp);
     }
 
-    return stringTemplate.replace(rxp, value);
+    return stringTemplate.replaceAll(rxp, value);
   } else if (typeof value === "object") {
     const valueString = JSON.stringify(value);
 
@@ -32,8 +32,8 @@ export const replaceWithKeyValue = (stringTemplate, key, value) => {
     }
 
     return stringTemplate
-      .replace(rxpQuotes, valueString)
-      .replace(rxp, valueString.replace(escapeQuoteRegex, '\\"'));
+      .replaceAll(rxpQuotes, valueString)
+      .replaceAll(rxp, valueString.replace(escapeQuoteRegex, '\\"'));
   }
 
   let rxp = basicRegexMap.get(key);
@@ -42,7 +42,7 @@ export const replaceWithKeyValue = (stringTemplate, key, value) => {
     basicRegexMap.set(key, rxp);
   }
 
-  return stringTemplate.replace(rxp, value);
+  return stringTemplate.replaceAll(rxp, value);
 };
 
 export default function evaluateVariables(templateConfig, variables) {

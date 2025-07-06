@@ -228,4 +228,29 @@ describe("Given the evaluateVariables function", () => {
       });
     });
   });
+
+  describe("When the template has a key with multiple variables", () => {
+    it.only("should replace the variables", () => {
+      const variables = [{ maquina: "bathroom" }];
+      const templateConfig = {
+        card: {
+          entities: [
+            { entity: "sensor.aqara_temperature_[[maquina]]_pressure" },
+          ],
+          hours_to_show: "[[hours]]",
+          title: "[[maquina]] - [[hours]] h",
+          type: "history-graph",
+        },
+        default: [{ hours: 8 }],
+      };
+
+      const result = evaluateVariables(templateConfig, variables);
+      expect(result).toEqual({
+        entities: [{ entity: "sensor.aqara_temperature_bathroom_pressure" }],
+        hours_to_show: 8,
+        title: "bathroom - 8 h",
+        type: "history-graph",
+      });
+    });
+  });
 });

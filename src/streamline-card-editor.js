@@ -1,6 +1,7 @@
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
 import { getRemoteTemplates, loadRemoteTemplates } from "./templateLoader";
 import deepEqual from "./deepEqual-helper";
+import exampleTile from "./templates/exampleTile";
 import fireEvent from "./fireEvent-helper";
 import formatVariables from "./formatVariables-helper";
 
@@ -8,7 +9,7 @@ export class StreamlineCardEditor extends HTMLElement {
   _card = undefined;
   _hass = undefined;
   _shadow;
-  _templates = {};
+  _templates = { ...exampleTile };
 
   constructor(card) {
     super();
@@ -21,12 +22,14 @@ export class StreamlineCardEditor extends HTMLElement {
     if (remoteTemplateLoader instanceof Promise) {
       remoteTemplateLoader.then(() => {
         this._templates = {
+          ...exampleTile,
           ...getRemoteTemplates(),
           ...lovelace.config.streamline_templates,
         };
       });
     } else {
       this._templates = {
+        ...exampleTile,
         ...getRemoteTemplates(),
         ...lovelace.config.streamline_templates,
       };

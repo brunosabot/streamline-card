@@ -3,6 +3,7 @@ import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
 import deepEqual from "./deepEqual-helper";
 import evaluateConfig from "./evaluteConfig-helper";
 import evaluateYaml from "./evaluateYaml";
+import exampleTile from "./templates/exampleTile";
 import { version } from "../package.json";
 
 let isTemplateLoaded = null;
@@ -154,7 +155,11 @@ const thrower = (text) => {
         .then((response) => response.text())
         .then((text) => {
           remoteTemplates = evaluateYaml(text);
-          this._templates = { ...remoteTemplates, ...this._inlineTemplates };
+          this._templates = {
+            ...exampleTile,
+            ...remoteTemplates,
+            ...this._inlineTemplates,
+          };
         });
     }
 
@@ -167,7 +172,11 @@ const thrower = (text) => {
       }
 
       this._inlineTemplates = lovelace.config.streamline_templates;
-      this._templates = { ...remoteTemplates, ...this._inlineTemplates };
+      this._templates = {
+        ...exampleTile,
+        ...remoteTemplates,
+        ...this._inlineTemplates,
+      };
 
       if (isTemplateLoaded === null) {
         const filename = "streamline-card/streamline_templates.yaml";

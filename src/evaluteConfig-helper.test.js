@@ -439,14 +439,38 @@ describe("Given the evaluateConfig function", () => {
         default: [{ name: "Ashoka Tano" }],
       };
 
+      const hass = { states: {} };
       const result = evaluateConfig(templateConfig, variables, {
         hasJavascript: true,
+        hass,
       });
       expect(result).toEqual({
         entity: "input_boolean.test",
         name: "Ashoka Tano",
         type: "custom:button-card",
         value: "[[value]]",
+      });
+    });
+  });
+
+  describe("When a string combines two variables", () => {
+    it("Then it should evaluate the javascript and the variables", () => {
+      const variables = [{ index: 1, prefix: "myprefix" }];
+      const templateConfig = {
+        card: {
+          entity_javascript: "return 'number.[[prefix]]_g' + '[[index]]' + '_move_threshold'",
+          type: "custom:button-card",
+        },
+      };
+
+      const hass = { states: {} };
+      const result = evaluateConfig(templateConfig, variables, {
+        hasJavascript: true,
+        hass,
+      });
+      expect(result).toEqual({
+        entity: "number.myprefix_g1_move_threshold",
+        type: "custom:button-card",
       });
     });
   });

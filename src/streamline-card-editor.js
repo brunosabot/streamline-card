@@ -1,4 +1,5 @@
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
+import { getRemoteTemplates, loadRemoteTemplates } from "./templateLoader";
 import deepEqual from "./deepEqual-helper";
 import fireEvent from "./fireEvent-helper";
 import formatVariables from "./formatVariables-helper";
@@ -15,7 +16,22 @@ export class StreamlineCardEditor extends HTMLElement {
     this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
 
     const lovelace = getLovelace() || getLovelaceCast();
-    this._templates = lovelace.config.streamline_templates;
+
+    const remoteTemplateLoader = loadRemoteTemplates();
+    if (remoteTemplateLoader instanceof Promise) {
+      remoteTemplateLoader.then(() => {
+        this._templates = {
+          ...getRemoteTemplates(),
+          ...lovelace.config.streamline_templates,
+        };
+      });
+    } else {
+      this._templates = {
+        ...getRemoteTemplates(),
+        ...lovelace.config.streamline_templates,
+      };
+    }
+
     if (this._templates === null) {
       throw new Error(
         "The object streamline_templates doesn't exist in your main lovelace config.",

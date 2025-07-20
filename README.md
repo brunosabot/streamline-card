@@ -12,84 +12,85 @@ Have you ever found yourself copying and pasting the same card configuration ove
 
 This is where `streamline-card` comes to help! It allows you to:
 
-1. Create a template for your cards once
-2. Reuse that template multiple times
-3. Only change the template in one place to update all cards using it
-4. Use variables to customize each instance of the template
-5. Use JavaScript to make your cards dynamic and smart
+- Create a template for your cards once
+- Reuse that template multiple times
+- Only change the template in one place to update all cards using it
+- Use variables to customize each instance of the template
+- Use JavaScript to make your cards dynamic and smart
 
-`streamline-card` is an adaptation by [@brunosabot](https://github.com/brunosabot) of `decluttering-card` which is not maintained anymore.
+[Example usage](#real-world-examples)
+
+`streamline-card` is an adaptation by [@brunosabot](https://github.com/brunosabot) of [`decluttering-card`](https://github.com/custom-cards/decluttering-card) which is not maintained anymore.
 
 ## Installation
 
-There are two ways to install this card. The recommended way is through HACS (Home Assistant Community Store), but you can also install it manually.
+  There are two ways to install this card. The recommended way is through HACS (Home Assistant Community Store), but you can also install it manually.
 
-### With HACS (Recommended)
+  ### With HACS (Recommended)
 
-HACS is like an app store for Home Assistant. It makes installing and updating custom cards much easier. Here's how to install using HACS:
+  HACS is like an app store for Home Assistant. It makes installing and updating custom cards much easier. Here's how to install using HACS:
 
-1. **Install HACS if you don't have it:**
+  - **Install HACS if you don't have it:**
 
-   - If HACS is not installed yet, download it following the instructions on [https://hacs.xyz/docs/use/download/download/](https://hacs.xyz/docs/use/download/download/)
-   - Follow the HACS initial configuration guide at [https://hacs.xyz/docs/configuration/basic](https://hacs.xyz/docs/configuration/basic)
+    - If HACS is not installed yet, download it following the instructions on [https://hacs.xyz/docs/use/download/download/](https://hacs.xyz/docs/use/download/download/)
+    - Follow the HACS initial configuration guide at [https://hacs.xyz/docs/configuration/basic](https://hacs.xyz/docs/configuration/basic)
 
-2. **Add the Repository:**
+  - **Install the Card:**
 
-   - Go to `HACS` in your Home Assistant sidebar
-   - Click the three dots button (⋮) at the top right corner
-   - Click `Custom repositories`
-   - In the form that appears:
-     - Put `https://github.com/brunosabot/streamline-card` as the repository
-     - Select `Dashboard` as the type
-     - Click `Add`
+    - Go to `HACS` in your Home Assistant sidebar
+    - Search for `Streamline Card` in HACS
+    - Click on the card when you find it
+    - Click the `Download` button at the bottom right
 
-3. **Install the Card:**
+  > [!NOTE]  
+  > - Follow those steps first to make sure the card is installed and working properly.  
+  > - Usually, you would create a template for the card at this step, but we’ll skip that for now.    
+  > - Once you know that the card is working you can head over to [Configuration](#configuration)
 
-   - Search for `Streamline Card` in HACS
-   - Click on the card when you find it
-   - Click the `Download` button at the bottom right
+  - **Adding the Card:**
+    - Go back to your dashboard
+    - Click the menu icon (⋮) at the top right corner
+    - Click `Edit dashboard`
+    - Click `Add card` at the bottom right
+    - Search for `Streamline Card`
 
-4. **Add to Your Dashboard:**
-   - Go back to your dashboard
-   - Click the menu icon (⋮) at the top right corner
-   - Click `Edit dashboard`
-   - Click `Add card` at the bottom right
-   - Search for `Streamline Card`
+  > [!WARNING]
+  > If you don't see the card, try clearing your browser cache.
 
-If you don't see the card, try clearing your browser cache.
+  ### Manual Installation
 
-### Manual Installation
+  If you prefer to install manually or can't use HACS, follow these steps:
 
-If you prefer to install manually or can't use HACS, follow these steps:
+  - **Download the Card:**
+    - Download this file: [streamline-card.js](https://raw.githubusercontent.com/brunosabot/streamline-card/main/dist/streamline-card.js)
+    - Save it to your Home Assistant `<config>/www` folder
 
-1. **Download the Card:**
-   - Download this file: [streamline-card.js](https://raw.githubusercontent.com/brunosabot/streamline-card/main/dist/streamline-card.js)
-   - Save it to your Home Assistant `<config>/www` folder
-2. **Add to Resources:**
+  - **Add to Resources:**
+    - Go to your dashboard
+    - Click the menu icon (⋮) at the top right
+    - Click `Edit dashboard`
+    - Click the menu icon again
+    - Click `Manage resources`
+    - Click `Add resource`
+    - Enter `/local/streamline-card.js?v=1` in the URL field
+    - Select `JavaScript Module`
+    - Click `Create`
 
-   - Go to your dashboard
-   - Click the menu icon (⋮) at the top right
-   - Click `Edit dashboard`
-   - Click the menu icon again
-   - Click `Manage resources`
-   - Click `Add resource`
-   - Enter `/local/streamline-card.js?v=1` in the URL field
-   - Select `JavaScript Module`
-   - Click `Create`
+  - **Add to Dashboard:**
+    - Refresh your browser page
+    - Edit your dashboard
+    - Click `Add card`
+    - Search for `Streamline Card`
 
-3. **Add to Dashboard:**
-   - Refresh your browser page
-   - Edit your dashboard
-   - Click `Add card`
-   - Search for `Streamline Card`
-
-Note: After updating the file, you'll need to change the version number in the URL (e.g., from `v=1` to `v=2`) to make sure your browser loads the new version.
+  > [!WARNING]
+  > After updating the file, you'll need to change the version number in the URL (e.g., from `v=1` to `v=2`) to make sure your browser loads the new version.
 
 ## Configuration
 
 Let's learn how to use this card step by step.
 
 ### Step 1: Understanding Templates
+---
 
 A template is like a blueprint for your cards. It defines how your card will look and behave, but leaves certain parts (variables) empty so you can fill them in later.
 
@@ -105,54 +106,57 @@ my_light_template:
 ```
 
 ### Step 2: Setting Up Templates
+---
 
 There are two ways to set up your templates: through YAML files or through the UI. Let's look at both methods:
 
-#### Method 1: YAML Configuration (Recommended for Many Templates)
+<details>
+  <summary><strong>Method 1: YAML Configuration (Recommended when you have many Templates)</strong></summary>
 
-1. **Create a Templates Directory:**
-   Create a folder called `streamline_templates` in your Home Assistant configuration directory.
+  1. **Create a Templates Directory:**
+    Create a folder called `streamline_templates` in your Home Assistant configuration directory.
 
-2. **Add Template Files:**
-   In this folder, create YAML files for your templates. For example, `light_template.yaml`:
+  2. **Add Template Files:**
+    In this folder, create YAML files for your templates. For example, `light_template.yaml`:
 
-   ```yaml
-   default:
-     - light_icon: mdi:ceiling-light
-   card:
-     type: custom:bubble-card
-     name: "[[room_name]] Light"
-     icon: "[[light_icon]]"
-     entity: "[[light_entity]]"
-   ```
+    ```yaml
+    default:
+      - light_icon: mdi:ceiling-light
+    card:
+      type: custom:bubble-card
+      name: "[[room_name]] Light"
+      icon: "[[light_icon]]"
+      entity: "[[light_entity]]"
+    ```
 
-3. **Include Templates in Dashboard:**
-   In your dashboard configuration file, add:
-   ```yaml
-   streamline_templates: !include_dir_named ../streamline_templates/
-   ```
+  3. **Include Templates in Dashboard:**
+    In your dashboard configuration file, add:
+    ```yaml
+    streamline_templates: !include_dir_named ../streamline_templates/
+    ```
 
----
+  ---
 
-##### ⚡️ Automatic Template File Loading and Fallback Locations
+  ##### ⚡️ Automatic Template File Loading and Fallback Locations
 
-> **Note:** An example template file, `streamline_templates.example.yaml`, is provided in the `dist/` directory of this repository. You can copy this file to any of the supported locations (such as `/config/www/community/streamline-card/` or `/config/www/streamline-card/`) and rename it to `streamline_templates.yaml` to get started quickly with your own templates.
+  > **Note:** An example template file, `streamline_templates.example.yaml`, is provided in the `dist/` directory of this repository. You can copy this file to any of the supported locations (such as `/config/www/community/streamline-card/` or `/config/www/streamline-card/`) and rename it to `streamline_templates.yaml` to get started quickly with your own templates.
 
-The `streamline-card` will automatically attempt to load the `streamline_templates.yaml` file from several locations, in the following order:
+  The `streamline-card` will automatically attempt to load the `streamline_templates.yaml` file from several locations, in the following order:
 
-1. `/config/www/community/streamline-card/streamline_templates.yaml` (default for HACS installations)
-2. `/config/www/streamline-card/streamline_templates.yaml` (commonly used for manual installations)
+  1. `/config/www/community/streamline-card/streamline_templates.yaml` (default for HACS installations)
+  2. `/config/www/streamline-card/streamline_templates.yaml` (commonly used for manual installations)
 
-If the file is not found in the first location, the card will try the next, and so on. This fallback mechanism ensures maximum compatibility with different Home Assistant setups.
+  If the file is not found in the first location, the card will try the next, and so on. This fallback mechanism ensures maximum compatibility with different Home Assistant setups.
 
-**What does this mean for you?**
-- You can place your `streamline_templates.yaml` file in any of these locations, depending on how you installed the card and your Home Assistant directory structure.
-- Only one file is needed; the card will use the first one it finds.
-- This makes it easy to provide or override templates without modifying the card code.
+  **What does this mean for you?**
+  - You can place your `streamline_templates.yaml` file in any of these locations, depending on how you installed the card and your Home Assistant directory structure.
+  - Only one file is needed; the card will use the first one it finds.
+  - This makes it easy to provide or override templates without modifying the card code.
 
----
+</details>
 
-#### Method 2: UI Configuration (Easier for Beginners)
+<details>
+  <summary><strong>Method 2: UI Configuration (Easier for Beginners)</strong></summary>
 
 1. **Open Raw Editor:**
 
@@ -174,7 +178,11 @@ If the file is not found in the first location, the card will try the next, and 
          entity: "[[light_entity]]"
    ```
 
+</details>
+
+
 ### Step 3: Template Structure
+---
 
 Each template has three main parts:
 
@@ -210,18 +218,22 @@ Each template has three main parts:
      icon: "[[icon]]"
    ```
 
+
 ### Step 4: Using Variables
+ ---
 
 Variables are placeholders in your template that get replaced with actual values when you use the template. They are written with double brackets: `[[variable_name]]`
 
-Some important rules about variables:
-
-- Always put them in double brackets: `[[like_this]]`
-- If a variable is alone on a line, put it in single quotes: `'[[variable_name]]'`
-- Variables can be used anywhere in the template
-- You can set default values for variables in the `default` section
+> [!TIP]
+> 
+> <strong>Some important rules about variables:</strong>
+> - Always put them in double brackets: `[[like_this]]`
+> - If a variable is alone on a line, put it in single quotes: `'[[variable_name]]'`
+> - Variables can be used anywhere in the template
+> - You can set default values for variables in the `default` section
 
 ### Step 5: Advanced Features - JavaScript Expressions
+ ---
 
 You can make your templates dynamic using JavaScript. Any key that ends with `_javascript` will be evaluated as JavaScript code.
 The javascript code has access to the following data
@@ -257,9 +269,11 @@ weather_template:
 
 Let's look at some complete examples you can use in your own configuration:
 
-### Example 1: Simple Light Card
+<details open>
+  <summary>Example 1: Simple Light Card</summary>
 
 ```yaml
+# Define the template in ui raw configuration editor or file
 streamline_templates:
   light_template:
     default:
@@ -275,7 +289,8 @@ streamline_templates:
         action: toggle
       hold_action:
         action: more-info
-
+```
+```yaml
 # Using the template:
 - type: custom:streamline-card
   template: light_template
@@ -285,9 +300,13 @@ streamline_templates:
     - type: slider
 ```
 
-### Example 2: Weather Card with Dynamic Styling
+
+</details>
+<details>
+  <summary>Example 2: Weather Card with Dynamic Styling</summary>
 
 ```yaml
+# Define the template in ui raw configuration editor or file
 streamline_templates:
   weather_card:
     card:
@@ -323,7 +342,8 @@ streamline_templates:
                 ''
               };
           }
-
+```
+```yaml
 # Using the template:
 - type: custom:streamline-card
   template: weather_card
@@ -332,9 +352,12 @@ streamline_templates:
     - entity: weather.home
 ```
 
-### Example 3: Alarm Card with State-Based Colors
+</details>
+<details>
+  <summary>Example 3: Alarm Card with State-Based Colors</summary>
 
 ```yaml
+# Define the template in ui raw configuration editor or file
 streamline_templates:
   alarm_template:
     default:
@@ -358,7 +381,8 @@ streamline_templates:
             'var(--warning-color)'
           };
         }
-
+```
+```yaml
 # Using the template:
 - type: custom:streamline-card
   template: alarm_template
@@ -366,10 +390,12 @@ streamline_templates:
     - name: House Alarm
     - entity: alarm_control_panel.home_alarm
 ```
-
-### Example 4: Dynamic Grid of Lights
+</details>
+<details>
+  <summary>Example 4: Dynamic Grid of Lights</summary>
 
 ```yaml
+# Define the template in ui raw configuration editor or file
 streamline_templates:
   lights_grid:
     default:
@@ -386,13 +412,15 @@ streamline_templates:
           template: 'light_brightness',
           entity: entity
         }));
-
+```
+```yaml
 # Using the template:
 - type: custom:streamline-card
   template: lights_grid
   variables:
     - entity: sensor.active_lights
 ```
+</details>
 
 ## 📚 Examples
 

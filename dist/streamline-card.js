@@ -89,17 +89,14 @@ class StreamlineCardEditor extends HTMLElement {
     this._card = card;
     this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
     const lovelace = getLovelace() || getLovelaceCast();
-    this._templates = lovelace.config.streamline_templates;
-    if (this._templates === null) {
-      throw new Error(
-        "The object streamline_templates doesn't exist in your main lovelace config."
-      );
-    }
+    this._inlineTemplates = (lovelace && lovelace.config && lovelace.config.streamline_templates) || {};
+    this._templates = Object.assign({}, remoteTemplates, this._inlineTemplates);
     this._config = {
-      template: Object.keys(this._templates)[0],
+      template: Object.keys(this._templates)[0] || "",
       type: "streamline-card",
       variables: {}
     };
+    this.loadTemplates().then(() => { if (!this._config.template) { const first = Object.keys(this._templates)[0] || ""; this._config.template = first; } this.render(); });
     this.initialize();
   }
   get hass() {
@@ -142,6 +139,26 @@ class StreamlineCardEditor extends HTMLElement {
     });
     return newConfig;
   }
+  async loadTemplates() {
+    const lovelace = getLovelace() || getLovelaceCast();
+    this._inlineTemplates = (lovelace && lovelace.config && lovelace.config.streamline_templates) || {};
+    if (isTemplateLoaded === null) {
+      const filename = "streamline-card/streamline_templates.yaml";
+      isTemplateLoaded = loadRemoteTemplatesWithFallbacks();
+    }
+    if (isTemplateLoaded instanceof Promise) {
+      await isTemplateLoaded;
+      isTemplateLoaded = true;
+    }
+    this._templates = Object.assign({}, remoteTemplates, this._inlineTemplates);
+  }
+  fetchTemplate(url) {
+    return fetch(`${url}?t=${(new Date()).getTime()}`).then((response) => response.text()).then((text) => {
+      remoteTemplates = evaluateYaml(text);
+      this._templates = Object.assign({}, remoteTemplates, this._inlineTemplates);
+    });
+  }
+
   initialize() {
     this.elements = {};
     this.elements.error = document.createElement("ha-alert");
@@ -6439,6 +6456,40 @@ function evaluateYaml(yamlString) {
 const version = "0.1.0";
 let isTemplateLoaded = null;
 let remoteTemplates = {};
+// === Added: manifest + unified loader helpers ===
+async function __sl_fetchText(u){const r=await fetch(`${u}?t=${Date.now()}`);if(!r.ok)throw new Error(`HTTP ${r.status} for ${u}`);return r.text();}
+async function __sl_fetchJSON(u){const r=await fetch(`${u}?t=${Date.now()}`);if(!r.ok)throw new Error(`HTTP ${r.status} for ${u}`);return r.json();}
+async function __sl_tryLoadFromTemplatesDirectory(base){
+  try{
+    const manifest=await __sl_fetchJSON(`${base}/templates/manifest.json`);
+    const files=Array.isArray(manifest)?manifest:(Array.isArray(manifest.files)?manifest.files:[]);
+    if(!files.length) return false;
+    const loaded=[];
+    for(const f of files){
+      if(typeof f!=='string'||!f.trim()) continue;
+      const text=await __sl_fetchText(`${base}/templates/${f}`);
+      const obj=evaluateYaml(text);
+      if(obj&&typeof obj==='object') loaded.push(obj);
+    }
+    remoteTemplates=Object.assign({},...loaded);
+    return Object.keys(remoteTemplates).length>0;
+  }catch(e){ return false; }
+}
+async function loadRemoteTemplatesWithFallbacks(){
+  const bases=[
+    "/hacsfiles/streamline-card",
+    "/local/streamline-card",
+    "/local/community/streamline-card",
+  ];
+  for(const b of bases){ if(await __sl_tryLoadFromTemplatesDirectory(b)) return; }
+  const filename="streamline-card/streamline_templates.yaml";
+  await __sl_fetchText(`/hacsfiles/${filename}`)
+    .then(t=>{ remoteTemplates=evaluateYaml(t); })
+    .catch(()=>__sl_fetchText(`/local/${filename}`).then(t=>{ remoteTemplates=evaluateYaml(t); }))
+    .catch(()=>__sl_fetchText(`/local/community/${filename}`).then(t=>{ remoteTemplates=evaluateYaml(t); }));
+}
+// === End added helpers ===
+
 const thrower = (text) => {
   if (isTemplateLoaded === true) {
     throw new Error(text);
@@ -6567,7 +6618,7 @@ const thrower = (text) => {
       this._templates = { ...remoteTemplates, ...this._inlineTemplates };
       if (isTemplateLoaded === null) {
         const filename = "streamline-card/streamline_templates.yaml";
-        isTemplateLoaded = this.fetchTemplate(`/hacsfiles/${filename}`).catch(() => this.fetchTemplate(`/local/${filename}`)).catch(() => this.fetchTemplate(`/local/community/${filename}`));
+        isTemplateLoaded = loadRemoteTemplatesWithFallbacks();
       }
       if (isTemplateLoaded instanceof Promise) {
         isTemplateLoaded.then(() => {

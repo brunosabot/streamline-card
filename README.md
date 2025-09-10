@@ -137,18 +137,18 @@ There are two ways to set up your templates: through YAML files or through the U
 ##### ⚡️ Automatic Template File Loading and Fallback Locations
 
 > **Note:** An example template file, `streamline_templates.example.yaml`, is provided in the `dist/` directory of this repository. You can copy this file to any of the supported locations (such as `/config/www/community/streamline-card/` or `/config/www/streamline-card/`) and rename it to `streamline_templates.yaml` to get started quickly with your own templates.
+> You will then need to create a subfolder called templates.  In that file you will need to create a manifest.json file.  The format is: ["../streamline_templates.yaml", "version.yaml"]
 
-The `streamline-card` will automatically attempt to load the `streamline_templates.yaml` file from several locations, in the following order:
+The files listed in the manifest file  will automatically attempt to load the files from several locations, in the following order:
 
-1. `/config/www/community/streamline-card/streamline_templates.yaml` (default for HACS installations)
-2. `/config/www/streamline-card/streamline_templates.yaml` (commonly used for manual installations)
-
-If the file is not found in the first location, the card will try the next, and so on. This fallback mechanism ensures maximum compatibility with different Home Assistant setups.
+1. `/config/www/community/streamline-card/` (default for HACS installations)
+2. `/config/www/streamline-card/` (commonly used for manual installations)
 
 **What does this mean for you?**
-- You can place your `streamline_templates.yaml` file in any of these locations, depending on how you installed the card and your Home Assistant directory structure.
-- Only one file is needed; the card will use the first one it finds.
+- You can place files in any of these locations, depending on how you installed the card and your Home Assistant directory structure.
+- You can create multiple files if they are listed in the manifest.json
 - This makes it easy to provide or override templates without modifying the card code.
+- The UI editor will work with all the files plus what you have in your raw data
 
 ---
 

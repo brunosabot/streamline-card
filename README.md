@@ -436,6 +436,70 @@ Each example includes the YAML code, an explanation of its use, and highlights i
    - Avoid complex calculations in templates
    - Use appropriate card types for your needs
 
+## Using variables_meta 
+   - This is where you can define what a variable is for the UI editor.  This is using standard seledtors avaiable in HA.  Like. Entity, Number, Boolean, Text, etc..
+   ```Simple Yaml
+   simple_template:
+     variables_meta:
+       temp_entity:
+         title: "Temperature"
+         description: "Temperature Sensor"
+         selector:
+           entity:
+             domain: sensor
+   ```
+   Optional fields:
+   1. order = Gives the order you want to show vs just order they are used
+   2. group = Gives a name
+   3. group_order = Gives the order of the group
+   ```Advanced Yaml
+   complex_sample_template:
+     variables_meta:
+       temp_entity:
+         title: "Temperature"
+         description: "Temperature Sensor"
+         selector:
+           entity:
+             domain: sensor
+         order: 1
+       phone_label:
+         title: "Label"
+         description: "Label to put for the person"
+         selector:
+           text:
+         order: 2
+       nav_action:
+         title: "Navigation Action"
+         description: "Navigation action to take if clicked"
+         selector:
+           select:
+             mode: dropdown
+             options:
+               - label: Navigate
+                 value: navigate
+               - label: None
+                 value: none
+         default: navigate
+         group: "Navigation"
+         group_order: 2
+       navigation_path:
+         title: "Navigation Path"
+         description: "Navigation path to go to if clicked"
+         selector:
+           text:
+         group: "Navigation"
+         group_order: 2
+       duration_unit:
+         title: "Duration Units"
+         order: 9
+         description: "Duration Units"
+         selector:
+           text:
+         default: day
+         group: "Duration"
+         group_order: 1
+
+   ```
 ## Troubleshooting
 
 If you're having issues:

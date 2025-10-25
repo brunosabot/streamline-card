@@ -34,6 +34,7 @@ const thrower = (text) => {
     _hasJavascriptTemplate = false;
     _pendingUpdates = new Set();
     _updateScheduled = false;
+    _rafId = null;
 
     constructor() {
       super();
@@ -44,11 +45,13 @@ const thrower = (text) => {
       this._pendingUpdates.add(type);
       if (this._updateScheduled === false) {
         this._updateScheduled = true;
-        this.flushUpdates();
+        this._rafId = requestAnimationFrame(() => this.flushUpdates());
       }
     }
 
     flushUpdates() {
+      this._rafId = null;
+
       if (this._pendingUpdates.has("config")) {
         this.updateCardConfig();
       }
@@ -122,6 +125,14 @@ const thrower = (text) => {
 
     disconnectedCallback() {
       this._isConnected = false;
+
+      // Cancel any pending animation frame to prevent updates after disconnect
+      if (this._rafId !== null) {
+        cancelAnimationFrame(this._rafId);
+        this._rafId = null;
+        this._updateScheduled = false;
+        this._pendingUpdates.clear();
+      }
     }
 
     get editMode() {

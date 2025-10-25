@@ -1,7 +1,9 @@
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-const getLovelaceCast = () => {
+let lovelaceCache = null;
+let lovelaceCastCache = null;
+const findLovelaceCast = () => {
   let root = document.querySelector("hc-main");
   root && (root = root.shadowRoot);
   root && (root = root.querySelector("hc-lovelace"));
@@ -14,7 +16,7 @@ const getLovelaceCast = () => {
   }
   return null;
 };
-const getLovelace = () => {
+const findLovelace = () => {
   let root = document.querySelector("home-assistant");
   root && (root = root.shadowRoot);
   root && (root = root.querySelector("home-assistant-main"));
@@ -33,399 +35,18 @@ const getLovelace = () => {
   }
   return null;
 };
-const isPrimitive = (obj) => obj !== Object(obj);
-const deepEqual = (obj1, obj2) => {
-  if (obj1 === obj2) {
-    return true;
+const getLovelaceCast = () => {
+  if (lovelaceCastCache === null) {
+    lovelaceCastCache = findLovelaceCast();
   }
-  if (isPrimitive(obj1) && isPrimitive(obj2)) {
-    return obj1 === obj2;
-  }
-  if (Object.keys(obj1).length !== Object.keys(obj2).length) {
-    return false;
-  }
-  for (const key in obj1) {
-    if (Object.hasOwn(obj1, key)) {
-      if (key in obj2 === false) {
-        return false;
-      }
-      if (deepEqual(obj1[key], obj2[key]) === false) {
-        return false;
-      }
-    }
-  }
-  return true;
+  return lovelaceCastCache;
 };
-const fireEvent = (node, type, detail = {}) => {
-  const event = new Event(type, {
-    bubbles: true,
-    cancelable: false,
-    composed: true
-  });
-  event.detail = detail;
-  node.dispatchEvent(event);
-  return event;
+const getLovelace = () => {
+  if (lovelaceCache === null) {
+    lovelaceCache = findLovelace();
+  }
+  return lovelaceCache;
 };
-function formatVariables(variables) {
-  const formattedVariables = {};
-  if (variables instanceof Array) {
-    variables.forEach((variable) => {
-      Object.entries(variable).forEach(([key, value]) => {
-        formattedVariables[key] = value;
-      });
-    });
-  } else {
-    return variables;
-  }
-  return formattedVariables;
-}
-class StreamlineCardEditor extends HTMLElement {
-  constructor(card) {
-    super();
-    __publicField(this, "_card");
-    __publicField(this, "_hass");
-    __publicField(this, "_shadow");
-    __publicField(this, "_templates", {});
-    this._card = card;
-    this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
-    const lovelace = getLovelace() || getLovelaceCast();
-    this._templates = lovelace.config.streamline_templates;
-    if (this._templates === null) {
-      throw new Error(
-        "The object streamline_templates doesn't exist in your main lovelace config."
-      );
-    }
-    this._config = {
-      template: Object.keys(this._templates)[0],
-      type: "streamline-card",
-      variables: {}
-    };
-    this.initialize();
-  }
-  get hass() {
-    return this._hass;
-  }
-  set hass(hass) {
-    this._hass = hass;
-    this.render();
-  }
-  setConfig(config) {
-    const formattedConfig = StreamlineCardEditor.formatConfig(config);
-    const [firstTemplate] = Object.keys(this._templates);
-    const newConfig = {};
-    newConfig.type = formattedConfig.type;
-    newConfig.template = formattedConfig.template ?? firstTemplate ?? "";
-    newConfig.variables = formattedConfig.variables ?? {};
-    if (formattedConfig.grid_options) {
-      newConfig.grid_options = formattedConfig.grid_options;
-    }
-    if (formattedConfig.visibility) {
-      newConfig.visibility = formattedConfig.visibility;
-    }
-    const newConfigWithDefaults = this.setVariablesDefault(newConfig);
-    if (deepEqual(newConfigWithDefaults, this._config) === false) {
-      this._config = newConfigWithDefaults;
-      this.saveConfig(newConfig);
-    }
-    this.render();
-  }
-  setVariablesDefault(newConfig) {
-    const variables = this.getVariablesForTemplate(newConfig.template);
-    variables.forEach((variable) => {
-      if (variable.toLowerCase().includes("entity") && newConfig.variables[variable] === "") {
-        const entityList = Object.keys(this._hass.states);
-        const randomEntity = entityList[Math.floor(Math.random() * entityList.length)];
-        newConfig.variables[variable] = randomEntity;
-      } else if (!newConfig.variables[variable]) {
-        newConfig.variables[variable] = "";
-      }
-    });
-    return newConfig;
-  }
-  initialize() {
-    this.elements = {};
-    this.elements.error = document.createElement("ha-alert");
-    this.elements.error.setAttribute("alert-type", "error");
-    this.elements.error.classList.add("streamline-card-form__error");
-    this.elements.style = document.createElement("style");
-    this.elements.style.innerHTML = `
-      .streamline-card-form__error {
-        margin-bottom: 8px;
-      }
-    `;
-    this.elements.form = document.createElement("ha-form");
-    this.elements.form.classList.add("streamline-card-form");
-    this.elements.form.computeLabel = StreamlineCardEditor.computeLabel;
-    this.elements.form.addEventListener("value-changed", (ev) => {
-      let newConfig = StreamlineCardEditor.formatConfig(ev.detail.value);
-      if (this._config.template !== newConfig.template) {
-        newConfig.variables = {};
-        newConfig = this.setVariablesDefault(newConfig);
-      }
-      this._config = newConfig;
-      this.render();
-      this.saveConfig(newConfig);
-    });
-    this._shadow.appendChild(this.elements.error);
-    this._shadow.appendChild(this.elements.form);
-    this._shadow.appendChild(this.elements.style);
-  }
-  getVariablesForTemplate(template) {
-    const variables = {};
-    const templateConfig = this._templates[template];
-    if (typeof templateConfig === "undefined") {
-      throw new Error(
-        `The template "${template}" doesn't exist in streamline_templates`
-      );
-    }
-    const stringTemplate = JSON.stringify(templateConfig);
-    const variablesRegex = /\[\[(?<name>.*?)\]\]/gu;
-    [...stringTemplate.matchAll(variablesRegex)].forEach(([, name]) => {
-      variables[name] = name;
-    });
-    return Object.keys(variables).sort((left, right) => {
-      const leftIndex = Object.keys(this._config.variables).find(
-        (key) => Object.hasOwn(this._config.variables[key] ?? "", left)
-      );
-      const rightIndex = Object.keys(this._config.variables).find(
-        (key) => Object.hasOwn(this._config.variables[key] ?? "", right)
-      );
-      return leftIndex - rightIndex;
-    });
-  }
-  saveConfig(newConfig) {
-    const newConfigForSave = JSON.parse(JSON.stringify(newConfig));
-    Object.keys(newConfigForSave.variables).forEach((variable) => {
-      if (newConfigForSave.variables[variable] === "") {
-        delete newConfigForSave.variables[variable];
-      }
-    });
-    fireEvent(this, "config-changed", { config: newConfigForSave });
-  }
-  static formatConfig(config) {
-    const newConfig = { ...config };
-    newConfig.variables = { ...formatVariables(newConfig.variables ?? {}) };
-    return newConfig;
-  }
-  static getTemplateSchema(templates) {
-    return {
-      name: "template",
-      selector: {
-        select: {
-          mode: "dropdown",
-          options: templates.map((template) => ({
-            label: template,
-            value: template
-          })),
-          sort: true
-        }
-      },
-      title: "Template"
-    };
-  }
-  static getEntitySchema(name) {
-    return {
-      name,
-      selector: { entity: {} }
-    };
-  }
-  static getIconSchema(name) {
-    return {
-      name,
-      selector: { icon: {} }
-    };
-  }
-  static getDefaultSchema(name) {
-    return {
-      name,
-      selector: { text: {} }
-    };
-  }
-  static getVariableSchema(variable) {
-    let childSchema = StreamlineCardEditor.getDefaultSchema(variable);
-    if (variable.toLowerCase().includes("entity")) {
-      childSchema = StreamlineCardEditor.getEntitySchema(variable);
-    } else if (variable.toLowerCase().includes("icon")) {
-      childSchema = StreamlineCardEditor.getIconSchema(variable);
-    }
-    return childSchema;
-  }
-  getSchema() {
-    const variables = this.getVariablesForTemplate(this._config.template);
-    return [
-      StreamlineCardEditor.getTemplateSchema(Object.keys(this._templates)),
-      {
-        expanded: true,
-        name: "variables",
-        schema: variables.map(
-          (key) => StreamlineCardEditor.getVariableSchema(key)
-        ),
-        title: "Variables",
-        type: "expandable"
-      }
-    ];
-  }
-  static computeLabel(schema2) {
-    const schemaName = schema2.name.replace(/[-_]+/gu, " ");
-    const defaultLabel = schemaName.charAt(0).toUpperCase() + schemaName.slice(1);
-    const translation = this.hass.localize(
-      `ui.panel.lovelace.editor.card.generic.${schema2.name}`
-    );
-    return translation || defaultLabel;
-  }
-  render() {
-    const schema2 = this.getSchema();
-    const areAllPrimitives = Object.values(this._config.variables).every(
-      (value) => typeof value !== "object"
-    );
-    if (areAllPrimitives === false) {
-      this.elements.error.style.display = "block";
-      this.elements.error.innerText = `Object and array variables are not supported in the visual editor.`;
-      this.elements.form.schema = [schema2[0]];
-    } else {
-      this.elements.error.style.display = "none";
-      this.elements.form.schema = schema2;
-    }
-    this.elements.form.hass = this._hass;
-    const cleanedConfig = {
-      ...this._config,
-      variables: formatVariables(this._config.variables)
-    };
-    this.elements.form.data = cleanedConfig;
-  }
-}
-if (typeof customElements.get("streamline-card-editor") === "undefined") {
-  customElements.define("streamline-card-editor", StreamlineCardEditor);
-}
-const functionCache = /* @__PURE__ */ new Map();
-const createEvaluationContext = (hass, variables) => ({
-  areas: hass == null ? void 0 : hass.areas,
-  states: hass == null ? void 0 : hass.states,
-  user: hass == null ? void 0 : hass.user,
-  variables
-});
-const createFunction = (code, cacheKey) => {
-  if (!functionCache.has(cacheKey)) {
-    try {
-      functionCache.set(
-        cacheKey,
-        // eslint-disable-next-line no-new-func
-        new Function("states", "user", "variables", "areas", code)
-      );
-    } catch (error) {
-      throw new Error(`Failed to compile JavaScript: ${error.message}`);
-    }
-  }
-  return functionCache.get(cacheKey);
-};
-const processValue = (value, context) => {
-  if (typeof value === "string") {
-    const cacheKey = value;
-    const fn = createFunction(value, cacheKey);
-    return fn(context.states, context.user, context.variables, context.areas);
-  }
-  return value;
-};
-const processConfig = (template, hass, variables) => {
-  const context = createEvaluationContext(hass, variables);
-  for (const [key, value] of Object.entries(template)) {
-    if (Array.isArray(value)) {
-      const newArray = [];
-      for (const item of value) {
-        if (typeof item === "object") {
-          processConfig(item, hass, variables);
-          newArray.push(item);
-        } else if (key.endsWith("_javascript")) {
-          const processedValue = processValue(item, context);
-          newArray.push(processedValue);
-        } else {
-          newArray.push(item);
-        }
-      }
-      if (key.endsWith("_javascript")) {
-        template[key.replace("_javascript", "")] = newArray;
-        delete template[key];
-      } else {
-        template[key] = newArray;
-      }
-    } else if (typeof value === "object") {
-      processConfig(value, hass, variables);
-    } else if (key.endsWith("_javascript")) {
-      const processedValue = processValue(value, context);
-      template[key.replace("_javascript", "")] = processedValue;
-      delete template[key];
-    }
-  }
-};
-const evaluateJavascript = (config, hass, variables = {}) => {
-  processConfig(config, hass, variables);
-  return config;
-};
-const primitiveRegexMap = /* @__PURE__ */ new Map();
-const objectQuotesRegexMap = /* @__PURE__ */ new Map();
-const objectRegexMap = /* @__PURE__ */ new Map();
-const basicRegexMap = /* @__PURE__ */ new Map();
-const variableCache = /* @__PURE__ */ new Map();
-const escapeQuoteRegex = /"/gmu;
-const replaceWithKeyValue = (stringTemplate, key, value) => {
-  if (typeof value === "number" || typeof value === "boolean") {
-    let rxp2 = primitiveRegexMap.get(key);
-    if (rxp2 === void 0) {
-      rxp2 = new RegExp(`["'\`]\\[\\[${key}\\]\\]["'\`]`, "gmu");
-      primitiveRegexMap.set(key, rxp2);
-    }
-    return stringTemplate.replace(rxp2, value);
-  } else if (typeof value === "object") {
-    const valueString = JSON.stringify(value);
-    let rxpQuotes = objectQuotesRegexMap.get(key);
-    if (rxpQuotes === void 0) {
-      rxpQuotes = new RegExp(`"\\[\\[${key}\\]\\]"`, "gmu");
-      objectQuotesRegexMap.set(key, rxpQuotes);
-    }
-    let rxp2 = objectRegexMap.get(key);
-    if (rxp2 === void 0) {
-      rxp2 = new RegExp(`['\`]\\[\\[${key}\\]\\]['\`]`, "gmu");
-      objectRegexMap.set(key, rxp2);
-    }
-    return stringTemplate.replace(rxpQuotes, valueString).replace(rxp2, valueString.replace(escapeQuoteRegex, '\\"'));
-  }
-  let rxp = basicRegexMap.get(key);
-  if (rxp === void 0) {
-    rxp = new RegExp(`\\[\\[${key}\\]\\]`, "gmu");
-    basicRegexMap.set(key, rxp);
-  }
-  return stringTemplate.replace(rxp, value);
-};
-function evaluateVariables(templateConfig, variables) {
-  if (!variables && !templateConfig.default) {
-    return templateConfig.card;
-  }
-  const cacheKey = JSON.stringify({ templateConfig, variables });
-  if (variableCache.has(cacheKey) === false) {
-    let stringTemplate = templateConfig.card ? JSON.stringify(templateConfig.card) : JSON.stringify(templateConfig.element);
-    const variablesObject = {
-      ...formatVariables(templateConfig.default ?? {}),
-      ...formatVariables(variables)
-    };
-    Object.entries(variablesObject).forEach(([key, value]) => {
-      stringTemplate = replaceWithKeyValue(stringTemplate, key, value);
-    });
-    variableCache.set(cacheKey, stringTemplate);
-  }
-  return JSON.parse(variableCache.get(cacheKey));
-}
-function evaluateConfig(templateConfig, variables, options) {
-  let config = evaluateVariables(templateConfig, variables ?? {});
-  const { hasJavascript, hass } = options;
-  if (hasJavascript && typeof hass !== "undefined") {
-    const allVariables = {
-      ...formatVariables(templateConfig.default ?? {}),
-      ...formatVariables(variables ?? {})
-    };
-    config = evaluateJavascript(config, hass, allVariables);
-  }
-  return config;
-}
 const ALIAS = Symbol.for("yaml.alias");
 const DOC = Symbol.for("yaml.document");
 const MAP = Symbol.for("yaml.map");
@@ -6436,7 +6057,523 @@ function parse(src, reviver, options) {
 function evaluateYaml(yamlString) {
   return parse(yamlString);
 }
-const version = "0.1.0";
+let remoteTemplates$1 = {};
+let isTemplateLoaded$1 = null;
+const getRemoteTemplates = () => remoteTemplates$1;
+const fetchRemoteTemplates = (url) => {
+  if (isTemplateLoaded$1 === null) {
+    isTemplateLoaded$1 = fetch(`${url}?t=${(/* @__PURE__ */ new Date()).getTime()}`).then((response) => response.text()).then((text) => {
+      remoteTemplates$1 = evaluateYaml(text);
+      isTemplateLoaded$1 = true;
+    });
+  }
+  return isTemplateLoaded$1;
+};
+const loadRemoteTemplates = () => {
+  const filename = "streamline-card/streamline_templates.yaml";
+  if (isTemplateLoaded$1 === null) {
+    isTemplateLoaded$1 = fetchRemoteTemplates(`/hacsfiles/${filename}`).catch(() => fetchRemoteTemplates(`/local/${filename}`)).catch(() => fetchRemoteTemplates(`/local/community/${filename}`));
+  }
+  return isTemplateLoaded$1;
+};
+const compareArraysDeep = (arr1, arr2, compareFn) => {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+  for (let index = 0; index < arr1.length; index += 1) {
+    if (compareFn(arr1[index], arr2[index]) === false) {
+      return false;
+    }
+  }
+  return true;
+};
+const compareObjectsDeep = (obj1, obj2, compareFn) => {
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+  if (keys1.length === 0) {
+    return true;
+  }
+  for (let index = 0; index < keys1.length; index += 1) {
+    const key = keys1[index];
+    if (Object.hasOwn(obj2, key) === false || compareFn(obj1[key], obj2[key]) === false) {
+      return false;
+    }
+  }
+  return true;
+};
+const isSpecialType = (obj) => obj instanceof Date || obj instanceof RegExp || obj instanceof Set || obj instanceof Map;
+const compareDates = (date1, date2) => date1.getTime() === date2.getTime();
+const compareRegExps = (regex1, regex2) => regex1.source === regex2.source && regex1.flags === regex2.flags;
+const compareSets = (set1, set2) => {
+  if (set1.size !== set2.size) {
+    return false;
+  }
+  for (const item of set1) {
+    if (set2.has(item) === false) {
+      return false;
+    }
+  }
+  return true;
+};
+const compareMaps = (map1, map2, compareFn) => {
+  if (map1.size !== map2.size) {
+    return false;
+  }
+  for (const [key, value] of map1) {
+    if (map2.has(key) === false || compareFn(map2.get(key), value) === false) {
+      return false;
+    }
+  }
+  return true;
+};
+const compareSpecialTypes = (obj1, obj2, compareFn) => {
+  const isSpecial1 = isSpecialType(obj1);
+  const isSpecial2 = isSpecialType(obj2);
+  if (isSpecial1 !== isSpecial2) {
+    return false;
+  }
+  if (isSpecial1 === false) {
+    return null;
+  }
+  if (obj1 instanceof Date && obj2 instanceof Date) {
+    return compareDates(obj1, obj2);
+  }
+  if (obj1 instanceof RegExp && obj2 instanceof RegExp) {
+    return compareRegExps(obj1, obj2);
+  }
+  if (obj1 instanceof Set && obj2 instanceof Set) {
+    return compareSets(obj1, obj2);
+  }
+  if (obj1 instanceof Map && obj2 instanceof Map) {
+    return compareMaps(obj1, obj2, compareFn);
+  }
+  return false;
+};
+const deepEqual = (obj1, obj2) => {
+  if (obj1 === obj2) {
+    return true;
+  }
+  if (obj1 === null || obj1 === void 0 || obj2 === null || obj2 === void 0) {
+    return false;
+  }
+  const type1 = typeof obj1;
+  const type2 = typeof obj2;
+  if (type1 !== type2) {
+    return false;
+  }
+  if (type1 !== "object") {
+    return obj1 === obj2;
+  }
+  const specialResult = compareSpecialTypes(obj1, obj2, deepEqual);
+  if (specialResult !== null) {
+    return specialResult;
+  }
+  const isArray1 = Array.isArray(obj1);
+  const isArray2 = Array.isArray(obj2);
+  if (isArray1 !== isArray2) {
+    return false;
+  }
+  return isArray1 ? compareArraysDeep(obj1, obj2, deepEqual) : compareObjectsDeep(obj1, obj2, deepEqual);
+};
+const exampleTile = {
+  example_tile: {
+    card: {
+      entity: "[[entity]]",
+      features_position: "bottom",
+      type: "tile",
+      vertical: false
+    }
+  }
+};
+const fireEvent = (node, type, detail = {}) => {
+  const event = new Event(type, {
+    bubbles: true,
+    cancelable: false,
+    composed: true
+  });
+  event.detail = detail;
+  node.dispatchEvent(event);
+  return event;
+};
+function formatVariables(variables) {
+  const formattedVariables = {};
+  if (variables instanceof Array) {
+    variables.forEach((variable) => {
+      Object.entries(variable).forEach(([key, value]) => {
+        formattedVariables[key] = value;
+      });
+    });
+  } else {
+    return variables;
+  }
+  return formattedVariables;
+}
+class StreamlineCardEditor extends HTMLElement {
+  constructor(card) {
+    super();
+    __publicField(this, "_card");
+    __publicField(this, "_hass");
+    __publicField(this, "_shadow");
+    __publicField(this, "_templates", { ...exampleTile });
+    this._card = card;
+    this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
+    const lovelace = getLovelace() || getLovelaceCast();
+    const remoteTemplateLoader = loadRemoteTemplates();
+    if (remoteTemplateLoader instanceof Promise) {
+      remoteTemplateLoader.then(() => {
+        this._templates = {
+          ...exampleTile,
+          ...getRemoteTemplates(),
+          ...lovelace.config.streamline_templates
+        };
+      });
+    } else {
+      this._templates = {
+        ...exampleTile,
+        ...getRemoteTemplates(),
+        ...lovelace.config.streamline_templates
+      };
+    }
+    if (this._templates === null) {
+      throw new Error(
+        "The object streamline_templates doesn't exist in your main lovelace config."
+      );
+    }
+    this._config = {
+      template: Object.keys(this._templates)[0],
+      type: "streamline-card",
+      variables: {}
+    };
+    this.initialize();
+  }
+  get hass() {
+    return this._hass;
+  }
+  set hass(hass) {
+    this._hass = hass;
+    this.render();
+  }
+  setConfig(config) {
+    const formattedConfig = StreamlineCardEditor.formatConfig(config);
+    const [firstTemplate] = Object.keys(this._templates);
+    const newConfig = {};
+    newConfig.type = formattedConfig.type;
+    newConfig.template = formattedConfig.template ?? firstTemplate ?? "";
+    newConfig.variables = formattedConfig.variables ?? {};
+    if (formattedConfig.grid_options) {
+      newConfig.grid_options = formattedConfig.grid_options;
+    }
+    if (formattedConfig.visibility) {
+      newConfig.visibility = formattedConfig.visibility;
+    }
+    const newConfigWithDefaults = this.setVariablesDefault(newConfig);
+    if (deepEqual(newConfigWithDefaults, this._config) === false) {
+      this._config = newConfigWithDefaults;
+      this.saveConfig(newConfig);
+    }
+    this.render();
+  }
+  setVariablesDefault(newConfig) {
+    const variables = this.getVariablesForTemplate(newConfig.template);
+    variables.forEach((variable) => {
+      if (variable.toLowerCase().includes("entity") && newConfig.variables[variable] === "") {
+        const entityList = Object.keys(this._hass.states);
+        const randomEntity = entityList[Math.floor(Math.random() * entityList.length)];
+        newConfig.variables[variable] = randomEntity;
+      } else if (!newConfig.variables[variable]) {
+        newConfig.variables[variable] = "";
+      }
+    });
+    return newConfig;
+  }
+  initialize() {
+    this.elements = {};
+    this.elements.error = document.createElement("ha-alert");
+    this.elements.error.setAttribute("alert-type", "error");
+    this.elements.error.classList.add("streamline-card-form__error");
+    this.elements.style = document.createElement("style");
+    this.elements.style.innerHTML = `
+      .streamline-card-form__error {
+        margin-bottom: 8px;
+      }
+    `;
+    this.elements.form = document.createElement("ha-form");
+    this.elements.form.classList.add("streamline-card-form");
+    this.elements.form.computeLabel = StreamlineCardEditor.computeLabel;
+    this.elements.form.addEventListener("value-changed", (ev) => {
+      let newConfig = StreamlineCardEditor.formatConfig(ev.detail.value);
+      if (this._config.template !== newConfig.template) {
+        newConfig.variables = {};
+        newConfig = this.setVariablesDefault(newConfig);
+      }
+      this._config = newConfig;
+      this.render();
+      this.saveConfig(newConfig);
+    });
+    this._shadow.appendChild(this.elements.error);
+    this._shadow.appendChild(this.elements.form);
+    this._shadow.appendChild(this.elements.style);
+  }
+  getVariablesForTemplate(template) {
+    const variables = {};
+    const templateConfig = this._templates[template];
+    if (typeof templateConfig === "undefined") {
+      throw new Error(
+        `The template "${template}" doesn't exist in streamline_templates`
+      );
+    }
+    const stringTemplate = JSON.stringify(templateConfig);
+    const variablesRegex = /\[\[(?<name>.*?)\]\]/gu;
+    [...stringTemplate.matchAll(variablesRegex)].forEach(([, name]) => {
+      variables[name] = name;
+    });
+    return Object.keys(variables).sort((left, right) => {
+      const leftIndex = Object.keys(this._config.variables).find(
+        (key) => Object.hasOwn(this._config.variables[key] ?? "", left)
+      );
+      const rightIndex = Object.keys(this._config.variables).find(
+        (key) => Object.hasOwn(this._config.variables[key] ?? "", right)
+      );
+      return leftIndex - rightIndex;
+    });
+  }
+  saveConfig(newConfig) {
+    const newConfigForSave = JSON.parse(JSON.stringify(newConfig));
+    Object.keys(newConfigForSave.variables).forEach((variable) => {
+      if (newConfigForSave.variables[variable] === "") {
+        delete newConfigForSave.variables[variable];
+      }
+    });
+    fireEvent(this, "config-changed", { config: newConfigForSave });
+  }
+  static formatConfig(config) {
+    const newConfig = { ...config };
+    newConfig.variables = { ...formatVariables(newConfig.variables ?? {}) };
+    return newConfig;
+  }
+  static getTemplateSchema(templates) {
+    return {
+      name: "template",
+      selector: {
+        select: {
+          mode: "dropdown",
+          options: templates.map((template) => ({
+            label: template,
+            value: template
+          })),
+          sort: true
+        }
+      },
+      title: "Template"
+    };
+  }
+  static getEntitySchema(name) {
+    return {
+      name,
+      selector: { entity: {} }
+    };
+  }
+  static getIconSchema(name) {
+    return {
+      name,
+      selector: { icon: {} }
+    };
+  }
+  static getDefaultSchema(name) {
+    return {
+      name,
+      selector: { text: {} }
+    };
+  }
+  static getVariableSchema(variable) {
+    let childSchema = StreamlineCardEditor.getDefaultSchema(variable);
+    if (variable.toLowerCase().includes("entity")) {
+      childSchema = StreamlineCardEditor.getEntitySchema(variable);
+    } else if (variable.toLowerCase().includes("icon")) {
+      childSchema = StreamlineCardEditor.getIconSchema(variable);
+    }
+    return childSchema;
+  }
+  getSchema() {
+    const variables = this.getVariablesForTemplate(this._config.template);
+    return [
+      StreamlineCardEditor.getTemplateSchema(Object.keys(this._templates)),
+      {
+        expanded: true,
+        name: "variables",
+        schema: variables.map(
+          (key) => StreamlineCardEditor.getVariableSchema(key)
+        ),
+        title: "Variables",
+        type: "expandable"
+      }
+    ];
+  }
+  static computeLabel(schema2) {
+    const schemaName = schema2.name.replace(/[-_]+/gu, " ");
+    const defaultLabel = schemaName.charAt(0).toUpperCase() + schemaName.slice(1);
+    const translation = this.hass.localize(
+      `ui.panel.lovelace.editor.card.generic.${schema2.name}`
+    );
+    return translation || defaultLabel;
+  }
+  render() {
+    const schema2 = this.getSchema();
+    const areAllPrimitives = Object.values(this._config.variables).every(
+      (value) => typeof value !== "object"
+    );
+    if (areAllPrimitives === false) {
+      this.elements.error.style.display = "block";
+      this.elements.error.innerText = `Object and array variables are not supported in the visual editor.`;
+      this.elements.form.schema = [schema2[0]];
+    } else {
+      this.elements.error.style.display = "none";
+      this.elements.form.schema = schema2;
+    }
+    this.elements.form.hass = this._hass;
+    const cleanedConfig = {
+      ...this._config,
+      variables: formatVariables(this._config.variables)
+    };
+    this.elements.form.data = cleanedConfig;
+  }
+}
+if (typeof customElements.get("streamline-card-editor") === "undefined") {
+  customElements.define("streamline-card-editor", StreamlineCardEditor);
+}
+const functionCache = /* @__PURE__ */ new Map();
+const createEvaluationContext = (hass, variables) => ({
+  areas: hass == null ? void 0 : hass.areas,
+  states: hass == null ? void 0 : hass.states,
+  user: hass == null ? void 0 : hass.user,
+  variables
+});
+const createFunction = (code, cacheKey) => {
+  if (!functionCache.has(cacheKey)) {
+    try {
+      functionCache.set(
+        cacheKey,
+        // eslint-disable-next-line no-new-func
+        new Function("states", "user", "variables", "areas", code)
+      );
+    } catch (error) {
+      throw new Error(`Failed to compile JavaScript: ${error.message}`);
+    }
+  }
+  return functionCache.get(cacheKey);
+};
+const processValue = (value, context) => {
+  if (typeof value === "string") {
+    const cacheKey = value;
+    const fn = createFunction(value, cacheKey);
+    return fn(context.states, context.user, context.variables, context.areas);
+  }
+  return value;
+};
+const processConfig = (template, hass, variables) => {
+  const context = createEvaluationContext(hass, variables);
+  for (const [key, value] of Object.entries(template)) {
+    if (Array.isArray(value)) {
+      const newArray = [];
+      for (const item of value) {
+        if (typeof item === "object") {
+          processConfig(item, hass, variables);
+          newArray.push(item);
+        } else if (key.endsWith("_javascript")) {
+          const processedValue = processValue(item, context);
+          newArray.push(processedValue);
+        } else {
+          newArray.push(item);
+        }
+      }
+      if (key.endsWith("_javascript")) {
+        template[key.replace("_javascript", "")] = newArray;
+        delete template[key];
+      } else {
+        template[key] = newArray;
+      }
+    } else if (typeof value === "object") {
+      processConfig(value, hass, variables);
+    } else if (key.endsWith("_javascript")) {
+      const processedValue = processValue(value, context);
+      template[key.replace("_javascript", "")] = processedValue;
+      delete template[key];
+    }
+  }
+};
+const evaluateJavascript = (config, hass, variables = {}) => {
+  processConfig(config, hass, variables);
+  return config;
+};
+const primitiveRegexMap = /* @__PURE__ */ new Map();
+const objectQuotesRegexMap = /* @__PURE__ */ new Map();
+const objectRegexMap = /* @__PURE__ */ new Map();
+const basicRegexMap = /* @__PURE__ */ new Map();
+const variableCache = /* @__PURE__ */ new Map();
+const escapeQuoteRegex = /"/gmu;
+const replaceWithKeyValue = (stringTemplate, key, value) => {
+  if (typeof value === "number" || typeof value === "boolean") {
+    let rxp2 = primitiveRegexMap.get(key);
+    if (rxp2 === void 0) {
+      rxp2 = new RegExp(`["'\`]?\\[\\[${key}\\]\\]["'\`]?`, "gmu");
+      primitiveRegexMap.set(key, rxp2);
+    }
+    return stringTemplate.replaceAll(rxp2, value);
+  } else if (typeof value === "object") {
+    const valueString = JSON.stringify(value);
+    let rxpQuotes = objectQuotesRegexMap.get(key);
+    if (rxpQuotes === void 0) {
+      rxpQuotes = new RegExp(`"\\[\\[${key}\\]\\]"`, "gmu");
+      objectQuotesRegexMap.set(key, rxpQuotes);
+    }
+    let rxp2 = objectRegexMap.get(key);
+    if (rxp2 === void 0) {
+      rxp2 = new RegExp(`['\`]\\[\\[${key}\\]\\]['\`]`, "gmu");
+      objectRegexMap.set(key, rxp2);
+    }
+    return stringTemplate.replaceAll(rxpQuotes, valueString).replaceAll(rxp2, valueString.replace(escapeQuoteRegex, '\\"'));
+  }
+  let rxp = basicRegexMap.get(key);
+  if (rxp === void 0) {
+    rxp = new RegExp(`\\[\\[${key}\\]\\]`, "gmu");
+    basicRegexMap.set(key, rxp);
+  }
+  return stringTemplate.replaceAll(rxp, value);
+};
+function evaluateVariables(templateConfig, variables) {
+  if (!variables && !templateConfig.default) {
+    return templateConfig.card;
+  }
+  const cacheKey = JSON.stringify({ templateConfig, variables });
+  if (variableCache.has(cacheKey) === false) {
+    let stringTemplate = templateConfig.card ? JSON.stringify(templateConfig.card) : JSON.stringify(templateConfig.element);
+    const variablesObject = {
+      ...formatVariables(templateConfig.default ?? {}),
+      ...formatVariables(variables)
+    };
+    Object.entries(variablesObject).forEach(([key, value]) => {
+      stringTemplate = replaceWithKeyValue(stringTemplate, key, value);
+    });
+    variableCache.set(cacheKey, stringTemplate);
+  }
+  return JSON.parse(variableCache.get(cacheKey));
+}
+function evaluateConfig(templateConfig, variables, options) {
+  let config = evaluateVariables(templateConfig, variables ?? {});
+  const { hasJavascript, hass } = options;
+  if (hasJavascript && typeof hass !== "undefined") {
+    const allVariables = {
+      ...formatVariables(templateConfig.default ?? {}),
+      ...formatVariables(variables ?? {})
+    };
+    config = evaluateJavascript(config, hass, allVariables);
+  }
+  return config;
+}
+const version = "0.2.0";
 let isTemplateLoaded = null;
 let remoteTemplates = {};
 const thrower = (text) => {
@@ -6462,16 +6599,18 @@ const thrower = (text) => {
       __publicField(this, "_hasJavascriptTemplate", false);
       __publicField(this, "_pendingUpdates", /* @__PURE__ */ new Set());
       __publicField(this, "_updateScheduled", false);
+      __publicField(this, "_rafId", null);
       this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
     }
     queueUpdate(type) {
       this._pendingUpdates.add(type);
       if (this._updateScheduled === false) {
         this._updateScheduled = true;
-        this.flushUpdates();
+        this._rafId = requestAnimationFrame(() => this.flushUpdates());
       }
     }
     flushUpdates() {
+      this._rafId = null;
       if (this._pendingUpdates.has("config")) {
         this.updateCardConfig();
       }
@@ -6529,6 +6668,12 @@ const thrower = (text) => {
     }
     disconnectedCallback() {
       this._isConnected = false;
+      if (this._rafId !== null) {
+        cancelAnimationFrame(this._rafId);
+        this._rafId = null;
+        this._updateScheduled = false;
+        this._pendingUpdates.clear();
+      }
     }
     get editMode() {
       return this._editMode;
@@ -6553,7 +6698,11 @@ const thrower = (text) => {
     fetchTemplate(url) {
       return fetch(`${url}?t=${(/* @__PURE__ */ new Date()).getTime()}`).then((response) => response.text()).then((text) => {
         remoteTemplates = evaluateYaml(text);
-        this._templates = { ...remoteTemplates, ...this._inlineTemplates };
+        this._templates = {
+          ...exampleTile,
+          ...remoteTemplates,
+          ...this._inlineTemplates
+        };
       });
     }
     getTemplates() {
@@ -6564,7 +6713,11 @@ const thrower = (text) => {
         );
       }
       this._inlineTemplates = lovelace.config.streamline_templates;
-      this._templates = { ...remoteTemplates, ...this._inlineTemplates };
+      this._templates = {
+        ...exampleTile,
+        ...remoteTemplates,
+        ...this._inlineTemplates
+      };
       if (isTemplateLoaded === null) {
         const filename = "streamline-card/streamline_templates.yaml";
         isTemplateLoaded = this.fetchTemplate(`/hacsfiles/${filename}`).catch(() => this.fetchTemplate(`/local/${filename}`)).catch(() => this.fetchTemplate(`/local/community/${filename}`));

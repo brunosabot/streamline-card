@@ -458,7 +458,8 @@ describe("Given the evaluateConfig function", () => {
       const variables = [{ index: 1, prefix: "myprefix" }];
       const templateConfig = {
         card: {
-          entity_javascript: "return 'number.[[prefix]]_g' + '[[index]]' + '_move_threshold'",
+          entity_javascript:
+            "return 'number.[[prefix]]_g' + '[[index]]' + '_move_threshold'",
           type: "custom:button-card",
         },
       };

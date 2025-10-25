@@ -108,9 +108,15 @@ describe("deepEqual", () => {
     });
 
     it("should handle Infinity", () => {
-      expect(deepEqual(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY)).toBe(true);
-      expect(deepEqual(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY)).toBe(true);
-      expect(deepEqual(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY)).toBe(false);
+      expect(
+        deepEqual(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY),
+      ).toBe(true);
+      expect(
+        deepEqual(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY),
+      ).toBe(true);
+      expect(
+        deepEqual(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY),
+      ).toBe(false);
     });
 
     it("should handle zero correctly", () => {
@@ -138,16 +144,42 @@ describe("deepEqual", () => {
     });
 
     it("should return true for nested equal arrays", () => {
-      expect(deepEqual([[1, 2], [3, 4]], [[1, 2], [3, 4]])).toBe(true);
+      expect(
+        deepEqual(
+          [
+            [1, 2],
+            [3, 4],
+          ],
+          [
+            [1, 2],
+            [3, 4],
+          ],
+        ),
+      ).toBe(true);
     });
 
     it("should return false for nested different arrays", () => {
-      expect(deepEqual([[1, 2], [3, 4]], [[1, 2], [3, 5]])).toBe(false);
+      expect(
+        deepEqual(
+          [
+            [1, 2],
+            [3, 4],
+          ],
+          [
+            [1, 2],
+            [3, 5],
+          ],
+        ),
+      ).toBe(false);
     });
 
     it("should handle arrays with objects", () => {
-      expect(deepEqual([{ key1: 1 }, { key2: 2 }], [{ key1: 1 }, { key2: 2 }])).toBe(true);
-      expect(deepEqual([{ key1: 1 }, { key2: 2 }], [{ key1: 1 }, { key2: 3 }])).toBe(false);
+      expect(
+        deepEqual([{ key1: 1 }, { key2: 2 }], [{ key1: 1 }, { key2: 2 }]),
+      ).toBe(true);
+      expect(
+        deepEqual([{ key1: 1 }, { key2: 2 }], [{ key1: 1 }, { key2: 3 }]),
+      ).toBe(false);
     });
 
     it("should handle arrays with null/undefined", () => {
@@ -156,8 +188,12 @@ describe("deepEqual", () => {
     });
 
     it("should handle arrays with mixed types", () => {
-      expect(deepEqual([1, "two", true, null], [1, "two", true, null])).toBe(true);
-      expect(deepEqual([1, "two", true, null], [1, "two", false, null])).toBe(false);
+      expect(deepEqual([1, "two", true, null], [1, "two", true, null])).toBe(
+        true,
+      );
+      expect(deepEqual([1, "two", true, null], [1, "two", false, null])).toBe(
+        false,
+      );
     });
 
     it("should return false for empty array vs array with undefined", () => {
@@ -212,15 +248,21 @@ describe("deepEqual", () => {
     });
 
     it("should handle key order independence", () => {
-      expect(deepEqual({ key1: 1, key2: 2, key3: 3 }, { key1: 1, key2: 2, key3: 3 })).toBe(true);
+      expect(
+        deepEqual({ key1: 1, key2: 2, key3: 3 }, { key1: 1, key2: 2, key3: 3 }),
+      ).toBe(true);
     });
 
     it("should return true for nested equal objects", () => {
-      expect(deepEqual({ key1: { key2: 1 } }, { key1: { key2: 1 } })).toBe(true);
+      expect(deepEqual({ key1: { key2: 1 } }, { key1: { key2: 1 } })).toBe(
+        true,
+      );
     });
 
     it("should return false for nested different objects", () => {
-      expect(deepEqual({ key1: { key2: 1 } }, { key1: { key2: 2 } })).toBe(false);
+      expect(deepEqual({ key1: { key2: 1 } }, { key1: { key2: 2 } })).toBe(
+        false,
+      );
     });
 
     it("should handle objects with array values", () => {
@@ -229,21 +271,32 @@ describe("deepEqual", () => {
     });
 
     it("should handle objects with null/undefined values", () => {
-      expect(deepEqual({ key1: null, key2: undefined }, { key1: null, key2: undefined })).toBe(true);
+      expect(
+        deepEqual(
+          { key1: null, key2: undefined },
+          { key1: null, key2: undefined },
+        ),
+      ).toBe(true);
       expect(deepEqual({ key1: null }, { key1: undefined })).toBe(false);
     });
 
     it("should handle objects with boolean values", () => {
-      expect(deepEqual({ key1: true, key2: false }, { key1: true, key2: false })).toBe(true);
+      expect(
+        deepEqual({ key1: true, key2: false }, { key1: true, key2: false }),
+      ).toBe(true);
       expect(deepEqual({ key1: true }, { key1: false })).toBe(false);
     });
 
     it("should handle objects with string keys", () => {
-      expect(deepEqual({ "key-1": 1, "key-2": 2 }, { "key-1": 1, "key-2": 2 })).toBe(true);
+      expect(
+        deepEqual({ "key-1": 1, "key-2": 2 }, { "key-1": 1, "key-2": 2 }),
+      ).toBe(true);
     });
 
     it("should handle objects with numeric string keys", () => {
-      expect(deepEqual({ "0": "val1", "1": "val2" }, { "0": "val1", "1": "val2" })).toBe(true);
+      expect(
+        deepEqual({ 0: "val1", 1: "val2" }, { 0: "val1", 1: "val2" }),
+      ).toBe(true);
     });
 
     it("should handle single key objects", () => {
@@ -257,8 +310,12 @@ describe("deepEqual", () => {
     });
 
     it("should handle nested empty objects", () => {
-      expect(deepEqual({ key1: {}, key2: {} }, { key1: {}, key2: {} })).toBe(true);
-      expect(deepEqual({ key1: {}, key2: { key3: 1 } }, { key1: {}, key2: {} })).toBe(false);
+      expect(deepEqual({ key1: {}, key2: {} }, { key1: {}, key2: {} })).toBe(
+        true,
+      );
+      expect(
+        deepEqual({ key1: {}, key2: { key3: 1 } }, { key1: {}, key2: {} }),
+      ).toBe(false);
     });
 
     it("should handle objects with number values of different types", () => {
@@ -372,8 +429,8 @@ describe("deepEqual", () => {
     });
 
     it("should handle Buffer-like objects", () => {
-      const buf1 = { "0": 1, "1": 2, length: 2 };
-      const buf2 = { "0": 1, "1": 2, length: 2 };
+      const buf1 = { 0: 1, 1: 2, length: 2 };
+      const buf2 = { 0: 1, 1: 2, length: 2 };
       expect(deepEqual(buf1, buf2)).toBe(true);
     });
 
@@ -412,10 +469,19 @@ describe("deepEqual", () => {
     });
 
     it("should properly compare Map objects by size and contents", () => {
-      const map1 = new Map([["key1", 1], ["key2", 2]]);
-      const map2 = new Map([["key1", 1], ["key2", 2]]);
+      const map1 = new Map([
+        ["key1", 1],
+        ["key2", 2],
+      ]);
+      const map2 = new Map([
+        ["key1", 1],
+        ["key2", 2],
+      ]);
       const map3 = new Map([["key1", 1]]);
-      const map4 = new Map([["key1", 1], ["key2", 3]]);
+      const map4 = new Map([
+        ["key1", 1],
+        ["key2", 3],
+      ]);
       expect(deepEqual(map1, map2)).toBe(true);
       expect(deepEqual(map1, map3)).toBe(false);
       expect(deepEqual(map1, map4)).toBe(false);
@@ -499,7 +565,9 @@ describe("deepEqual", () => {
 
   describe("Performance characteristics", () => {
     it("should exit early on reference equality", () => {
-      const largeObj = { key1: Array.from({ length: 10000 }, (unused, index) => index) };
+      const largeObj = {
+        key1: Array.from({ length: 10000 }, (unused, index) => index),
+      };
       expect(deepEqual(largeObj, largeObj)).toBe(true);
     });
 

@@ -14,7 +14,7 @@ describe("Given the streamline-card-editor", () => {
 
       // Assert
       expect(editor._config).toEqual({
-        template: "bubble_separator",
+        template: "example_tile",
         type: "streamline-card",
         variables: {},
       });
@@ -29,7 +29,7 @@ describe("Given the streamline-card-editor", () => {
       ) as StreamlineCardEditor;
 
       editor._templates = {
-        bubble_separator: {
+        example_tile: {
           card: {
             card_type: "separator",
             name: "Obi Wan Kenobi",
@@ -39,7 +39,7 @@ describe("Given the streamline-card-editor", () => {
       };
 
       // Assert
-      expect(editor.getVariablesForTemplate("bubble_separator")).toEqual([]);
+      expect(editor.getVariablesForTemplate("example_tile")).toEqual([]);
     });
 
     it("Then it should return the default variables", () => {
@@ -49,7 +49,7 @@ describe("Given the streamline-card-editor", () => {
       ) as StreamlineCardEditor;
 
       editor._templates = {
-        bubble_separator: {
+        example_tile: {
           default: {
             name: "Ashoka Tano",
             job: "[[jedi]]",
@@ -64,7 +64,7 @@ describe("Given the streamline-card-editor", () => {
       };
 
       // Assert
-      expect(editor.getVariablesForTemplate("bubble_separator")).toEqual([
+      expect(editor.getVariablesForTemplate("example_tile")).toEqual([
         "jedi",
         "name",
       ]);
@@ -80,7 +80,7 @@ describe("Given the streamline-card-editor", () => {
 
       // Act
       editor.setConfig({
-        template: "bubble_separator",
+        template: "example_tile",
         type: "streamline-card",
         variables: {
           name: "Obi Wan Kenobi",
@@ -91,9 +91,10 @@ describe("Given the streamline-card-editor", () => {
 
       // Assert
       expect(editor._config).toEqual({
-        template: "bubble_separator",
+        template: "example_tile",
         type: "streamline-card",
         variables: {
+          entity: "",
           name: "Obi Wan Kenobi",
           job: "[[job]]",
           jedi: "Jedi",
@@ -109,7 +110,7 @@ describe("Given the streamline-card-editor", () => {
 
       // Act
       editor.setConfig({
-        template: "bubble_separator",
+        template: "example_tile",
         type: "streamline-card",
         variables: [
           { name: "Obi Wan Kenobi" },
@@ -120,9 +121,10 @@ describe("Given the streamline-card-editor", () => {
 
       // Assert
       expect(editor._config).toEqual({
-        template: "bubble_separator",
+        template: "example_tile",
         type: "streamline-card",
         variables: {
+          entity: "",
           name: "Obi Wan Kenobi",
           job: "[[jedi]]",
           jedi: "Jedi",

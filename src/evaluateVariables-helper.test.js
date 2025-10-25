@@ -230,7 +230,7 @@ describe("Given the evaluateVariables function", () => {
   });
 
   describe("When the template has a key with multiple variables", () => {
-    it.only("should replace the variables", () => {
+    it("should replace the variables", () => {
       const variables = [{ maquina: "bathroom" }];
       const templateConfig = {
         card: {

@@ -1,4 +1,7 @@
-export const getLovelaceCast = () => {
+let lovelaceCache = null;
+let lovelaceCastCache = null;
+
+const findLovelaceCast = () => {
   let root = document.querySelector("hc-main");
   root &&= root.shadowRoot;
   root &&= root.querySelector("hc-lovelace");
@@ -14,7 +17,7 @@ export const getLovelaceCast = () => {
   return null;
 };
 
-export const getLovelace = () => {
+const findLovelace = () => {
   let root = document.querySelector("home-assistant");
   root &&= root.shadowRoot;
   root &&= root.querySelector("home-assistant-main");
@@ -34,4 +37,23 @@ export const getLovelace = () => {
   }
 
   return null;
+};
+
+export const getLovelaceCast = () => {
+  if (lovelaceCastCache === null) {
+    lovelaceCastCache = findLovelaceCast();
+  }
+  return lovelaceCastCache;
+};
+
+export const getLovelace = () => {
+  if (lovelaceCache === null) {
+    lovelaceCache = findLovelace();
+  }
+  return lovelaceCache;
+};
+
+export const clearLovelaceCache = () => {
+  lovelaceCache = null;
+  lovelaceCastCache = null;
 };

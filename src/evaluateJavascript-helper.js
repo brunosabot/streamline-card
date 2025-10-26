@@ -16,7 +16,9 @@ const createFunction = (code, cacheKey) => {
         new Function("states", "user", "variables", "areas", code),
       );
     } catch (error) {
-      throw new Error(`Failed to compile JavaScript: ${error.message}`);
+      throw new Error(`Failed to compile JavaScript: ${error.message}`, {
+        cause: error,
+      });
     }
   }
   return functionCache.get(cacheKey);

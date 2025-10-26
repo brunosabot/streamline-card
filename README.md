@@ -6,6 +6,31 @@ Streamline your Lovelace configuration with a powerful card template system.
 
 This card is for [Lovelace](https://www.home-assistant.io/lovelace) on [Home Assistant](https://www.home-assistant.io/).
 
+## Table of Contents
+
+- [What is This Card?](#what-is-this-card)
+- [Installation](#installation)
+  - [With HACS (Recommended)](#with-hacs-recommended)
+  - [Manual Installation](#manual-installation)
+- [Configuration](#configuration)
+  - [Step 1: Understanding Templates](#step-1-understanding-templates)
+  - [Step 2: Setting Up Templates](#step-2-setting-up-templates)
+  - [Step 3: Template Structure](#step-3-template-structure)
+  - [Step 4: Using Variables](#step-4-using-variables)
+  - [Step 5: Advanced Features - JavaScript Expressions](#step-5-advanced-features---javascript-expressions)
+- [Real-World Examples](#real-world-examples)
+- [Examples](#examples)
+- [Tips and Best Practices](#tips-and-best-practices)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+  - [Prerequisites](#prerequisites)
+  - [Setting Up Your Development Environment](#setting-up-your-development-environment)
+  - [Development Workflow](#development-workflow)
+  - [Code Quality](#code-quality)
+  - [Testing Your Changes](#testing-your-changes)
+  - [Submitting Your Contribution](#submitting-your-contribution)
+  - [Ways to Contribute](#ways-to-contribute)
+
 ## What is This Card?
 
 Have you ever found yourself copying and pasting the same card configuration over and over in your Home Assistant dashboard? For example, you might have multiple light cards that all look the same, just with different entities. Every time you want to change how these cards look, you have to change each one individually. This is time-consuming and prone to errors.
@@ -437,7 +462,7 @@ streamline_templates:
 
 </details>
 
-## 📚 Examples
+## Examples
 
 Explore real-world template examples to help you get started and inspire your own creations:
 

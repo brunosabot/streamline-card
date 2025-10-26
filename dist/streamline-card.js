@@ -6382,6 +6382,12 @@ class StreamlineCardEditor extends HTMLElement {
       selector: { icon: {} }
     };
   }
+  static getBooleanSchema(name) {
+    return {
+      name,
+      selector: { boolean: {} }
+    };
+  }
   static getDefaultSchema(name) {
     return {
       name,
@@ -6394,6 +6400,8 @@ class StreamlineCardEditor extends HTMLElement {
       childSchema = StreamlineCardEditor.getEntitySchema(variable);
     } else if (variable.toLowerCase().includes("icon")) {
       childSchema = StreamlineCardEditor.getIconSchema(variable);
+    } else if (variable.toLowerCase().includes("bool")) {
+      childSchema = this.getBooleanSchema(variable);
     }
     return childSchema;
   }

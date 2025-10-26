@@ -124,24 +124,22 @@ There are two ways to set up your templates: through YAML files or through the U
 2. **Add Template Files:**
    In this folder, create YAML files for your templates. For example, `light_template.yaml`:
 
-
-    ```yaml
-    default:
-      - light_icon: mdi:ceiling-light
-    card:
-      type: custom:bubble-card
-      name: "[[room_name]] Light"
-      icon: "[[light_icon]]"
-      entity: "[[light_entity]]"
-    ```
+```yaml
+default:
+  - light_icon: mdi:ceiling-light
+card:
+  type: custom:bubble-card
+  name: "[[room_name]] Light"
+  icon: "[[light_icon]]"
+  entity: "[[light_entity]]"
+```
 
 3. **Include Templates in Dashboard:**
    In your dashboard configuration file, add:
 
-
-    ```yaml
-    streamline_templates: !include_dir_named ../streamline_templates/
-    ```
+```yaml
+streamline_templates: !include_dir_named ../streamline_templates/
+```
 
 ---
 
@@ -175,17 +173,18 @@ If the file is not found in the first location, the card will try the next, and 
 
 2. **Add Templates:**
    At the top of the file, add:
-   ```yaml
-   streamline_templates:
-     my_light_template:
-       default:
-         - light_icon: mdi:ceiling-light
-       card:
-         type: custom:bubble-card
-         name: "[[room_name]] Light"
-         icon: "[[light_icon]]"
-         entity: "[[light_entity]]"
-   ```
+
+```yaml
+streamline_templates:
+  my_light_template:
+    default:
+      - light_icon: mdi:ceiling-light
+    card:
+      type: custom:bubble-card
+      name: "[[room_name]] Light"
+      icon: "[[light_icon]]"
+      entity: "[[light_entity]]"
+```
 
 </details>
 
@@ -198,34 +197,34 @@ Each template has three main parts:
 1. **Template Name:**
    This is how you'll refer to your template later.
 
-   ```yaml
-   my_light_template: # This is the template name
-   ```
+```yaml
+my_light_template: # This is the template name
+```
 
 2. **Default Values (Optional):**
    These are values that will be used if not specified when using the template.
 
-   ```yaml
-   default:
-     - light_icon: mdi:ceiling-light
-   ```
+```yaml
+default:
+  - light_icon: mdi:ceiling-light
+```
 
 3. **Card Configuration:**
    This is the actual card configuration, with variables in double brackets.
 
-   ```yaml
-   card: # Use 'card' for normal cards
-     type: custom:bubble-card
-     name: "[[room_name]] Light"
-     icon: "[[light_icon]]"
-     entity: "[[light_entity]]"
+```yaml
+card: # Use 'card' for normal cards
+  type: custom:bubble-card
+  name: "[[room_name]] Light"
+  icon: "[[light_icon]]"
+  entity: "[[light_entity]]"
 
-   # OR
+# OR
 
-   element: # Use 'element' for picture-elements
-     type: icon
-     icon: "[[icon]]"
-   ```
+element: # Use 'element' for picture-elements
+  type: icon
+  icon: "[[icon]]"
+```
 
 ### Step 4: Using Variables
 
@@ -503,10 +502,140 @@ If you're having issues:
 
 ## Contributing
 
-Found a bug? Want to add a feature? Feel free to:
+We welcome contributions to make Streamline Card better! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
 
-1. Open an issue
-2. Submit a pull request
-3. Share your template examples with the community
+> [!IMPORTANT] > **Please submit pull requests with a single feature or fix at a time.** This makes it easier to review, test, and merge your contributions. If you have multiple improvements, please create separate pull requests for each one.
+
+### Prerequisites
+
+Before you start contributing, make sure you have the following installed:
+
+- **[Node.js](https://nodejs.org/)** (v18 or higher recommended)
+- **[pnpm](https://pnpm.io/)** - Fast, disk space efficient package manager
+
+### Setting Up Your Development Environment
+
+1. **Fork and Clone the Repository:**
+
+   ```bash
+   git clone https://github.com/brunosabot/streamline-card.git
+   cd streamline-card
+   ```
+
+2. **Install Dependencies:**
+
+   ```bash
+   pnpm install
+   ```
+
+3. **Configure Environment Variables (Optional):**
+
+   You can create `.env.development.local` or `.env.production.local` files to customize your build output:
+
+   ```bash
+   # .env.development.local
+   TARGET_DIRECTORY=/path/to/your/homeassistant/www/streamline-card
+   ```
+
+   - `TARGET_DIRECTORY`: Specifies where the built files should be output
+   - If not set, files will be built to the `dist/` directory by default
+   - `.env.*.local` files are gitignored and won't be committed
+
+### Development Workflow
+
+1. **Start Development Mode:**
+
+   ```bash
+   pnpm dev
+   ```
+
+   This will watch for file changes and automatically rebuild the card. If you set `TARGET_DIRECTORY`, the files will be output directly to your Home Assistant instance for live testing.
+
+2. **Build for Production:**
+
+   ```bash
+   pnpm build
+   ```
+
+   Creates an optimized build in the `dist/` directory (or your configured `TARGET_DIRECTORY`).
+
+### Code Quality
+
+Before submitting your changes, ensure your code meets our quality standards:
+
+1. **Run Linting:**
+
+   ```bash
+   pnpm run audit:lint    # Check for linting issues
+   pnpm run fix:lint      # Auto-fix linting issues
+   ```
+
+2. **Run Formatting:**
+
+   ```bash
+   pnpm run audit:format  # Check formatting
+   pnpm run fix:format    # Auto-fix formatting
+   ```
+
+3. **Run Tests:**
+
+   ```bash
+   pnpm test:unit         # Run tests in watch mode
+   pnpm test:coverage     # Run tests with coverage report
+   ```
+
+### Testing Your Changes
+
+1. **Write Tests:**
+
+   - Add test files alongside the JavaScript files they test (e.g., `myfile.js` → `myfile.test.js`)
+   - The `src/tests/` directory is reserved for regression tests for GitHub issues
+   - Follow the existing test patterns using Vitest
+   - Ensure all tests pass before submitting
+
+2. **Test in Home Assistant:**
+   - Use the development build to test your changes in a real Home Assistant environment
+   - Verify that your changes work with different configurations
+   - Check the browser console for any errors
+
+### Submitting Your Contribution
+
+1. **Create a Branch:**
+
+   ```bash
+   git checkout -b feature/your-feature-name
+   # or
+   git checkout -b fix/your-bug-fix
+   ```
+
+2. **Make Your Changes:**
+
+   - Write clean, readable code
+   - Follow the existing code style
+   - Add comments for complex logic
+   - Update documentation if needed
+
+3. **Commit Your Changes:**
+
+   ```bash
+   git add .
+   git commit -m "feat: add new feature" # or "fix: resolve bug"
+   ```
+
+4. **Push and Create a Pull Request:**
+
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+   Then open a pull request on GitHub with a clear description of your changes.
+
+### Ways to Contribute
+
+- **Report Bugs:** Open an issue with detailed steps to reproduce
+- **Suggest Features:** Share your ideas for improvements
+- **Fix Issues:** Look for open issues and submit fixes
+- **Improve Documentation:** Help make the docs clearer and more comprehensive
+- **Share Templates:** Contribute example templates to help others
 
 Your contributions help make this card better for everyone!

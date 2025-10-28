@@ -5,12 +5,13 @@ import evaluateConfig from "./evaluteConfig-helper";
 import evaluateYaml from "./evaluateYaml";
 import exampleTile from "./templates/exampleTile";
 import { version } from "../package.json";
+import { getRemoteTemplates,getisTemplateLoaded, loadRemoteTemplates } from "./templateLoader";
 
-let isTemplateLoaded = null;
-let remoteTemplates = {};
+//let isTemplateLoaded = null;
+//let remoteTemplates = {};
 
 const thrower = (text) => {
-  if (isTemplateLoaded === true) {
+  if (getisTemplateLoaded() === true) {
     throw new Error(text);
   }
 };
@@ -160,53 +161,45 @@ const thrower = (text) => {
 
       this.queueUpdate("hass");
     }
-
     fetchTemplate(url) {
       return fetch(`${url}?t=${new Date().getTime()}`)
         .then((response) => response.text())
         .then((text) => {
-          remoteTemplates = evaluateYaml(text);
+//		remoteTemplates = evaluateYaml(text);
+		  loadRemoteTemplates();
           this._templates = {
             ...exampleTile,
-            ...remoteTemplates,
+            ...getRemoteTemplates(),
             ...this._inlineTemplates,
           };
         });
     }
 
-    getTemplates() {
-      const lovelace = getLovelace() || getLovelaceCast();
-      if (!lovelace.config && !lovelace.config.streamline_templates) {
-        thrower(
-          "The object streamline_templates doesn't exist in your main lovelace config.",
-        );
-      }
+	getTemplates() {
+	  const lovelace = getLovelace() || getLovelaceCast();
 
-      this._inlineTemplates = lovelace.config.streamline_templates;
-      this._templates = {
-        ...exampleTile,
-        ...remoteTemplates,
-        ...this._inlineTemplates,
-      };
+	  // Inline templates are optional
+	  const inline =
+		(lovelace && lovelace.config && lovelace.config.streamline_templates) || {};
+	  this._inlineTemplates = inline;
 
-      if (isTemplateLoaded === null) {
-        const filename = "streamline-card/streamline_templates.yaml";
-        isTemplateLoaded = this.fetchTemplate(`/hacsfiles/${filename}`)
-          .catch(() => this.fetchTemplate(`/local/${filename}`))
-          .catch(() => this.fetchTemplate(`/local/community/${filename}`));
-      }
-      if (isTemplateLoaded instanceof Promise) {
-        isTemplateLoaded.then(() => {
-          isTemplateLoaded = true;
+	  this._templates = {
+		...exampleTile,
+		...getRemoteTemplates(),
+		...this._inlineTemplates,
+	  };
 
-          if (this._card === undefined) {
-            this.setConfig(this._originalConfig);
-            this.queueUpdate("hass");
-          }
-        });
-      }
-    }
-
+	  // IMPORTANT: never reassign a loader handle; use a single const
+	  const loadP = getisTemplateLoaded() ?? loadRemoteTemplates();
+	  if (loadP instanceof Promise) {
+		loadP.then(() => {
+		  if (this._card === undefined) {
+			this.setConfig(this._originalConfig);
+			this.queueUpdate("hass");
+		  }
+		});
+	  }
+	}
     prepareConfig() {
       this.getTemplates();
       this._templateConfig = this._templates[this._originalConfig.template];
@@ -313,6 +306,7 @@ const thrower = (text) => {
     }
   }
 
+
   customElements.define("streamline-card", StreamlineCard);
 
   window.customCards ||= [];
@@ -330,5 +324,169 @@ const thrower = (text) => {
     "background-color:#5297ff;color:#242424;padding:4px 8px 4px 4px;border-radius:0 20px 20px 0;font-family:sans-serif;",
   );
 })();
+
+/* ==========================================================================
+ * streamline-card: consolidated build with variables_meta support
+ * ========================================================================== */
+
+(function () {
+  const waitFor = (cond, { tries = 120, interval = 250 } = {}) =>
+    new Promise((resolve, reject) => {
+      const tick = () => {
+        if (cond()) return resolve();
+        if (--tries <= 0) return reject(new Error("streamline-meta: target not found"));
+        setTimeout(tick, interval);
+      };
+      tick();
+    });
+
+
+
+  function normalizeVars(v) {
+    if (!v) return {};
+    if (Array.isArray(v)) {
+      const out = {};
+      v.forEach(obj => Object.entries(obj || {}).forEach(([k, val]) => (out[k] = val)));
+      return out;
+    }
+    return { ...v };
+  }
+
+
+
+  function getTemplate(editor, templateName) {
+    const tpl = editor && editor._templates && editor._templates[templateName];
+    if (!tpl) throw new Error(`streamline-meta: template "${templateName}" not found`);
+    return tpl;
+  }
+
+
+
+  function getVariablesMeta(editor, templateName) {
+    const tpl = getTemplate(editor, templateName);
+    return tpl.variables_meta || tpl.variablesMeta || {};
+  }
+
+
+
+  function inferSelectorFromName(name) {
+    const lower = String(name).toLowerCase();
+    if (lower.includes("entity")) return { entity: {} };
+    if (lower.includes("icon")) return { icon: {} };
+    if (lower.includes("bool")) return { boolean: {} };
+    return { text: {} };
+  }
+
+
+
+  function buildSchemaFromMeta(name, metaEntry) {
+    const selector =
+      (metaEntry && metaEntry.selector) ? metaEntry.selector : inferSelectorFromName(name);
+    const schema = { name, selector };
+    if (metaEntry && typeof metaEntry.title === "string") schema.title = metaEntry.title;
+    if (metaEntry && typeof metaEntry.description === "string") schema.description = metaEntry.description;
+    return schema;
+  }
+
+  function collectMetaDefaults(meta) {
+    const out = {};
+    Object.entries(meta || {}).forEach(([k, v]) => {
+      if (v && Object.prototype.hasOwnProperty.call(v, "default")) {
+        out[k] = v.default;
+      }
+    });
+    return out;
+  }
+
+  function mergeDefaults(existing, metaDefaults) {
+    return { ...normalizeVars(existing), ...normalizeVars(metaDefaults) };
+  }
+
+  waitFor(() => !!customElements.get("streamline-card-editor"))
+    .then(() => {
+      const Editor = customElements.get("streamline-card-editor");
+
+      // Patch setVariablesDefault to respect meta defaults while preserving original behavior.
+      const _setVariablesDefault = Editor.prototype.setVariablesDefault;
+      if (typeof _setVariablesDefault === "function") {
+        Editor.prototype.setVariablesDefault = function (newConfig) {
+          try {
+            const meta = getVariablesMeta(this, newConfig.template);
+            const metaDefaults = collectMetaDefaults(meta);
+            const cfg = _setVariablesDefault.call(this, newConfig);
+            Object.entries(metaDefaults).forEach(([key, val]) => {
+              const curr = cfg.variables?.[key];
+              const isEmptyString = curr === "";
+              const isUndef = typeof curr === "undefined";
+              if (isUndef || isEmptyString) cfg.variables[key] = val;
+            });
+            return cfg;
+          } catch (_e) {
+            return _setVariablesDefault.call(this, newConfig);
+          }
+        };
+      }
+
+      // Patch getVariableSchema to use meta-provided selector/title/description when present.
+      const _getVariableSchema = Editor.getVariableSchema;
+      if (typeof _getVariableSchema === "function") {
+        Editor.getVariableSchema = function (variable) {
+          try {
+            const activeEditor = [...document.querySelectorAll("streamline-card-editor")]
+              .find((el) => el && el._config && el._templates);
+
+            if (!activeEditor || !activeEditor._config) {
+              return _getVariableSchema.call(this, variable);
+            }
+            const tplName = activeEditor._config.template;
+            const meta = getVariablesMeta(activeEditor, tplName);
+            const metaEntry = meta && meta[variable];
+            if (metaEntry) return buildSchemaFromMeta(variable, metaEntry);
+            return _getVariableSchema.call(this, variable);
+          } catch (_e) {
+            return _getVariableSchema.call(this, variable);
+          }
+        };
+      }
+      // Patch getSchema to render Variables section using meta, with fallback to original inference.
+      const _getSchema = Editor.prototype.getSchema;
+      if (typeof _getSchema === "function") {
+        // [removed late getSchema override]
+      }
+
+      // Patch formatConfig to merge meta defaults into template defaults for downstream consumers.
+      const _formatConfig = Editor.formatConfig;
+      if (typeof _formatConfig === "function") {
+        Editor.formatConfig = function (config) {
+          const newConfig = _formatConfig.call(this, config);
+          try {
+            const editor = [...document.querySelectorAll("streamline-card-editor")]
+              .find((el) => el && el._templates && el._config) || null;
+
+            if (editor) {
+              const tpl = getTemplate(editor, newConfig.template);
+              const metaDefaults = collectMetaDefaults(getVariablesMeta(editor, newConfig.template));
+              if (tpl && (tpl.card || tpl.element)) {
+                const mergedDefaults = mergeDefaults(tpl.default || {}, metaDefaults);
+                tpl.default = mergedDefaults;
+              }
+            }
+          } catch (_e) {
+            // ignore non-fatal errors
+          }
+          return newConfig;
+        };
+      }
+      console.info("%cstreamline-card (consolidated)%c • variables_meta enabled",
+        "font-weight:bold", "font-weight:normal");
+    })
+    .catch((err) => {
+      console.warn("streamline-meta: initialization failed:", err && err.message || err);
+    });
+})();
+
+
+
+
 
 export {};

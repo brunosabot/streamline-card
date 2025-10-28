@@ -6057,25 +6057,67 @@ function parse(src, reviver, options) {
 function evaluateYaml(yamlString) {
   return parse(yamlString);
 }
-let remoteTemplates$1 = {};
-let isTemplateLoaded$1 = null;
-const getRemoteTemplates = () => remoteTemplates$1;
-const fetchRemoteTemplates = (url) => {
-  if (isTemplateLoaded$1 === null) {
-    isTemplateLoaded$1 = fetch(`${url}?t=${(/* @__PURE__ */ new Date()).getTime()}`).then((response) => response.text()).then((text) => {
-      remoteTemplates$1 = evaluateYaml(text);
-      isTemplateLoaded$1 = true;
-    });
+let remoteTemplates = {};
+let isTemplateLoaded = null;
+const getRemoteTemplates = () => remoteTemplates;
+const getisTemplateLoaded = () => isTemplateLoaded;
+async function __sl_fetchText(u) {
+  const r = await fetch(`${u}?t=${Date.now()}`);
+  if (!r.ok) throw new Error(`HTTP ${r.status} for ${u}`);
+  return r.text();
+}
+async function __sl_fetchJSON(u) {
+  const r = await fetch(`${u}?t=${Date.now()}`);
+  if (!r.ok) throw new Error(`HTTP ${r.status} for ${u}`);
+  return r.json();
+}
+async function __sl_tryLoadFromTemplatesDirectory(base) {
+  try {
+    const manifest = await __sl_fetchJSON(`${base}/templates/manifest.json`);
+    const files = Array.isArray(manifest) ? manifest : Array.isArray(manifest.files) ? manifest.files : [];
+    if (!files.length) return false;
+    const loaded = [];
+    for (const f of files) {
+      if (typeof f !== "string" || !f.trim()) continue;
+      const text = await __sl_fetchText(`${base}/templates/${f}`);
+      const obj = evaluateYaml(text);
+      if (obj && typeof obj === "object") loaded.push(obj);
+    }
+    remoteTemplates = Object.assign({}, ...loaded);
+    return Object.keys(remoteTemplates).length > 0;
+  } catch (e) {
+    return false;
   }
-  return isTemplateLoaded$1;
-};
-const loadRemoteTemplates = () => {
-  const filename = "streamline-card/streamline_templates.yaml";
-  if (isTemplateLoaded$1 === null) {
-    isTemplateLoaded$1 = fetchRemoteTemplates(`/hacsfiles/${filename}`).catch(() => fetchRemoteTemplates(`/local/${filename}`)).catch(() => fetchRemoteTemplates(`/local/community/${filename}`));
+}
+async function loadRemoteTemplates() {
+  if (isTemplateLoaded === true) return true;
+  if (isTemplateLoaded instanceof Promise) return isTemplateLoaded;
+  isTemplateLoaded = (async () => {
+    const bases = [
+      "/hacsfiles/streamline-card",
+      "/local/streamline-card",
+      "/local/community/streamline-card"
+    ];
+    for (const b of bases) {
+      if (await __sl_tryLoadFromTemplatesDirectory(b)) return true;
+    }
+    const filename = "streamline-card/streamline_templates.yaml";
+    await __sl_fetchText(`/hacsfiles/${filename}`).then((t) => {
+      remoteTemplates = evaluateYaml(t);
+    }).catch(() => __sl_fetchText(`/local/${filename}`).then((t) => {
+      remoteTemplates = evaluateYaml(t);
+    })).catch(() => __sl_fetchText(`/local/community/${filename}`).then((t) => {
+      remoteTemplates = evaluateYaml(t);
+    }));
+    return true;
+  })();
+  try {
+    await isTemplateLoaded;
+  } finally {
+    isTemplateLoaded = true;
   }
-  return isTemplateLoaded$1;
-};
+  return true;
+}
 const compareArraysDeep = (arr1, arr2, compareFn) => {
   if (arr1.length !== arr2.length) {
     return false;
@@ -6221,20 +6263,23 @@ class StreamlineCardEditor extends HTMLElement {
     this._card = card;
     this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
     const lovelace = getLovelace() || getLovelaceCast();
-    const remoteTemplateLoader = loadRemoteTemplates();
+    let remoteTemplateLoader = loadRemoteTemplates();
     if (remoteTemplateLoader instanceof Promise) {
       remoteTemplateLoader.then(() => {
         this._templates = {
           ...exampleTile,
           ...getRemoteTemplates(),
-          ...lovelace.config.streamline_templates
+          ...lovelace && lovelace.config && lovelace.config.streamline_templates ? lovelace.config.streamline_templates : {}
         };
+        if (this._originalConfig) {
+          this.setConfig(this._originalConfig);
+        }
       });
     } else {
       this._templates = {
         ...exampleTile,
         ...getRemoteTemplates(),
-        ...lovelace.config.streamline_templates
+        ...lovelace && lovelace.config && lovelace.config.streamline_templates ? lovelace.config.streamline_templates : {}
       };
     }
     if (this._templates === null) {
@@ -6318,12 +6363,11 @@ class StreamlineCardEditor extends HTMLElement {
     this._shadow.appendChild(this.elements.style);
   }
   getVariablesForTemplate(template) {
+    var _a;
     const variables = {};
     const templateConfig = this._templates[template];
     if (typeof templateConfig === "undefined") {
-      throw new Error(
-        `The template "${template}" doesn't exist in streamline_templates`
-      );
+      return Object.keys(((_a = this._config) == null ? void 0 : _a.variables) ?? {});
     }
     const stringTemplate = JSON.stringify(templateConfig);
     const variablesRegex = /\[\[(?<name>.*?)\]\]/gu;
@@ -6382,6 +6426,12 @@ class StreamlineCardEditor extends HTMLElement {
       selector: { icon: {} }
     };
   }
+  static getBooleanSchema(name) {
+    return {
+      name,
+      selector: { boolean: {} }
+    };
+  }
   static getDefaultSchema(name) {
     return {
       name,
@@ -6394,23 +6444,96 @@ class StreamlineCardEditor extends HTMLElement {
       childSchema = StreamlineCardEditor.getEntitySchema(variable);
     } else if (variable.toLowerCase().includes("icon")) {
       childSchema = StreamlineCardEditor.getIconSchema(variable);
+    } else if (variable.toLowerCase().includes("bool")) {
+      childSchema = StreamlineCardEditor.getBooleanSchema(variable);
     }
     return childSchema;
   }
   getSchema() {
-    const variables = this.getVariablesForTemplate(this._config.template);
-    return [
-      StreamlineCardEditor.getTemplateSchema(Object.keys(this._templates)),
-      {
-        expanded: true,
-        name: "variables",
-        schema: variables.map(
-          (key) => StreamlineCardEditor.getVariableSchema(key)
-        ),
-        title: "Variables",
-        type: "expandable"
+    var _a;
+    const tplName = this._config.template;
+    const tpl = ((_a = this._templates) == null ? void 0 : _a[tplName]) || {};
+    const meta = tpl.variables_meta || tpl.meta && tpl.meta.variables || {};
+    const toNatural = (t) => {
+      const s = JSON.stringify(t);
+      const rx = /\[\[(?<name>.*?)\]\]/gu;
+      const seen = /* @__PURE__ */ new Set();
+      const out = [];
+      for (const m of s.matchAll(rx)) {
+        const n = m.groups && m.groups.name || m[1] || "";
+        if (n && !seen.has(n)) {
+          seen.add(n);
+          out.push(n);
+        }
       }
-    ];
+      return out;
+    };
+    const pickSelector = (name) => {
+      const v = String(name).toLowerCase();
+      if (v.includes("entity")) return StreamlineCardEditor.getEntitySchema(name).selector;
+      if (v.includes("icon")) return StreamlineCardEditor.getIconSchema(name).selector;
+      if (v.includes("bool")) return StreamlineCardEditor.getBooleanSchema(name).selector;
+      return StreamlineCardEditor.getDefaultSchema(name).selector;
+    };
+    let variables = toNatural(tpl);
+    if (!Array.isArray(variables) || variables.length === 0) {
+      variables = this.getVariablesForTemplate(tplName);
+    }
+    const naturalIndex = new Map(variables.map((v, i) => [v, i]));
+    const sortByOrder = (arr) => [...arr].sort((a, b) => {
+      var _a2, _b;
+      const ao = (_a2 = meta == null ? void 0 : meta[a]) == null ? void 0 : _a2.order;
+      const bo = (_b = meta == null ? void 0 : meta[b]) == null ? void 0 : _b.order;
+      const aNum = Number.isFinite(ao) ? ao : null;
+      const bNum = Number.isFinite(bo) ? bo : null;
+      if (aNum !== null && bNum !== null) return aNum - bNum;
+      if (aNum !== null) return -1;
+      if (bNum !== null) return 1;
+      return naturalIndex.get(a) - naturalIndex.get(b);
+    });
+    const groupsMap = /* @__PURE__ */ new Map();
+    for (const v of variables) {
+      const m = (meta == null ? void 0 : meta[v]) || {};
+      const title = typeof m.group === "string" && m.group.trim() ? m.group.trim() : null;
+      const key = title || "__ungrouped__";
+      const order = title ? Number.isFinite(m.group_order) ? m.group_order : 1e3 : -1;
+      if (!groupsMap.has(key)) groupsMap.set(key, { title: title || "Variables", order, items: [] });
+      groupsMap.get(key).items.push(v);
+    }
+    for (const g of groupsMap.values()) g.items = sortByOrder(g.items);
+    const grouped = [...groupsMap.values()].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
+    const buildField = (name) => {
+      const m = meta == null ? void 0 : meta[name];
+      if (m && typeof m === "object") {
+        const row = { name };
+        if (m.title) row.title = String(m.title);
+        if (m.description) row.description = String(m.description);
+        row.selector = m.selector && typeof m.selector === "object" ? m.selector : pickSelector(name);
+        return row;
+      }
+      return StreamlineCardEditor.getVariableSchema(name);
+    };
+    const hasAnyMeta = Object.keys(meta).length > 0;
+    if (!hasAnyMeta) {
+      return [
+        StreamlineCardEditor.getTemplateSchema(Object.keys(this._templates)),
+        {
+          expanded: true,
+          name: "variables",
+          title: "Variables",
+          type: "expandable",
+          schema: sortByOrder(variables).map((k) => buildField(k))
+        }
+      ];
+    }
+    const sections = grouped.map((g, idx) => ({
+      expanded: idx === 0,
+      name: "variables",
+      title: g.title,
+      type: "expandable",
+      schema: g.items.map((k) => buildField(k))
+    }));
+    return [StreamlineCardEditor.getTemplateSchema(Object.keys(this._templates)), ...sections];
   }
   static computeLabel(schema2) {
     const schemaName = schema2.name.replace(/[-_]+/gu, " ");
@@ -6460,7 +6583,9 @@ const createFunction = (code, cacheKey) => {
         new Function("states", "user", "variables", "areas", code)
       );
     } catch (error) {
-      throw new Error(`Failed to compile JavaScript: ${error.message}`);
+      throw new Error(`Failed to compile JavaScript: ${error.message}`, {
+        cause: error
+      });
     }
   }
   return functionCache.get(cacheKey);
@@ -6574,10 +6699,8 @@ function evaluateConfig(templateConfig, variables, options) {
   return config;
 }
 const version = "0.2.0";
-let isTemplateLoaded = null;
-let remoteTemplates = {};
 const thrower = (text) => {
-  if (isTemplateLoaded === true) {
+  if (getisTemplateLoaded() === true) {
     throw new Error(text);
   }
 };
@@ -6697,34 +6820,26 @@ const thrower = (text) => {
     }
     fetchTemplate(url) {
       return fetch(`${url}?t=${(/* @__PURE__ */ new Date()).getTime()}`).then((response) => response.text()).then((text) => {
-        remoteTemplates = evaluateYaml(text);
+        loadRemoteTemplates();
         this._templates = {
           ...exampleTile,
-          ...remoteTemplates,
+          ...getRemoteTemplates(),
           ...this._inlineTemplates
         };
       });
     }
     getTemplates() {
       const lovelace = getLovelace() || getLovelaceCast();
-      if (!lovelace.config && !lovelace.config.streamline_templates) {
-        thrower(
-          "The object streamline_templates doesn't exist in your main lovelace config."
-        );
-      }
-      this._inlineTemplates = lovelace.config.streamline_templates;
+      const inline = lovelace && lovelace.config && lovelace.config.streamline_templates || {};
+      this._inlineTemplates = inline;
       this._templates = {
         ...exampleTile,
-        ...remoteTemplates,
+        ...getRemoteTemplates(),
         ...this._inlineTemplates
       };
-      if (isTemplateLoaded === null) {
-        const filename = "streamline-card/streamline_templates.yaml";
-        isTemplateLoaded = this.fetchTemplate(`/hacsfiles/${filename}`).catch(() => this.fetchTemplate(`/local/${filename}`)).catch(() => this.fetchTemplate(`/local/community/${filename}`));
-      }
-      if (isTemplateLoaded instanceof Promise) {
-        isTemplateLoaded.then(() => {
-          isTemplateLoaded = true;
+      const loadP = getisTemplateLoaded() ?? loadRemoteTemplates();
+      if (loadP instanceof Promise) {
+        loadP.then(() => {
           if (this._card === void 0) {
             this.setConfig(this._originalConfig);
             this.queueUpdate("hass");
@@ -6834,4 +6949,126 @@ const thrower = (text) => {
     "background-color:#c2b280;color:#242424;padding:4px 4px 4px 8px;border-radius:20px 0 0 20px;font-family:sans-serif;",
     "background-color:#5297ff;color:#242424;padding:4px 8px 4px 4px;border-radius:0 20px 20px 0;font-family:sans-serif;"
   );
+})();
+(function() {
+  const waitFor = (cond, { tries = 120, interval = 250 } = {}) => new Promise((resolve, reject) => {
+    const tick = () => {
+      if (cond()) return resolve();
+      if (--tries <= 0) return reject(new Error("streamline-meta: target not found"));
+      setTimeout(tick, interval);
+    };
+    tick();
+  });
+  function normalizeVars(v) {
+    if (!v) return {};
+    if (Array.isArray(v)) {
+      const out = {};
+      v.forEach((obj) => Object.entries(obj || {}).forEach(([k, val]) => out[k] = val));
+      return out;
+    }
+    return { ...v };
+  }
+  function getTemplate(editor, templateName) {
+    const tpl = editor && editor._templates && editor._templates[templateName];
+    if (!tpl) throw new Error(`streamline-meta: template "${templateName}" not found`);
+    return tpl;
+  }
+  function getVariablesMeta(editor, templateName) {
+    const tpl = getTemplate(editor, templateName);
+    return tpl.variables_meta || tpl.variablesMeta || {};
+  }
+  function inferSelectorFromName(name) {
+    const lower = String(name).toLowerCase();
+    if (lower.includes("entity")) return { entity: {} };
+    if (lower.includes("icon")) return { icon: {} };
+    if (lower.includes("bool")) return { boolean: {} };
+    return { text: {} };
+  }
+  function buildSchemaFromMeta(name, metaEntry) {
+    const selector = metaEntry && metaEntry.selector ? metaEntry.selector : inferSelectorFromName(name);
+    const schema2 = { name, selector };
+    if (metaEntry && typeof metaEntry.title === "string") schema2.title = metaEntry.title;
+    if (metaEntry && typeof metaEntry.description === "string") schema2.description = metaEntry.description;
+    return schema2;
+  }
+  function collectMetaDefaults(meta) {
+    const out = {};
+    Object.entries(meta || {}).forEach(([k, v]) => {
+      if (v && Object.prototype.hasOwnProperty.call(v, "default")) {
+        out[k] = v.default;
+      }
+    });
+    return out;
+  }
+  function mergeDefaults(existing, metaDefaults) {
+    return { ...normalizeVars(existing), ...normalizeVars(metaDefaults) };
+  }
+  waitFor(() => !!customElements.get("streamline-card-editor")).then(() => {
+    const Editor = customElements.get("streamline-card-editor");
+    const _setVariablesDefault = Editor.prototype.setVariablesDefault;
+    if (typeof _setVariablesDefault === "function") {
+      Editor.prototype.setVariablesDefault = function(newConfig) {
+        try {
+          const meta = getVariablesMeta(this, newConfig.template);
+          const metaDefaults = collectMetaDefaults(meta);
+          const cfg = _setVariablesDefault.call(this, newConfig);
+          Object.entries(metaDefaults).forEach(([key, val]) => {
+            var _a;
+            const curr = (_a = cfg.variables) == null ? void 0 : _a[key];
+            const isEmptyString = curr === "";
+            const isUndef = typeof curr === "undefined";
+            if (isUndef || isEmptyString) cfg.variables[key] = val;
+          });
+          return cfg;
+        } catch (_e) {
+          return _setVariablesDefault.call(this, newConfig);
+        }
+      };
+    }
+    const _getVariableSchema = Editor.getVariableSchema;
+    if (typeof _getVariableSchema === "function") {
+      Editor.getVariableSchema = function(variable) {
+        try {
+          const activeEditor = [...document.querySelectorAll("streamline-card-editor")].find((el) => el && el._config && el._templates);
+          if (!activeEditor || !activeEditor._config) {
+            return _getVariableSchema.call(this, variable);
+          }
+          const tplName = activeEditor._config.template;
+          const meta = getVariablesMeta(activeEditor, tplName);
+          const metaEntry = meta && meta[variable];
+          if (metaEntry) return buildSchemaFromMeta(variable, metaEntry);
+          return _getVariableSchema.call(this, variable);
+        } catch (_e) {
+          return _getVariableSchema.call(this, variable);
+        }
+      };
+    }
+    Editor.prototype.getSchema;
+    const _formatConfig = Editor.formatConfig;
+    if (typeof _formatConfig === "function") {
+      Editor.formatConfig = function(config) {
+        const newConfig = _formatConfig.call(this, config);
+        try {
+          const editor = [...document.querySelectorAll("streamline-card-editor")].find((el) => el && el._templates && el._config) || null;
+          if (editor) {
+            const tpl = getTemplate(editor, newConfig.template);
+            const metaDefaults = collectMetaDefaults(getVariablesMeta(editor, newConfig.template));
+            if (tpl && (tpl.card || tpl.element)) {
+              const mergedDefaults = mergeDefaults(tpl.default || {}, metaDefaults);
+              tpl.default = mergedDefaults;
+            }
+          }
+        } catch (_e) {
+        }
+        return newConfig;
+      };
+    }
+    console.info(
+      "%cstreamline-card (consolidated)%c • variables_meta enabled",
+      "font-weight:bold",
+      "font-weight:normal"
+    );
+  }).catch((err) => {
+    console.warn("streamline-meta: initialization failed:", err && err.message || err);
+  });
 })();

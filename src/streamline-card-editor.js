@@ -1,5 +1,5 @@
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
-import { getRemoteTemplates, loadRemoteTemplates } from "./templateLoader";
+import { getRemoteTemplates,getisTemplateLoaded, loadRemoteTemplates } from "./templateLoader";
 import deepEqual from "./deepEqual-helper";
 import exampleTile from "./templates/exampleTile";
 import fireEvent from "./fireEvent-helper";
@@ -18,20 +18,23 @@ export class StreamlineCardEditor extends HTMLElement {
 
     const lovelace = getLovelace() || getLovelaceCast();
 
-    const remoteTemplateLoader = loadRemoteTemplates();
+    let remoteTemplateLoader = loadRemoteTemplates();
     if (remoteTemplateLoader instanceof Promise) {
       remoteTemplateLoader.then(() => {
         this._templates = {
           ...exampleTile,
           ...getRemoteTemplates(),
-          ...lovelace.config.streamline_templates,
+          ...(lovelace && lovelace.config && lovelace.config.streamline_templates ? lovelace.config.streamline_templates : {}),
         };
+		if (this._originalConfig) {
+		  this.setConfig(this._originalConfig);
+		}		
       });
     } else {
       this._templates = {
         ...exampleTile,
         ...getRemoteTemplates(),
-        ...lovelace.config.streamline_templates,
+        ...(lovelace && lovelace.config && lovelace.config.streamline_templates ? lovelace.config.streamline_templates : {}),
       };
     }
 
@@ -138,14 +141,13 @@ export class StreamlineCardEditor extends HTMLElement {
     this._shadow.appendChild(this.elements.style);
   }
 
-  getVariablesForTemplate(template) {
+	getVariablesForTemplate(template) {
     const variables = {};
 
     const templateConfig = this._templates[template];
-    if (typeof templateConfig === "undefined") {
-      throw new Error(
-        `The template "${template}" doesn't exist in streamline_templates`,
-      );
+	if (typeof templateConfig === "undefined") {
+	// Templates may still be loading; avoid breaking visual editor.
+		return Object.keys(this._config?.variables ?? {});
     }
 
     const stringTemplate = JSON.stringify(templateConfig);
@@ -246,20 +248,91 @@ export class StreamlineCardEditor extends HTMLElement {
   }
 
   getSchema() {
-    const variables = this.getVariablesForTemplate(this._config.template);
+	const tplName = this._config.template;
+	const tpl = this._templates?.[tplName] || {};
+	const meta = (tpl.variables_meta || (tpl.meta && tpl.meta.variables) || {}) || {};
 
-    return [
-      StreamlineCardEditor.getTemplateSchema(Object.keys(this._templates)),
-      {
-        expanded: true,
-        name: "variables",
-        schema: variables.map((key) =>
-          StreamlineCardEditor.getVariableSchema(key),
-        ),
-        title: "Variables",
-        type: "expandable",
-      },
-    ];
+	// Natural order by scanning [[var]] occurrences
+	const toNatural = (t) => {
+	  const s = JSON.stringify(t);
+	  const rx = /\[\[(?<name>.*?)\]\]/gu;
+	  const seen = new Set();
+	  const out = [];
+	  for (const m of s.matchAll(rx)) {
+		const n = (m.groups && m.groups.name) || m[1] || "";
+		if (n && !seen.has(n)) { seen.add(n); out.push(n); }
+	  }
+	  return out;
+	};
+
+	const pickSelector = (name) => {
+	  const v = String(name).toLowerCase();
+	  if (v.includes("entity")) return StreamlineCardEditor.getEntitySchema(name).selector;
+	  if (v.includes("icon"))   return StreamlineCardEditor.getIconSchema(name).selector;
+	  if (v.includes("bool"))   return StreamlineCardEditor.getBooleanSchema(name).selector;
+	  return StreamlineCardEditor.getDefaultSchema(name).selector;
+	};
+
+	let variables = toNatural(tpl);
+	if (!Array.isArray(variables) || variables.length === 0) {
+	  variables = this.getVariablesForTemplate(tplName);
+	}
+
+	const naturalIndex = new Map(variables.map((v, i) => [v, i]));
+	const sortByOrder = (arr) => [...arr].sort((a, b) => {
+	  const ao = meta?.[a]?.order;
+	  const bo = meta?.[b]?.order;
+	  const aNum = Number.isFinite(ao) ? ao : null;
+	  const bNum = Number.isFinite(bo) ? bo : null;
+	  if (aNum !== null && bNum !== null) return aNum - bNum;
+	  if (aNum !== null) return -1;
+	  if (bNum !== null) return 1;
+	  return naturalIndex.get(a) - naturalIndex.get(b);
+	});
+
+	// Group by meta.group. UNGROUPED FIRST.
+	const groupsMap = new Map();
+	for (const v of variables) {
+	  const m = meta?.[v] || {};
+	  const title = (typeof m.group === "string" && m.group.trim()) ? m.group.trim() : null;
+	  const key = title || "__ungrouped__";
+	  const order = title ? (Number.isFinite(m.group_order) ? m.group_order : 1000) : -1;
+	  if (!groupsMap.has(key)) groupsMap.set(key, { title: title || "Variables", order, items: [] });
+	  groupsMap.get(key).items.push(v);
+	}
+	for (const g of groupsMap.values()) g.items = sortByOrder(g.items);
+	const grouped = [...groupsMap.values()].sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
+
+	const buildField = (name) => {
+	  const m = meta?.[name];
+	  if (m && typeof m === "object") {
+		const row = { name };
+		if (m.title) row.title = String(m.title);
+		if (m.description) row.description = String(m.description);
+		row.selector = (m.selector && typeof m.selector === "object") ? m.selector : pickSelector(name);
+		return row;
+	  }
+	  return StreamlineCardEditor.getVariableSchema(name);
+	};
+
+	const hasAnyMeta = Object.keys(meta).length > 0;
+	if (!hasAnyMeta) {
+	  // Legacy single-section
+	  return [
+		StreamlineCardEditor.getTemplateSchema(Object.keys(this._templates)),
+		{ expanded:true, name:"variables", title:"Variables", type:"expandable",
+		  schema: sortByOrder(variables).map((k)=>buildField(k)) }
+	  ];
+	}
+	// IMPORTANT: Keep `name: "variables"` so ha-form binds edits to the variables object.
+	const sections = grouped.map((g, idx) => ({
+	  expanded: idx === 0,
+	  name: "variables",
+	  title: g.title,
+	  type: "expandable",
+	  schema: g.items.map((k)=>buildField(k))
+	}));
+	return [StreamlineCardEditor.getTemplateSchema(Object.keys(this._templates)), ...sections];
   }
 
   static computeLabel(schema) {

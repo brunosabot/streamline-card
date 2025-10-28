@@ -56,12 +56,10 @@ There are two ways to install this card. The recommended way is through HACS (Ho
 HACS is like an app store for Home Assistant. It makes installing and updating custom cards much easier. Here's how to install using HACS:
 
 - **Install HACS if you don't have it:**
-
   - If HACS is not installed yet, download it following the instructions on [https://hacs.xyz/docs/use/download/download/](https://hacs.xyz/docs/use/download/download/)
   - Follow the HACS initial configuration guide at [https://hacs.xyz/docs/configuration/basic](https://hacs.xyz/docs/configuration/basic)
 
 - **Install the Card:**
-
   - Go to `HACS` in your Home Assistant sidebar
   - Search for `Streamline Card` in HACS
   - Click on the card when you find it
@@ -88,12 +86,10 @@ HACS is like an app store for Home Assistant. It makes installing and updating c
 If you prefer to install manually or can't use HACS, follow these steps:
 
 - **Download the Card:**
-
   - Download this file: [streamline-card.js](https://raw.githubusercontent.com/brunosabot/streamline-card/main/dist/streamline-card.js)
   - Save it to your Home Assistant `<config>/www` folder
 
 - **Add to Resources:**
-
   - Go to your dashboard
   - Click the menu icon (⋮) at the top right
   - Click `Edit dashboard`
@@ -144,9 +140,23 @@ There are two ways to set up your templates: through YAML files or through the U
   <summary><strong>Method 1: YAML Configuration (Recommended when you have many Templates)</strong></summary>
 
 1. **Create a Templates Directory:**
-   Create a folder called `streamline_templates` in your Home Assistant configuration directory.
+   Create "templates" folder under any of these paths depending on how you did your install:
+   - /hacsfiles/streamline-card/templates
+   - /local/streamline-card/templates
+   - /local/community/streamline-card/templates
+   - /www/community/streamline-card/templates
 
-2. **Add Template Files:**
+2. **Add a Manifest File:**
+   In this folder, create a "mainfest.json" file.
+
+```yaml
+["version.yaml", "light_template.yaml"]
+```
+
+3. **Add Template Files:**
+   Also in this templates folder, create YAML files for your templates. For example, `light_template.yaml`:
+
+4. **Add Template Files:**
    In this folder, create YAML files for your templates. For example, `light_template.yaml`:
 
 ```yaml
@@ -159,16 +169,11 @@ card:
   entity: "[[light_entity]]"
 ```
 
-3. **Include Templates in Dashboard:**
-   In your dashboard configuration file, add:
-
-```yaml
-streamline_templates: !include_dir_named ../streamline_templates/
-```
+4. **HA will automatically load all templates that are in your manifest file**
 
 ---
 
-##### ⚡️ Automatic Template File Loading and Fallback Locations
+#### ⚡️ Automatic Template File Loading and Fallback Locations
 
 > **Note:** An example template file, `streamline_templates.example.yaml`, is provided in the `dist/` directory of this repository. You can copy this file to any of the supported locations (such as `/config/www/community/streamline-card/` or `/config/www/streamline-card/`) and rename it to `streamline_templates.yaml` to get started quickly with your own templates.
 
@@ -182,7 +187,6 @@ If the file is not found in the first location, the card will try the next, and 
 **What does this mean for you?**
 
 - You can place your `streamline_templates.yaml` file in any of these locations, depending on how you installed the card and your Home Assistant directory structure.
-- Only one file is needed; the card will use the first one it finds.
 - This makes it easy to provide or override templates without modifying the card code.
 
 </details>
@@ -191,7 +195,6 @@ If the file is not found in the first location, the card will try the next, and 
   <summary><strong>Method 2: UI Configuration (Easier for Beginners)</strong></summary>
 
 1. **Open Raw Editor:**
-
    - Go to your dashboard
    - Click the menu icon (⋮)
    - Click `Raw configuration editor`
@@ -482,19 +485,17 @@ Each example includes the YAML code, an explanation of its use, and highlights i
 ## Tips and Best Practices
 
 1. **Organizing Templates:**
-
    - Keep related templates together in the same file
    - Use clear, descriptive template names
    - Comment your templates to explain what they do
+   - Put shared templates in the templates directory and index them in manifest.json.
 
 2. **Variables:**
-
    - Use descriptive variable names
    - Set default values for commonly used variables
    - Keep variable names consistent across related templates
 
 3. **JavaScript Usage:**
-
    - Use JavaScript for dynamic content only when needed
    - Test your JavaScript expressions thoroughly
    - Keep the code simple and readable
@@ -509,13 +510,11 @@ Each example includes the YAML code, an explanation of its use, and highlights i
 If you're having issues:
 
 1. **Card Not Showing Up:**
-
    - Clear your browser cache
    - Check that the resource is properly loaded
    - Check your browser's console for errors
 
 2. **Template Not Working:**
-
    - Verify your template syntax
    - Check that all required variables are provided
    - Look for YAML formatting errors
@@ -524,6 +523,10 @@ If you're having issues:
    - Check your browser's console for error messages
    - Verify that your entities exist
    - Test your JavaScript code separately
+
+4. **Templates not loading from files?**
+   - Confirm templates/manifest.json exists and lists the file names; files must be siblings of the manifest.
+   - If no templates load, the card falls back to streamline_templates.yaml.
 
 ## Contributing
 
@@ -612,7 +615,6 @@ Before submitting your changes, ensure your code meets our quality standards:
 ### Testing Your Changes
 
 1. **Write Tests:**
-
    - Add test files alongside the JavaScript files they test (e.g., `myfile.js` → `myfile.test.js`)
    - The `src/tests/` directory is reserved for regression tests for GitHub issues
    - Follow the existing test patterns using Vitest
@@ -634,7 +636,6 @@ Before submitting your changes, ensure your code meets our quality standards:
    ```
 
 2. **Make Your Changes:**
-
    - Write clean, readable code
    - Follow the existing code style
    - Add comments for complex logic

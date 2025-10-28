@@ -1,16 +1,19 @@
-import { describe, expect, it, vi } from "vitest";
-import type { StreamlineCardEditor } from "./streamline-card-editor";
 import "./streamline-card-editor";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("./getLovelace.helper");
+
+vi.spyOn(window, "fetch").mockImplementation(() => ({
+  json: () => Promise.resolve({}),
+  ok: true,
+  text: () => Promise.resolve(""),
+}));
 
 describe("Given the streamline-card-editor", () => {
   describe("When the streamline-card-editor is loaded", () => {
     it("Then it should have a default config", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      ) as StreamlineCardEditor;
+      const editor = document.createElement("streamline-card-editor");
 
       // Assert
       expect(editor._config).toEqual({
@@ -24,9 +27,7 @@ describe("Given the streamline-card-editor", () => {
   describe("When getting the default variables for a template", () => {
     it("Then it should return no variables", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      ) as StreamlineCardEditor;
+      const editor = document.createElement("streamline-card-editor");
 
       editor._templates = {
         example_tile: {
@@ -41,32 +42,29 @@ describe("Given the streamline-card-editor", () => {
       // Assert
       expect(editor.getVariablesForTemplate("example_tile")).toEqual([]);
     });
-
     it("Then it should return the default variables", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      ) as StreamlineCardEditor;
+      const editor = document.createElement("streamline-card-editor");
 
       editor._templates = {
         example_tile: {
-          default: {
-            name: "Ashoka Tano",
-            job: "[[jedi]]",
-            jedi: "Jedi",
-          },
           card: {
             card_type: "separator",
             name: "[[name]]",
             type: "custom:bubble-card",
+          },
+          default: {
+            jedi: "Jedi",
+            job: "[[jedi]]",
+            name: "Ashoka Tano",
           },
         },
       };
 
       // Assert
       expect(editor.getVariablesForTemplate("example_tile")).toEqual([
-        "jedi",
         "name",
+        "jedi",
       ]);
     });
   });
@@ -74,18 +72,16 @@ describe("Given the streamline-card-editor", () => {
   describe("When assigning a config with setConfig", () => {
     it("Then it should assign the config as an object", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      ) as StreamlineCardEditor;
+      const editor = document.createElement("streamline-card-editor");
 
       // Act
       editor.setConfig({
         template: "example_tile",
         type: "streamline-card",
         variables: {
-          name: "Obi Wan Kenobi",
-          job: "[[job]]",
           jedi: "Jedi",
+          job: "[[job]]",
+          name: "Obi Wan Kenobi",
         },
       });
 
@@ -95,18 +91,16 @@ describe("Given the streamline-card-editor", () => {
         type: "streamline-card",
         variables: {
           entity: "",
-          name: "Obi Wan Kenobi",
-          job: "[[job]]",
           jedi: "Jedi",
+          job: "[[job]]",
+          name: "Obi Wan Kenobi",
         },
       });
     });
 
     it("Then it should assign a transformed config as an object", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      ) as StreamlineCardEditor;
+      const editor = document.createElement("streamline-card-editor");
 
       // Act
       editor.setConfig({
@@ -125,9 +119,9 @@ describe("Given the streamline-card-editor", () => {
         type: "streamline-card",
         variables: {
           entity: "",
-          name: "Obi Wan Kenobi",
-          job: "[[jedi]]",
           jedi: "Jedi",
+          job: "[[jedi]]",
+          name: "Obi Wan Kenobi",
         },
       });
     });

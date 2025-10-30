@@ -6077,7 +6077,9 @@ const __sl_fetchJSON = async function __sl_fetchJSON2(url) {
 };
 const __sl_tryLoadFromTemplatesDirectory = async function __sl_tryLoadFromTemplatesDirectory2(basePath) {
   try {
-    const manifestObj = await __sl_fetchJSON(`${basePath}/templates/manifest.json`);
+    const manifestObj = await __sl_fetchJSON(
+      `${basePath}/templates/manifest.json`
+    );
     let fileList = [];
     if (Array.isArray(manifestObj)) {
       fileList = manifestObj;
@@ -6091,7 +6093,9 @@ const __sl_tryLoadFromTemplatesDirectory = async function __sl_tryLoadFromTempla
       (fileName) => typeof fileName === "string" && fileName.trim()
     );
     const filePromises = validNames.map(async (fileName) => {
-      const textContent = await __sl_fetchText(`${basePath}/templates/${fileName}`);
+      const textContent = await __sl_fetchText(
+        `${basePath}/templates/${fileName}`
+      );
       const parsed = evaluateYaml(textContent);
       return parsed && typeof parsed === "object" ? parsed : null;
     });
@@ -6513,7 +6517,9 @@ class StreamlineCardEditor extends HTMLElement {
     return StreamlineCardEditor.getDefaultSchema(variableName).selector;
   }
   static _makeSorter(variableMeta, naturalOrder) {
-    const naturalIndex = new Map(naturalOrder.map((varName, index) => [varName, index]));
+    const naturalIndex = new Map(
+      naturalOrder.map((varName, index) => [varName, index])
+    );
     return (arr) => [...arr].sort((leftKey, rightKey) => {
       var _a, _b;
       const leftOrder = (_a = variableMeta == null ? void 0 : variableMeta[leftKey]) == null ? void 0 : _a.order;
@@ -6567,7 +6573,11 @@ class StreamlineCardEditor extends HTMLElement {
       const mapKey = groupTitle || "__ungrouped__";
       const groupOrder = groupTitle ? StreamlineCardEditor._normalizeGroupOrder(metaForVar.group_order) : -1;
       if (!groupsMap.has(mapKey)) {
-        groupsMap.set(mapKey, { items: [], order: groupOrder, title: groupTitle || "Variables" });
+        groupsMap.set(mapKey, {
+          items: [],
+          order: groupOrder,
+          title: groupTitle || "Variables"
+        });
       }
       groupsMap.get(mapKey).items.push(variableName);
     }
@@ -6616,7 +6626,10 @@ class StreamlineCardEditor extends HTMLElement {
     if (!Array.isArray(variablesList) || variablesList.length === 0) {
       variablesList = this.getVariablesForTemplate(templateName);
     }
-    const sortByOrder = StreamlineCardEditor._makeSorter(variableMeta, variablesList);
+    const sortByOrder = StreamlineCardEditor._makeSorter(
+      variableMeta,
+      variablesList
+    );
     const hasAnyMeta = Object.keys(variableMeta).length > 0;
     const allTemplates = Object.keys(this._templates);
     if (!hasAnyMeta) {
@@ -6632,7 +6645,11 @@ class StreamlineCardEditor extends HTMLElement {
       variableMeta,
       sortByOrder
     );
-    return StreamlineCardEditor._buildGroupedSchema(allTemplates, groupedSections, variableMeta);
+    return StreamlineCardEditor._buildGroupedSchema(
+      allTemplates,
+      groupedSections,
+      variableMeta
+    );
   }
   static computeLabel(schema2) {
     const schemaName = schema2.name.replace(/[-_]+/gu, " ");
@@ -7161,7 +7178,9 @@ const thrower = (text) => {
     }
     Editor.getVariableSchema = function getVariableSchema(variable) {
       try {
-        const activeEditor = [...document.querySelectorAll("streamline-card-editor")].find((el) => el && el._config && el._templates);
+        const activeEditor = [
+          ...document.querySelectorAll("streamline-card-editor")
+        ].find((el) => el && el._config && el._templates);
         if (!activeEditor || !activeEditor._config) {
           return original.call(this, variable);
         }
@@ -7185,14 +7204,19 @@ const thrower = (text) => {
     Editor.formatConfig = function formatConfig(config) {
       const newConfig = original.call(this, config);
       try {
-        const editor = [...document.querySelectorAll("streamline-card-editor")].find((el) => el && el._templates && el._config) || null;
+        const editor = [...document.querySelectorAll("streamline-card-editor")].find(
+          (el) => el && el._templates && el._config
+        ) || null;
         if (editor) {
           const tpl = getTemplate(editor, newConfig.template);
           const metaDefaults = collectMetaDefaults(
             getVariablesMeta(editor, newConfig.template)
           );
           if (tpl && (tpl.card || tpl.element)) {
-            const mergedDefaults = mergeDefaults(tpl.default || {}, metaDefaults);
+            const mergedDefaults = mergeDefaults(
+              tpl.default || {},
+              metaDefaults
+            );
             tpl.default = mergedDefaults;
           }
         }

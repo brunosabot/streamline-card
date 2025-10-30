@@ -1,11 +1,14 @@
 import "./streamline-card-editor";
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
-import { getRemoteTemplates, getisTemplateLoaded, loadRemoteTemplates  } from "./templateLoader";
+import {
+  getRemoteTemplates,
+  getisTemplateLoaded,
+  loadRemoteTemplates,
+} from "./templateLoader";
 import deepEqual from "./deepEqual-helper";
 import evaluateConfig from "./evaluteConfig-helper";
 import exampleTile from "./templates/exampleTile";
 import { version } from "../package.json";
-
 
 const thrower = (text) => {
   if (getisTemplateLoaded() === true) {
@@ -162,7 +165,7 @@ const thrower = (text) => {
       return fetch(`${url}?t=${new Date().getTime()}`)
         .then((response) => response.text())
         .then(() => {
-		  loadRemoteTemplates();
+          loadRemoteTemplates();
           this._templates = {
             ...exampleTile,
             ...getRemoteTemplates(),
@@ -171,31 +174,32 @@ const thrower = (text) => {
         });
     }
 
-	getTemplates() {
-	  const lovelace = getLovelace() || getLovelaceCast();
+    getTemplates() {
+      const lovelace = getLovelace() || getLovelaceCast();
 
-	  // Inline templates are optional
-	  const inline =
-		(lovelace && lovelace.config && lovelace.config.streamline_templates) || {};
-	  this._inlineTemplates = inline;
+      // Inline templates are optional
+      const inline =
+        (lovelace && lovelace.config && lovelace.config.streamline_templates) ||
+        {};
+      this._inlineTemplates = inline;
 
-	  this._templates = {
-		...exampleTile,
-		...getRemoteTemplates(),
-		...this._inlineTemplates,
-	  };
+      this._templates = {
+        ...exampleTile,
+        ...getRemoteTemplates(),
+        ...this._inlineTemplates,
+      };
 
-	  // IMPORTANT: never reassign a loader handle; use a single const
-	  const loadP = getisTemplateLoaded() ?? loadRemoteTemplates();
-	  if (loadP instanceof Promise) {
-		loadP.then(() => {
-		  if (this._card === undefined) {
-			this.setConfig(this._originalConfig);
-			this.queueUpdate("hass");
-		  }
-		});
-	  }
-	}
+      // IMPORTANT: never reassign a loader handle; use a single const
+      const loadP = getisTemplateLoaded() ?? loadRemoteTemplates();
+      if (loadP instanceof Promise) {
+        loadP.then(() => {
+          if (this._card === undefined) {
+            this.setConfig(this._originalConfig);
+            this.queueUpdate("hass");
+          }
+        });
+      }
+    }
     prepareConfig() {
       this.getTemplates();
       this._templateConfig = this._templates[this._originalConfig.template];
@@ -302,7 +306,6 @@ const thrower = (text) => {
     }
   }
 
-
   customElements.define("streamline-card", StreamlineCard);
 
   window.customCards ||= [];
@@ -388,7 +391,8 @@ const thrower = (text) => {
   };
 
   const buildSchemaFromMeta = (name, metaEntry) => {
-    const selector = (metaEntry && metaEntry.selector) || inferSelectorFromName(name);
+    const selector =
+      (metaEntry && metaEntry.selector) || inferSelectorFromName(name);
     const schema = { name, selector };
     if (metaEntry && typeof metaEntry.title === "string") {
       schema.title = metaEntry.title;
@@ -421,7 +425,9 @@ const thrower = (text) => {
     if (typeof original !== "function") {
       return;
     }
-    Editor.prototype.setVariablesDefault = function setVariablesDefault(newConfig) {
+    Editor.prototype.setVariablesDefault = function setVariablesDefault(
+      newConfig,
+    ) {
       try {
         const meta = getVariablesMeta(this, newConfig.template);
         const metaDefaults = collectMetaDefaults(meta);
@@ -448,8 +454,9 @@ const thrower = (text) => {
     }
     Editor.getVariableSchema = function getVariableSchema(variable) {
       try {
-        const activeEditor = [...document.querySelectorAll("streamline-card-editor")]
-          .find((el) => el && el._config && el._templates);
+        const activeEditor = [
+          ...document.querySelectorAll("streamline-card-editor"),
+        ].find((el) => el && el._config && el._templates);
 
         if (!activeEditor || !activeEditor._config) {
           return original.call(this, variable);
@@ -476,16 +483,20 @@ const thrower = (text) => {
       const newConfig = original.call(this, config);
       try {
         const editor =
-          [...document.querySelectorAll("streamline-card-editor")]
-            .find((el) => el && el._templates && el._config) || null;
+          [...document.querySelectorAll("streamline-card-editor")].find(
+            (el) => el && el._templates && el._config,
+          ) || null;
 
         if (editor) {
           const tpl = getTemplate(editor, newConfig.template);
           const metaDefaults = collectMetaDefaults(
-            getVariablesMeta(editor, newConfig.template)
+            getVariablesMeta(editor, newConfig.template),
           );
           if (tpl && (tpl.card || tpl.element)) {
-            const mergedDefaults = mergeDefaults(tpl.default || {}, metaDefaults);
+            const mergedDefaults = mergeDefaults(
+              tpl.default || {},
+              metaDefaults,
+            );
             tpl.default = mergedDefaults;
           }
         }
@@ -510,7 +521,7 @@ const thrower = (text) => {
     console.info(
       "%cstreamline-card (consolidated)%c • variables_meta enabled",
       "font-weight:bold",
-      "font-weight:normal"
+      "font-weight:normal",
     );
     /* eslint-enable no-console */
   };
@@ -521,12 +532,10 @@ const thrower = (text) => {
       /* eslint-disable no-console */
       console.warn(
         "streamline-meta: initialization failed:",
-        (err && err.message) || err
+        (err && err.message) || err,
       );
       /* eslint-enable no-console */
     });
-}());
-
-
+})();
 
 export {};

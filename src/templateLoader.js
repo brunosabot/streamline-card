@@ -24,41 +24,44 @@ const __sl_fetchJSON = async function __sl_fetchJSON(url) {
 };
 
 /** Load a list of YAML files from /templates via manifest.json */
-const __sl_tryLoadFromTemplatesDirectory = async function __sl_tryLoadFromTemplatesDirectory(
-  basePath,
-) {
-  try {
-    const manifestObj = await __sl_fetchJSON(`${basePath}/templates/manifest.json`);
+const __sl_tryLoadFromTemplatesDirectory =
+  async function __sl_tryLoadFromTemplatesDirectory(basePath) {
+    try {
+      const manifestObj = await __sl_fetchJSON(
+        `${basePath}/templates/manifest.json`,
+      );
 
-    let fileList = [];
-    if (Array.isArray(manifestObj)) {
-      fileList = manifestObj;
-    } else if (manifestObj && Array.isArray(manifestObj.files)) {
-      fileList = manifestObj.files;
-    }
+      let fileList = [];
+      if (Array.isArray(manifestObj)) {
+        fileList = manifestObj;
+      } else if (manifestObj && Array.isArray(manifestObj.files)) {
+        fileList = manifestObj.files;
+      }
 
-    if (fileList.length === 0) {
+      if (fileList.length === 0) {
+        return false;
+      }
+
+      const validNames = fileList.filter(
+        (fileName) => typeof fileName === "string" && fileName.trim(),
+      );
+
+      const filePromises = validNames.map(async (fileName) => {
+        const textContent = await __sl_fetchText(
+          `${basePath}/templates/${fileName}`,
+        );
+        const parsed = evaluateYaml(textContent);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      });
+
+      const loadedList = (await Promise.all(filePromises)).filter(Boolean);
+      remoteTemplates = Object.assign({}, ...loadedList);
+
+      return Object.keys(remoteTemplates).length > 0;
+    } catch {
       return false;
     }
-
-    const validNames = fileList.filter(
-      (fileName) => typeof fileName === "string" && fileName.trim(),
-    );
-
-    const filePromises = validNames.map(async (fileName) => {
-      const textContent = await __sl_fetchText(`${basePath}/templates/${fileName}`);
-      const parsed = evaluateYaml(textContent);
-      return parsed && typeof parsed === "object" ? parsed : null;
-    });
-
-    const loadedList = (await Promise.all(filePromises)).filter(Boolean);
-    remoteTemplates = Object.assign({}, ...loadedList);
-
-    return Object.keys(remoteTemplates).length > 0;
-  } catch {
-    return false;
-  }
-};
+  };
 
 /** Try bases sequentially; short-circuit on first success */
 const __sl_tryBases = async function __sl_tryBases() {
@@ -125,7 +128,7 @@ export const loadRemoteTemplates = async function loadRemoteTemplates() {
       await __sl_loadYamlFallback();
     }
     return true;
-  }());
+  })();
 
   // Store the promise once; do not later reassign after an await.
   isTemplateLoaded = startLoad.then(() => true);

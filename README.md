@@ -144,10 +144,22 @@ There are two ways to set up your templates: through YAML files or through the U
   <summary><strong>Method 1: YAML Configuration (Recommended when you have many Templates)</strong></summary>
 
 1. **Create a Templates Directory:**
-   Create a folder called `streamline_templates` in your Home Assistant configuration directory.
+	Create "templates" folder under any of these paths depending on how you did your install
+	- /hacsfiles/streamline-card/templates
+	- /local/streamline-card/templates
+	- /local/community/streamline-card/templates
+	- /www/community/streamline-card/templates
 
-2. **Add Template Files:**
-   In this folder, create YAML files for your templates. For example, `light_template.yaml`:
+2. **Add a Manifest File:**
+	In this folder, create a "mainfest.json" file.
+
+```yaml
+["version.yaml",
+"light_template.yaml"]
+```
+
+3. **Add Template Files:**
+   Also in this templates folder, create YAML files for your templates. For example, `light_template.yaml`:
 
 ```yaml
 default:
@@ -158,13 +170,7 @@ card:
   icon: "[[light_icon]]"
   entity: "[[light_entity]]"
 ```
-
-3. **Include Templates in Dashboard:**
-   In your dashboard configuration file, add:
-
-```yaml
-streamline_templates: !include_dir_named ../streamline_templates/
-```
+4. **HA will automatically load all templates that are in your manifest file
 
 ---
 
@@ -182,7 +188,6 @@ If the file is not found in the first location, the card will try the next, and 
 **What does this mean for you?**
 
 - You can place your `streamline_templates.yaml` file in any of these locations, depending on how you installed the card and your Home Assistant directory structure.
-- Only one file is needed; the card will use the first one it finds.
 - This makes it easy to provide or override templates without modifying the card code.
 
 </details>
@@ -226,7 +231,56 @@ Each template has three main parts:
 my_light_template: # This is the template name
 ```
 
-2. **Default Values (Optional):**
+2. **Variables Meta: (Optional):**
+	You can now define UI metadata to describe how variables appear in the visual editor. This enables ordering, grouping, help text, and selector types.
+	The selectors accept any standard HA selector object.  So you can do things like the variable only accepts "Camera" entities.  
+
+```yaml
+  variables_meta:
+    name:
+      title: "Display Name"
+      description: "Name shown on the card"
+      order: 1
+      group: "Basics"
+      group_order: 1
+      selector: { text: {} }
+
+    entity:
+      title: "Entity"
+      description: "Target light entity"
+      order: 2
+      group: "Basics"
+      group_order: 1
+      selector: { entity: {} }
+
+    icon:
+      title: "Icon"
+      order: 3
+      group: "Appearance"
+      group_order: 2
+      selector: { icon: {} }
+
+    show_debug:
+      title: "Show debug"
+      order: 100
+      group: "Advanced"
+      group_order: 99
+      selector: { boolean: {} }
+```
+
+##### 🧩 Editor behavior: ordering & grouping
+
+The visual editor now uses the metadata to organize fields intuitively:
+-Natural discovery – variables are initially discovered by scanning [[var]] in your template.
+-Ordering of elements – use order: (number). Lower = earlier. Falls back to natural order.
+-Grouping of elements – add group: (string) to place related variables together. Ungrouped appear first.
+-Ordering of groups – use group_order: (number). Ungrouped default = -1 (first); groups default = 1000 unless set.
+-Rendered UI – one expandable section per group; the first section is expanded by default.
+
+
+
+
+3. **Default Values (Optional):**
    These are values that will be used if not specified when using the template.
 
 ```yaml
@@ -234,7 +288,7 @@ default:
   - light_icon: mdi:ceiling-light
 ```
 
-3. **Card Configuration:**
+4. **Card Configuration:**
    This is the actual card configuration, with variables in double brackets.
 
 ```yaml
@@ -462,6 +516,216 @@ streamline_templates:
 
 </details>
 
+<details>
+  <summary>Example 5: Advanced Camera Card</summary>
+
+```yaml
+camera_card:
+  variables_meta:
+    camera:
+      title: "Camera"
+      description: "Choose a camera"
+      selector:
+        entity: 
+          domain: camera
+    occupancy:
+      title: "Occupancy Sensor"
+      description: "Choose an occupancy sensor"
+      selector:
+        entity: 
+          domain: binary_sensor
+    motion:
+      title: "Motion Sensor"
+      description: "Choose a motion sensor"
+      selector:
+        entity: 
+          domain: binary_sensor
+
+  card:
+    show_state: false
+    show_name: false
+    camera_view: live
+    fit_mode: cover
+    type: picture-entity
+    entity: "[[camera]]"
+    camera_image: "[[camera]]"
+    aspect_ratio: 16x9
+    card_mod:
+      style: |
+        ha-card {
+          {% if is_state('[[occupancy]]', 'on') %}          
+            box-shadow: 0 0 0 4px red;
+            transition: box-shadow 0.3s ease;
+            border-radius: 12px;
+          {% elif is_state('[[motion]]', 'on') %}          
+            box-shadow: 0 0 0 4px orange;
+            transition: box-shadow 0.3s ease;
+            border-radius: 12px;
+          {% else %}
+            box-shadow: 0 0 0 4px black;
+            transition: box-shadow 0.3s ease;
+            border-radius: 12px;
+          {% endif %}
+        }
+
+```
+
+</details>
+
+
+<details>
+  <summary>Example 6: Multi-Color Mushroom Template Card For a dashboard</summary>
+
+```yaml
+multicolor_card:
+  description: >
+    Pill for multicolor card.  The default is using the standard system
+    sensors
+  variables_meta:
+    nav_action:
+      title: "Navigation Action"
+      description: "Navigation action to take if clicked"
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: Navigate
+              value: navigate
+            - label: None
+              value: none
+      default: navigate
+      group: "Navigation"
+    navigation_path:
+      title: "Navigation Path"
+      description: "Navigation path to go to if clicked"
+      selector:
+        text:
+      group: "Navigation"
+    temperature_sensor:
+      title: "Temperature"
+      description: "Sensor for Temperature"
+      selector:
+        entity:
+          domain: sensor
+      order: 3
+    usage_sensor:
+      title: "Usage"
+      description: "Sensor for usage"
+      selector:
+        entity:
+          domain: sensor
+      order: 4
+    orange_threshold:
+      title: "Orange Threshold"
+      description: "Value to break to orange"
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: box
+      default: 70
+      group: "Thresholds"
+    red_threshold:
+      title: "Red Threshold"
+      description: "Value to break to red"
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: box
+      default: 90
+      group: "Thresholds"
+    icon:
+      title: "Icon"
+      description: "Icon to be used"
+      selector:
+        icon:
+      default: mdi:thermometer
+      order: 2
+    name:
+      title: "Name"
+      description: "Name to be displayed"
+      selector:
+        text:
+      order: 1
+    reverse_threshold:
+      title: "Reverse Threshold"
+      description: "When true it goes down when false it goes up when using the thresholds"
+      selector:
+        boolean: {}
+      default: false
+      group: "Thresholds"
+  default:
+    - nav_action: navigate
+    - navigation_path: ""
+  card:
+    type: custom:mushroom-template-card
+    multiline_secondary: true
+    primary: "[[name]]"
+    secondary: '{{ states(''[[usage_sensor]]'')}}%{{''\n \u200B''}}'
+    icon: "[[icon]]"
+    entity: "[[usage_sensor]]"
+    icon_color: |-
+      {% if '[[reverse_threshold]]' == false %}
+        {% if states('[[temperature_sensor]]')|float(0)>'[[red_threshold]]'|float(0) %}
+          red
+        {% elif states('[[temperature_sensor]]')|float(0)>'[[orange_threshold]]'|float(0) %}
+          orange
+        {% endif %}
+      {% else %}
+        {% if states('[[temperature_sensor]]')|float(0)<'[[red_threshold]]'|float(0) %}
+          red
+        {% elif states('[[temperature_sensor]]')|float(0)<'[[orange_threshold]]'|float(0) %}
+          orange
+        {% endif %}        
+      {% endif %}
+    layout: vertical
+    tap_action:
+      action: "[[nav_action]]"
+      navigation_path: "[[navigation_path]]"
+    hold_action:
+      action: more-info
+    double_tap_action:
+      action: more-info
+    badge_icon: ""
+    card_mod:
+      style: |
+        .content {
+          margin-top: -15px;       /* nudge up; tweak to taste */
+        }
+        ha-tile-icon {
+          --mdc-icon-size: 25px; /* adjust to what you like */
+          transform: translateY(10px);
+        }     
+        ha-card {
+          max-height: 100px;
+          {% if '[[reverse_threshold]]' == false %}
+            {% if states('[[temperature_sensor]]')|float(0)>'[[red_threshold]]'|float(0) %}
+              box-shadow: 0px 0px 4px 4px;
+              color: red;
+            {% elif states('[[temperature_sensor]]')|float(0)>'[[orange_threshold]]'|float(0) %}
+              box-shadow: 0px 0px 4px 4px;
+              color: orange;
+            {% else %}
+              box-shadow: 0 0 0 0 transparent;
+            {% endif %}
+          {% else %}
+            {% if states('[[temperature_sensor]]')|float(0)<'[[red_threshold]]'|float(0) %}
+                box-shadow: 0px 0px 4px 4px;
+                color: red;
+            {% elif states('[[temperature_sensor]]')|float(0)<'[[orange_threshold]]'|float(0) %}
+                box-shadow: 0px 0px 4px 4px;
+                color: orange;
+            {% else %}
+              box-shadow: 0 0 0 0 transparent;
+            {% endif %}        
+          {% endif %}        
+        }
+
+```
+
+</details>
+
 ## Examples
 
 Explore real-world template examples to help you get started and inspire your own creations:
@@ -486,6 +750,7 @@ Each example includes the YAML code, an explanation of its use, and highlights i
    - Keep related templates together in the same file
    - Use clear, descriptive template names
    - Comment your templates to explain what they do
+   - Put shared templates in the templates directory and index them in manifest.json.
 
 2. **Variables:**
 
@@ -503,6 +768,10 @@ Each example includes the YAML code, an explanation of its use, and highlights i
    - Don't overuse JavaScript expressions
    - Avoid complex calculations in templates
    - Use appropriate card types for your needs
+   
+5. **Variables_Meta: **
+	- Prefer variables_meta to make the editor friendlier (titles, descriptions, selectors). 
+	- Use groups and group_order for long templates; keep “Basics” first, “Advanced” later. 
 
 ## Troubleshooting
 
@@ -524,6 +793,14 @@ If you're having issues:
    - Check your browser's console for error messages
    - Verify that your entities exist
    - Test your JavaScript code separately
+   
+5. **Templates not loading from files?**
+	- Confirm templates/manifest.json exists and lists the file names; files must be siblings of the manifest. 
+	- If no templates load, the card falls back to streamline_templates.yaml. 
+
+6. **Variables panel missing expected fields?**
+	- Verify variables_meta keys match the variable names used in your template; check order, group, and selector. 
+	- Editor hides variables section when complex (array/object) values are present—switch to YAML for those. 
 
 ## Contributing
 

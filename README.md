@@ -170,7 +170,7 @@ card:
   icon: "[[light_icon]]"
   entity: "[[light_entity]]"
 ```
-4. **HA will automatically load all templates that are in your manifest file
+4. **HA will automatically load all templates that are in your manifest file**
 
 ---
 
@@ -271,14 +271,11 @@ my_light_template: # This is the template name
 ##### 🧩 Editor behavior: ordering & grouping
 
 The visual editor now uses the metadata to organize fields intuitively:
--Natural discovery – variables are initially discovered by scanning [[var]] in your template.
--Ordering of elements – use order: (number). Lower = earlier. Falls back to natural order.
--Grouping of elements – add group: (string) to place related variables together. Ungrouped appear first.
--Ordering of groups – use group_order: (number). Ungrouped default = -1 (first); groups default = 1000 unless set.
--Rendered UI – one expandable section per group; the first section is expanded by default.
-
-
-
+	- Natural discovery – variables are initially discovered by scanning [[var]] in your template.
+	- Ordering of elements – use order: (number). Lower = earlier. Falls back to natural order.
+	- Grouping of elements – add group: (string) to place related variables together. Ungrouped appear first.
+	- Ordering of groups – use group_order: (number). Ungrouped default = -1 (first); groups default = 1000 unless set.
+	- Rendered UI – one expandable section per group; the first section is expanded by default.
 
 3. **Default Values (Optional):**
    These are values that will be used if not specified when using the template.
@@ -769,7 +766,7 @@ Each example includes the YAML code, an explanation of its use, and highlights i
    - Avoid complex calculations in templates
    - Use appropriate card types for your needs
    
-5. **Variables_Meta: **
+5. **Variables_Meta:**
 	- Prefer variables_meta to make the editor friendlier (titles, descriptions, selectors). 
 	- Use groups and group_order for long templates; keep “Basics” first, “Advanced” later. 
 

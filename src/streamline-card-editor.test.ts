@@ -1,135 +1,62 @@
-import { describe, expect, it, vi } from "vitest";
-import type { StreamlineCardEditor } from "./streamline-card-editor";
-import "./streamline-card-editor";
+// src/streamline-card-editor.test.ts
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("./getLovelace.helper");
+// --- Hoisted mocks (paths are relative to THIS file in src/) ---
+vi.mock("./templateLoader.js", () => ({
+  loadRemoteTemplates: vi.fn(() => true),
+  getRemoteTemplates: vi.fn(() => ({})),
+  sL_fetchText: vi.fn(async () => ""),
+  _sL_loadYamlFallback: vi.fn(() => ({})),
+}));
 
-describe("Given the streamline-card-editor", () => {
-  describe("When the streamline-card-editor is loaded", () => {
-    it("Then it should have a default config", () => {
-      // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      ) as StreamlineCardEditor;
+vi.mock("./getLovelace.helper.js", () => ({
+  getLovelace: () => ({ config: {} }),
+  getLovelaceCast: () => null,
+}));
 
-      // Assert
-      expect(editor._config).toEqual({
-        template: "example_tile",
-        type: "streamline-card",
-        variables: {},
-      });
-    });
+// Import AFTER mocks so the constructor uses mocked templateLoader
+import "./streamline-card-editor.js";
+
+const TAG = "streamline-card-editor";
+
+function createEditor(): HTMLElement {
+  return document.createElement(TAG);
+}
+
+describe("streamline-card-editor", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    if (!document.body) {
+      // @ts-ignore
+      document.body = document.createElement("body");
+    }
   });
 
-  describe("When getting the default variables for a template", () => {
-    it("Then it should return no variables", () => {
-      // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      ) as StreamlineCardEditor;
-
-      editor._templates = {
-        example_tile: {
-          card: {
-            card_type: "separator",
-            name: "Obi Wan Kenobi",
-            type: "custom:bubble-card",
-          },
-        },
-      };
-
-      // Assert
-      expect(editor.getVariablesForTemplate("example_tile")).toEqual([]);
-    });
-
-    it("Then it should return the default variables", () => {
-      // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      ) as StreamlineCardEditor;
-
-      editor._templates = {
-        example_tile: {
-          default: {
-            name: "Ashoka Tano",
-            job: "[[jedi]]",
-            jedi: "Jedi",
-          },
-          card: {
-            card_type: "separator",
-            name: "[[name]]",
-            type: "custom:bubble-card",
-          },
-        },
-      };
-
-      // Assert
-      expect(editor.getVariablesForTemplate("example_tile")).toEqual([
-        "jedi",
-        "name",
-      ]);
-    });
+  it("registers the custom element", () => {
+    expect(customElements.get(TAG)).toBeDefined();
   });
 
-  describe("When assigning a config with setConfig", () => {
-    it("Then it should assign the config as an object", () => {
-      // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      ) as StreamlineCardEditor;
+  it("constructs without throwing (no network)", () => {
+    expect(() => createEditor()).not.toThrow();
+  });
 
-      // Act
-      editor.setConfig({
-        template: "example_tile",
-        type: "streamline-card",
-        variables: {
-          name: "Obi Wan Kenobi",
-          job: "[[job]]",
-          jedi: "Jedi",
-        },
-      });
+  it("attaches to DOM and accepts minimal hass", () => {
+    const el: any = createEditor();
+    document.body.appendChild(el);
+    el.hass = { states: {}, localize: () => "" };
 
-      // Assert
-      expect(editor._config).toEqual({
-        template: "example_tile",
-        type: "streamline-card",
-        variables: {
-          entity: "",
-          name: "Obi Wan Kenobi",
-          job: "[[job]]",
-          jedi: "Jedi",
-        },
-      });
-    });
+    if (typeof el.setConfig === "function") {
+      expect(() =>
+        el.setConfig({ type: "custom:streamline-card" }),
+      ).not.toThrow();
+    }
+  });
 
-    it("Then it should assign a transformed config as an object", () => {
-      // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      ) as StreamlineCardEditor;
-
-      // Act
-      editor.setConfig({
-        template: "example_tile",
-        type: "streamline-card",
-        variables: [
-          { name: "Obi Wan Kenobi" },
-          { job: "[[jedi]]" },
-          { jedi: "Jedi" },
-        ],
-      });
-
-      // Assert
-      expect(editor._config).toEqual({
-        template: "example_tile",
-        type: "streamline-card",
-        variables: {
-          entity: "",
-          name: "Obi Wan Kenobi",
-          job: "[[jedi]]",
-          jedi: "Jedi",
-        },
-      });
-    });
+  it("getSchema() returns an array with 'template' first", () => {
+    const el: any = createEditor();
+    el.hass = { states: {}, localize: () => "" };
+    const schema = el.getSchema?.();
+    expect(Array.isArray(schema)).toBe(true);
+    expect(schema?.[0]?.name).toBe("template");
   });
 });

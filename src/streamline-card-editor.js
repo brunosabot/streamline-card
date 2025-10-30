@@ -24,14 +24,23 @@ export class StreamlineCardEditor extends HTMLElement {
         this._templates = {
           ...exampleTile,
           ...getRemoteTemplates(),
-          ...lovelace.config.streamline_templates,
+          ...(lovelace &&
+          lovelace.config &&
+          lovelace.config.streamline_templates
+            ? lovelace.config.streamline_templates
+            : {}),
         };
+        if (this._originalConfig) {
+          this.setConfig(this._originalConfig);
+        }
       });
     } else {
       this._templates = {
         ...exampleTile,
         ...getRemoteTemplates(),
-        ...lovelace.config.streamline_templates,
+        ...(lovelace && lovelace.config && lovelace.config.streamline_templates
+          ? lovelace.config.streamline_templates
+          : {}),
       };
     }
 
@@ -143,9 +152,8 @@ export class StreamlineCardEditor extends HTMLElement {
 
     const templateConfig = this._templates[template];
     if (typeof templateConfig === "undefined") {
-      throw new Error(
-        `The template "${template}" doesn't exist in streamline_templates`,
-      );
+      // Templates may still be loading; avoid breaking visual editor.
+      return Object.keys(this._config?.variables ?? {});
     }
 
     const stringTemplate = JSON.stringify(templateConfig);
@@ -245,21 +253,204 @@ export class StreamlineCardEditor extends HTMLElement {
     return childSchema;
   }
 
-  getSchema() {
-    const variables = this.getVariablesForTemplate(this._config.template);
+  // ---- Helpers (static) ----
+  static _toNaturalVariables(templateObj) {
+    const jsonText = JSON.stringify(templateObj);
+    const bracketRegex = /\[\[(?<name>.*?)\]\]/gu;
+    const seenNames = new Set();
+    const results = [];
+    for (const matchResult of jsonText.matchAll(bracketRegex)) {
+      const capturedName =
+        (matchResult.groups && matchResult.groups.name) || matchResult[1] || "";
+      if (capturedName && !seenNames.has(capturedName)) {
+        seenNames.add(capturedName);
+        results.push(capturedName);
+      }
+    }
+    return results;
+  }
 
+  static _pickSelector(variableName) {
+    const lowerName = String(variableName).toLowerCase();
+
+    if (lowerName.includes("entity")) {
+      return StreamlineCardEditor.getEntitySchema(variableName).selector;
+    }
+    if (lowerName.includes("icon")) {
+      return StreamlineCardEditor.getIconSchema(variableName).selector;
+    }
+    if (lowerName.includes("bool")) {
+      return StreamlineCardEditor.getBooleanSchema(variableName).selector;
+    }
+    return StreamlineCardEditor.getDefaultSchema(variableName).selector;
+  }
+
+  static _makeSorter(variableMeta, naturalOrder) {
+    const naturalIndex = new Map(
+      naturalOrder.map((varName, index) => [varName, index]),
+    );
+    return (arr) =>
+      [...arr].sort((leftKey, rightKey) => {
+        const leftOrder = variableMeta?.[leftKey]?.order;
+        const rightOrder = variableMeta?.[rightKey]?.order;
+
+        const leftIsNum = Number.isFinite(leftOrder);
+        const rightIsNum = Number.isFinite(rightOrder);
+
+        if (leftIsNum && rightIsNum) {
+          return leftOrder - rightOrder;
+        }
+        if (leftIsNum) {
+          return -1;
+        }
+        if (rightIsNum) {
+          return 1;
+        }
+
+        const leftIdx = naturalIndex.get(leftKey) ?? 0;
+        const rightIdx = naturalIndex.get(rightKey) ?? 0;
+        return leftIdx - rightIdx;
+      });
+  }
+
+  static _buildField(variableName, variableMeta) {
+    const metaForVar = variableMeta?.[variableName];
+
+    if (metaForVar && typeof metaForVar === "object") {
+      const row = { name: variableName };
+      if (metaForVar.title) {
+        row.title = String(metaForVar.title);
+      }
+      if (metaForVar.description) {
+        row.description = String(metaForVar.description);
+      }
+
+      if (metaForVar.selector && typeof metaForVar.selector === "object") {
+        row.selector = metaForVar.selector;
+      } else {
+        row.selector = StreamlineCardEditor._pickSelector(variableName);
+      }
+      return row;
+    }
+
+    return StreamlineCardEditor.getVariableSchema(variableName);
+  }
+
+  static _normalizeGroupOrder(possibleOrder) {
+    return Number.isFinite(possibleOrder) ? possibleOrder : 1000;
+  }
+
+  static _groupVariables(variablesList, variableMeta, sortByOrder) {
+    // Group by meta.group. Ungrouped first.
+    const groupsMap = new Map();
+
+    for (const variableName of variablesList) {
+      const metaForVar = variableMeta?.[variableName] || {};
+
+      let groupTitle = null;
+      if (typeof metaForVar.group === "string" && metaForVar.group.trim()) {
+        groupTitle = metaForVar.group.trim();
+      }
+
+      const mapKey = groupTitle || "__ungrouped__";
+      const groupOrder = groupTitle
+        ? StreamlineCardEditor._normalizeGroupOrder(metaForVar.group_order)
+        : -1;
+
+      if (!groupsMap.has(mapKey)) {
+        // Keys alphabetized for sort-keys.
+        groupsMap.set(mapKey, {
+          items: [],
+          order: groupOrder,
+          title: groupTitle || "Variables",
+        });
+      }
+      groupsMap.get(mapKey).items.push(variableName);
+    }
+
+    for (const groupItem of groupsMap.values()) {
+      groupItem.items = sortByOrder(groupItem.items);
+    }
+
+    return [...groupsMap.values()].sort(
+      (leftGroup, rightGroup) =>
+        leftGroup.order - rightGroup.order ||
+        leftGroup.title.localeCompare(rightGroup.title),
+    );
+  }
+
+  static _buildLegacySchema(allTemplates, sortedVariables, variableMeta) {
     return [
-      StreamlineCardEditor.getTemplateSchema(Object.keys(this._templates)),
+      StreamlineCardEditor.getTemplateSchema(allTemplates),
       {
+        // Alphabetical key order for sort-keys.
         expanded: true,
         name: "variables",
-        schema: variables.map((key) =>
-          StreamlineCardEditor.getVariableSchema(key),
+        schema: sortedVariables.map((varKey) =>
+          StreamlineCardEditor._buildField(varKey, variableMeta),
         ),
         title: "Variables",
         type: "expandable",
       },
     ];
+  }
+
+  static _buildGroupedSchema(allTemplates, groupedSections, variableMeta) {
+    const sections = groupedSections.map((groupItem, sectionIndex) => ({
+      // Alphabetical key order for sort-keys.
+      expanded: sectionIndex === 0,
+      name: "variables",
+      schema: groupItem.items.map((varKey) =>
+        StreamlineCardEditor._buildField(varKey, variableMeta),
+      ),
+      title: groupItem.title,
+      type: "expandable",
+    }));
+    return [StreamlineCardEditor.getTemplateSchema(allTemplates), ...sections];
+  }
+
+  // ---- Main ----
+  getSchema() {
+    const templateName = this._config.template;
+    const templateObj = this._templates?.[templateName] || {};
+    const variableMeta =
+      templateObj.variables_meta ||
+      (templateObj.meta && templateObj.meta.variables) ||
+      {} ||
+      {};
+
+    // Natural variable order (by first appearance in [[var]] occurrences). Fallback to template-defined.
+    let variablesList = StreamlineCardEditor._toNaturalVariables(templateObj);
+    if (!Array.isArray(variablesList) || variablesList.length === 0) {
+      variablesList = this.getVariablesForTemplate(templateName);
+    }
+
+    const sortByOrder = StreamlineCardEditor._makeSorter(
+      variableMeta,
+      variablesList,
+    );
+    const hasAnyMeta = Object.keys(variableMeta).length > 0;
+    const allTemplates = Object.keys(this._templates);
+
+    if (!hasAnyMeta) {
+      const sortedVariables = sortByOrder(variablesList);
+      return StreamlineCardEditor._buildLegacySchema(
+        allTemplates,
+        sortedVariables,
+        variableMeta,
+      );
+    }
+
+    const groupedSections = StreamlineCardEditor._groupVariables(
+      variablesList,
+      variableMeta,
+      sortByOrder,
+    );
+    return StreamlineCardEditor._buildGroupedSchema(
+      allTemplates,
+      groupedSections,
+      variableMeta,
+    );
   }
 
   static computeLabel(schema) {

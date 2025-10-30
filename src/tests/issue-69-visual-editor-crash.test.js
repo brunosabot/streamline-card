@@ -1,17 +1,25 @@
-// src/tests/issue-69-visual-editor-crash.test.js
+// Src/tests/issue-69-visual-editor-crash.test.js
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+/**
+ * Important:
+ * - Mock modules BEFORE importing the editor to prevent real side-effects (like fetch).
+ * - Adjust SUT_PATH if your editor file lives elsewhere.
+ */
 const SUT_PATH = "../streamline-card-editor.js";
 const TAG = "streamline-card-editor";
 
-async function loadEditorWith(lovelaceConfig) {
+/**
+ * Load the editor with a specific lovelace config while keeping network blocked.
+ */
+const loadEditorWith = async (lovelaceConfig) => {
   vi.resetModules();
   vi.clearAllMocks();
 
-  // Belt-and-suspenders: block any real network
+  // Block any real network
   vi.stubGlobal(
     "fetch",
-    vi.fn(() => Promise.reject(new Error("Network request blocked in tests")))
+    vi.fn(() => Promise.reject(new Error("Network request blocked in tests"))),
   );
 
   // Mock Home Assistant lookups
@@ -20,40 +28,32 @@ async function loadEditorWith(lovelaceConfig) {
     getLovelaceCast: () => null,
   }));
 
-  // Mock template loader so nothing calls fetch
+  /**
+   * Mock template loader so nothing calls fetch.
+   * Keys are alphabetically ordered to satisfy sort-keys.
+   */
   vi.doMock("../templateLoader.js", () => ({
-    loadRemoteTemplates: vi.fn(() => true),
-    getRemoteTemplates: vi.fn(() => ({})),
-    sL_fetchText: vi.fn(async () => ""),
     _sL_loadYamlFallback: vi.fn(() => ({})),
+    getRemoteTemplates: vi.fn(() => ({})),
+    loadRemoteTemplates: vi.fn(() => true),
+    // Return a resolved promise without using an async arrow (require-await)
+    sL_fetchText: vi.fn(() => Promise.resolve("")),
   }));
-
-  // Ensure we have a customElements registry (jsdom usually does)
-  if (!globalThis.customElements) {
-    const registry = new Map();
-    globalThis.customElements = {
-      define: (name, ctor) => {
-        if (!registry.has(name)) registry.set(name, ctor);
-      },
-      get: (name) => registry.get(name),
-    };
-  }
 
   // Import AFTER mocks are registered
   const mod = await import(SUT_PATH);
-  return mod; // { StreamlineCardEditor?, ... }
-}
+  return mod;
+};
 
-function createEditorElement() {
-  // Instantiate via the tag name, not `new Class()`, to avoid "Illegal constructor" in JSDOM
-  return document.createElement(TAG);
-}
+/**
+ * Instantiate via tag name to avoid "Illegal constructor" in JSDOM.
+ */
+const createEditorElement = () => document.createElement(TAG);
 
 describe("Issue #69 – Visual editor should not crash", () => {
   beforeEach(() => {
-    // jsdom provides document; ensure body exists
+    // Ensure a body exists for attaching elements
     if (!document.body) {
-      // @ts-ignore
       document.body = document.createElement("body");
     }
   });
@@ -64,23 +64,21 @@ describe("Issue #69 – Visual editor should not crash", () => {
     expect(() => createEditorElement()).not.toThrow();
 
     const el = createEditorElement();
-    // Attach so lifecycle callbacks (if any) can run safely
     document.body.appendChild(el);
   });
 
   it("does not crash when lovelace.config exists but streamline_templates is undefined", async () => {
     await loadEditorWith({});
 
-    const create = () => createEditorElement();
-    expect(create).not.toThrow();
+    const el = createEditorElement();
+    expect(() => el).not.toThrow();
 
-    const el = create();
     document.body.appendChild(el);
 
-    // Optional: minimal API exercise
+    // Exercise minimal editor API if present
     if (typeof el.setConfig === "function") {
       expect(() =>
-        el.setConfig({ type: "custom:streamline-card" })
+        el.setConfig({ type: "custom:streamline-card" }),
       ).not.toThrow();
     }
   });

@@ -46,7 +46,9 @@ describe("streamline-card-editor", () => {
     el.hass = { states: {}, localize: () => "" };
 
     if (typeof el.setConfig === "function") {
-      expect(() => el.setConfig({ type: "custom:streamline-card" })).not.toThrow();
+      expect(() =>
+        el.setConfig({ type: "custom:streamline-card" }),
+      ).not.toThrow();
     }
   });
 

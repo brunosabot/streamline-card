@@ -306,6 +306,10 @@ const thrower = (text) => {
     }
   }
 
+  const pre = loadRemoteTemplates();
+  if (pre instanceof Promise) {
+    await pre;
+  }
   customElements.define("streamline-card", StreamlineCard);
 
   window.customCards ||= [];

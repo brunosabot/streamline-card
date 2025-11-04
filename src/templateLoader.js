@@ -135,5 +135,7 @@ export const loadRemoteTemplates = async function loadRemoteTemplates() {
 
   // Await the published promise to satisfy require-await.
   await isTemplateLoaded;
+  // eslint-disable-next-line require-atomic-updates
+  isTemplateLoaded = true;
   return true;
 };

@@ -6155,6 +6155,7 @@ const loadRemoteTemplates = async function loadRemoteTemplates2() {
   }();
   isTemplateLoaded = startLoad.then(() => true);
   await isTemplateLoaded;
+  isTemplateLoaded = true;
   return true;
 };
 const compareArraysDeep = (arr1, arr2, compareFn) => {
@@ -7051,6 +7052,10 @@ const thrower = (text) => {
     static getConfigElement() {
       return document.createElement("streamline-card-editor");
     }
+  }
+  const pre = loadRemoteTemplates();
+  if (pre instanceof Promise) {
+    await pre;
   }
   customElements.define("streamline-card", StreamlineCard);
   window.customCards || (window.customCards = []);

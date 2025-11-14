@@ -40,15 +40,28 @@ const findLovelace = () => {
 };
 
 export const getLovelaceCast = () => {
+  // Do not cache a null result; on early calls the cast UI might not yet
+  // be attached to the DOM. In that case, keep trying on subsequent calls
+  // until a valid lovelace instance is found.
   if (lovelaceCastCache === null) {
-    lovelaceCastCache = findLovelaceCast();
+    const ll = findLovelaceCast();
+    if (ll) {
+      lovelaceCastCache = ll;
+    }
   }
   return lovelaceCastCache;
 };
 
 export const getLovelace = () => {
+  // Similar logic for the main Lovelace instance: avoid permanently caching
+  // a null result when the frontend is still initializing. This prevents
+  // situations where templates are never resolved on first load because the
+  // first lookup ran before Lovelace was ready.
   if (lovelaceCache === null) {
-    lovelaceCache = findLovelace();
+    const ll = findLovelace();
+    if (ll) {
+      lovelaceCache = ll;
+    }
   }
   return lovelaceCache;
 };

@@ -1,14 +1,11 @@
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 let lovelaceCache = null;
 let lovelaceCastCache = null;
 const findLovelaceCast = () => {
   let root = document.querySelector("hc-main");
-  root && (root = root.shadowRoot);
-  root && (root = root.querySelector("hc-lovelace"));
-  root && (root = root.shadowRoot);
-  root && (root = root.querySelector("hui-view"));
+  root &&= root.shadowRoot;
+  root &&= root.querySelector("hc-lovelace");
+  root &&= root.shadowRoot;
+  root &&= root.querySelector("hui-view");
   if (root) {
     const ll = root.lovelace;
     ll.current_view = root.___curView;
@@ -18,16 +15,16 @@ const findLovelaceCast = () => {
 };
 const findLovelace = () => {
   let root = document.querySelector("home-assistant");
-  root && (root = root.shadowRoot);
-  root && (root = root.querySelector("home-assistant-main"));
-  root && (root = root.shadowRoot);
-  root && (root = root.querySelector(
+  root &&= root.shadowRoot;
+  root &&= root.querySelector("home-assistant-main");
+  root &&= root.shadowRoot;
+  root &&= root.querySelector(
     "app-drawer-layout partial-panel-resolver, ha-drawer partial-panel-resolver"
-  ));
+  );
   root = root && root.shadowRoot || root;
-  root && (root = root.querySelector("ha-panel-lovelace"));
-  root && (root = root.shadowRoot);
-  root && (root = root.querySelector("hui-root"));
+  root &&= root.querySelector("ha-panel-lovelace");
+  root &&= root.shadowRoot;
+  root &&= root.querySelector("hui-root");
   if (root) {
     const ll = root.lovelace;
     ll.current_view = root.___curView;
@@ -37,13 +34,19 @@ const findLovelace = () => {
 };
 const getLovelaceCast = () => {
   if (lovelaceCastCache === null) {
-    lovelaceCastCache = findLovelaceCast();
+    const ll = findLovelaceCast();
+    if (ll) {
+      lovelaceCastCache = ll;
+    }
   }
   return lovelaceCastCache;
 };
 const getLovelace = () => {
   if (lovelaceCache === null) {
-    lovelaceCache = findLovelace();
+    const ll = findLovelace();
+    if (ll) {
+      lovelaceCache = ll;
+    }
   }
   return lovelaceCache;
 };
@@ -151,19 +154,18 @@ function initVisitor(visitor) {
   return visitor;
 }
 function callVisitor(key, node, visitor, path) {
-  var _a, _b, _c, _d, _e;
   if (typeof visitor === "function")
     return visitor(key, node, path);
   if (isMap(node))
-    return (_a = visitor.Map) == null ? void 0 : _a.call(visitor, key, node, path);
+    return visitor.Map?.(key, node, path);
   if (isSeq(node))
-    return (_b = visitor.Seq) == null ? void 0 : _b.call(visitor, key, node, path);
+    return visitor.Seq?.(key, node, path);
   if (isPair(node))
-    return (_c = visitor.Pair) == null ? void 0 : _c.call(visitor, key, node, path);
+    return visitor.Pair?.(key, node, path);
   if (isScalar(node))
-    return (_d = visitor.Scalar) == null ? void 0 : _d.call(visitor, key, node, path);
+    return visitor.Scalar?.(key, node, path);
   if (isAlias(node))
-    return (_e = visitor.Alias) == null ? void 0 : _e.call(visitor, key, node, path);
+    return visitor.Alias?.(key, node, path);
   return void 0;
 }
 function replaceNode(key, path, node) {
@@ -375,8 +377,7 @@ function createNodeAnchors(doc, prefix) {
   return {
     onAnchor: (source) => {
       aliasObjects.push(source);
-      if (!prevAnchors)
-        prevAnchors = anchorNames(doc);
+      prevAnchors ?? (prevAnchors = anchorNames(doc));
       const anchor = findNewAnchor(prefix, prevAnchors);
       prevAnchors.add(anchor);
       return anchor;
@@ -460,7 +461,7 @@ function toJS(value, arg, ctx) {
       ctx.onCreate(res);
     return res;
   }
-  if (typeof value === "bigint" && !(ctx == null ? void 0 : ctx.keep))
+  if (typeof value === "bigint" && !ctx?.keep)
     return Number(value);
   return value;
 }
@@ -508,23 +509,35 @@ class Alias extends NodeBase {
    * Resolve the value of this alias within `doc`, finding the last
    * instance of the `source` anchor before this node.
    */
-  resolve(doc) {
+  resolve(doc, ctx) {
+    let nodes;
+    if (ctx?.aliasResolveCache) {
+      nodes = ctx.aliasResolveCache;
+    } else {
+      nodes = [];
+      visit(doc, {
+        Node: (_key, node) => {
+          if (isAlias(node) || hasAnchor(node))
+            nodes.push(node);
+        }
+      });
+      if (ctx)
+        ctx.aliasResolveCache = nodes;
+    }
     let found = void 0;
-    visit(doc, {
-      Node: (_key, node) => {
-        if (node === this)
-          return visit.BREAK;
-        if (node.anchor === this.source)
-          found = node;
-      }
-    });
+    for (const node of nodes) {
+      if (node === this)
+        break;
+      if (node.anchor === this.source)
+        found = node;
+    }
     return found;
   }
   toJSON(_arg, ctx) {
     if (!ctx)
       return { source: this.source };
     const { anchors, doc, maxAliasCount } = ctx;
-    const source = this.resolve(doc);
+    const source = this.resolve(doc, ctx);
     if (!source) {
       const msg = `Unresolved alias (the anchor must be set before the alias): ${this.source}`;
       throw new ReferenceError(msg);
@@ -590,7 +603,7 @@ class Scalar extends NodeBase {
     this.value = value;
   }
   toJSON(arg, ctx) {
-    return (ctx == null ? void 0 : ctx.keep) ? this.value : toJS(this.value, arg, ctx);
+    return ctx?.keep ? this.value : toJS(this.value, arg, ctx);
   }
   toString() {
     return String(this.value);
@@ -610,19 +623,15 @@ function findTagObject(value, tagName, tags) {
       throw new Error(`Tag ${tagName} not found`);
     return tagObj;
   }
-  return tags.find((t) => {
-    var _a;
-    return ((_a = t.identify) == null ? void 0 : _a.call(t, value)) && !t.format;
-  });
+  return tags.find((t) => t.identify?.(value) && !t.format);
 }
 function createNode(value, tagName, ctx) {
-  var _a, _b, _c;
   if (isDocument(value))
     value = value.contents;
   if (isNode(value))
     return value;
   if (isPair(value)) {
-    const map2 = (_b = (_a = ctx.schema[MAP]).createNode) == null ? void 0 : _b.call(_a, ctx.schema, null, ctx);
+    const map2 = ctx.schema[MAP].createNode?.(ctx.schema, null, ctx);
     map2.items.push(value);
     return map2;
   }
@@ -634,15 +643,14 @@ function createNode(value, tagName, ctx) {
   if (aliasDuplicateObjects && value && typeof value === "object") {
     ref = sourceObjects.get(value);
     if (ref) {
-      if (!ref.anchor)
-        ref.anchor = onAnchor(value);
+      ref.anchor ?? (ref.anchor = onAnchor(value));
       return new Alias(ref.anchor);
     } else {
       ref = { anchor: null, node: null };
       sourceObjects.set(value, ref);
     }
   }
-  if (tagName == null ? void 0 : tagName.startsWith("!!"))
+  if (tagName?.startsWith("!!"))
     tagName = defaultTagPrefix + tagName.slice(2);
   let tagObj = findTagObject(value, tagName, schema2.tags);
   if (!tagObj) {
@@ -661,7 +669,7 @@ function createNode(value, tagName, ctx) {
     onTagObj(tagObj);
     delete ctx.onTagObj;
   }
-  const node = (tagObj == null ? void 0 : tagObj.createNode) ? tagObj.createNode(ctx.schema, value, ctx) : typeof ((_c = tagObj == null ? void 0 : tagObj.nodeClass) == null ? void 0 : _c.from) === "function" ? tagObj.nodeClass.from(ctx.schema, value, ctx) : new Scalar(value);
+  const node = tagObj?.createNode ? tagObj.createNode(ctx.schema, value, ctx) : typeof tagObj?.nodeClass?.from === "function" ? tagObj.nodeClass.from(ctx.schema, value, ctx) : new Scalar(value);
   if (tagName)
     node.tag = tagName;
   else if (!tagObj.default)
@@ -1069,7 +1077,7 @@ try {
 }
 function blockString({ comment, type, value }, ctx, onComment, onChompKeep) {
   const { blockQuote, commentString, lineWidth } = ctx.options;
-  if (!blockQuote || /\n[\t ]+$/.test(value) || /^\s*$/.test(value)) {
+  if (!blockQuote || /\n[\t ]+$/.test(value)) {
     return quotedString(value, ctx);
   }
   const indent = ctx.indent || (ctx.forceBlockIndent || containsDocumentMarker(value) ? "  " : "");
@@ -1148,7 +1156,7 @@ function plainString(item, ctx, onComment, onChompKeep) {
   if (implicitKey && value.includes("\n") || inFlow && /[[\]{},]/.test(value)) {
     return quotedString(value, ctx);
   }
-  if (!value || /^[\n\t ,[\]{}#&*!|>'"%@`]|^[?-]$|^[?-][ \t]|[\n:][ \t]|[ \t]\n|[\n\t ]#|[\n\t :]$/.test(value)) {
+  if (/^[\n\t ,[\]{}#&*!|>'"%@`]|^[?-]$|^[?-][ \t]|[\n:][ \t]|[ \t]\n|[\n\t ]#|[\n\t :]$/.test(value)) {
     return implicitKey || inFlow || !value.includes("\n") ? quotedString(value, ctx) : blockString(item, ctx, onComment, onChompKeep);
   }
   if (!implicitKey && !inFlow && type !== Scalar.PLAIN && value.includes("\n")) {
@@ -1165,12 +1173,9 @@ function plainString(item, ctx, onComment, onChompKeep) {
   const str = value.replace(/\n+/g, `$&
 ${indent}`);
   if (actualString) {
-    const test = (tag) => {
-      var _a;
-      return tag.default && tag.tag !== "tag:yaml.org,2002:str" && ((_a = tag.test) == null ? void 0 : _a.test(str));
-    };
+    const test = (tag) => tag.default && tag.tag !== "tag:yaml.org,2002:str" && tag.test?.test(str);
     const { compat, tags } = ctx.doc.schema;
-    if (tags.some(test) || (compat == null ? void 0 : compat.some(test)))
+    if (tags.some(test) || compat?.some(test))
       return quotedString(value, ctx);
   }
   return implicitKey ? str : foldFlowLines(str, indent, FOLD_FLOW, getFoldOptions(ctx, false));
@@ -1250,7 +1255,6 @@ function createStringifyContext(doc, options) {
   };
 }
 function getTagObject(tags, item) {
-  var _a;
   if (item.tag) {
     const match = tags.filter((t) => t.tag === item.tag);
     if (match.length > 0)
@@ -1260,10 +1264,7 @@ function getTagObject(tags, item) {
   let obj;
   if (isScalar(item)) {
     obj = item.value;
-    let match = tags.filter((t) => {
-      var _a2;
-      return (_a2 = t.identify) == null ? void 0 : _a2.call(t, obj);
-    });
+    let match = tags.filter((t) => t.identify?.(obj));
     if (match.length > 1) {
       const testMatch = match.filter((t) => t.test);
       if (testMatch.length > 0)
@@ -1275,7 +1276,7 @@ function getTagObject(tags, item) {
     tagObj = tags.find((t) => t.nodeClass && obj instanceof t.nodeClass);
   }
   if (!tagObj) {
-    const name = ((_a = obj == null ? void 0 : obj.constructor) == null ? void 0 : _a.name) ?? typeof obj;
+    const name = obj?.constructor?.name ?? (obj === null ? "null" : typeof obj);
     throw new Error(`Tag not resolved for ${name} value`);
   }
   return tagObj;
@@ -1289,19 +1290,18 @@ function stringifyProps(node, tagObj, { anchors, doc }) {
     anchors.add(anchor);
     props.push(`&${anchor}`);
   }
-  const tag = node.tag ? node.tag : tagObj.default ? null : tagObj.tag;
+  const tag = node.tag ?? (tagObj.default ? null : tagObj.tag);
   if (tag)
     props.push(doc.directives.tagString(tag));
   return props.join(" ");
 }
 function stringify(item, ctx, onComment, onChompKeep) {
-  var _a;
   if (isPair(item))
     return item.toString(ctx, onComment, onChompKeep);
   if (isAlias(item)) {
     if (ctx.doc.directives)
       return item.toString(ctx);
-    if ((_a = ctx.resolvedAliases) == null ? void 0 : _a.has(item)) {
+    if (ctx.resolvedAliases?.has(item)) {
       throw new TypeError(`Cannot stringify circular structure without alias nodes`);
     } else {
       if (ctx.resolvedAliases)
@@ -1313,8 +1313,7 @@ function stringify(item, ctx, onComment, onChompKeep) {
   }
   let tagObj = void 0;
   const node = isNode(item) ? item : ctx.doc.createNode(item, { onTagObj: (o) => tagObj = o });
-  if (!tagObj)
-    tagObj = getTagObject(ctx.doc.schema.tags, node);
+  tagObj ?? (tagObj = getTagObject(ctx.doc.schema.tags, node));
   const props = stringifyProps(node, tagObj, ctx);
   if (props.length > 0)
     ctx.indentAtStart = (ctx.indentAtStart ?? 0) + props.length + 1;
@@ -1461,7 +1460,7 @@ const merge = {
   }),
   stringify: () => MERGE_KEY
 };
-const isMergeKey = (ctx, key) => (merge.identify(key) || isScalar(key) && (!key.type || key.type === Scalar.PLAIN) && merge.identify(key.value)) && (ctx == null ? void 0 : ctx.doc.schema.tags.some((tag) => tag.tag === merge.tag && tag.default));
+const isMergeKey = (ctx, key) => (merge.identify(key) || isScalar(key) && (!key.type || key.type === Scalar.PLAIN) && merge.identify(key.value)) && ctx?.doc.schema.tags.some((tag) => tag.tag === merge.tag && tag.default);
 function addMergeToJSMap(ctx, map2, value) {
   value = ctx && isAlias(value) ? value.resolve(ctx.doc) : value;
   if (isSeq(value))
@@ -1527,7 +1526,7 @@ function stringifyKey(key, jsKey, ctx) {
     return "";
   if (typeof jsKey !== "object")
     return String(jsKey);
-  if (isNode(key) && (ctx == null ? void 0 : ctx.doc)) {
+  if (isNode(key) && ctx?.doc) {
     const strCtx = createStringifyContext(ctx.doc, {});
     strCtx.anchors = /* @__PURE__ */ new Set();
     for (const node of ctx.anchors.keys())
@@ -1566,11 +1565,11 @@ class Pair {
     return new Pair(key, value);
   }
   toJSON(_, ctx) {
-    const pair = (ctx == null ? void 0 : ctx.mapAsMap) ? /* @__PURE__ */ new Map() : {};
+    const pair = ctx?.mapAsMap ? /* @__PURE__ */ new Map() : {};
     return addPairToJSMap(ctx, pair, this);
   }
   toString(ctx, onComment, onChompKeep) {
-    return (ctx == null ? void 0 : ctx.doc) ? stringifyPair(this, ctx, onComment, onChompKeep) : JSON.stringify(this);
+    return ctx?.doc ? stringifyPair(this, ctx, onComment, onChompKeep) : JSON.stringify(this);
   }
 }
 function stringifyCollection(collection, ctx, options) {
@@ -1662,7 +1661,7 @@ function stringifyFlowCollection({ items }, ctx, { flowChars, itemIndent }) {
           comment = iv.comment;
         if (iv.commentBefore)
           reqNewline = true;
-      } else if (item.value == null && (ik == null ? void 0 : ik.comment)) {
+      } else if (item.value == null && ik?.comment) {
         comment = ik.comment;
       }
     }
@@ -1760,16 +1759,15 @@ class YAMLMap extends Collection {
    *   collection will throw. Otherwise, overwrites the previous value.
    */
   add(pair, overwrite) {
-    var _a;
     let _pair;
     if (isPair(pair))
       _pair = pair;
     else if (!pair || typeof pair !== "object" || !("key" in pair)) {
-      _pair = new Pair(pair, pair == null ? void 0 : pair.value);
+      _pair = new Pair(pair, pair?.value);
     } else
       _pair = new Pair(pair.key, pair.value);
     const prev = findPair(this.items, _pair.key);
-    const sortEntries = (_a = this.schema) == null ? void 0 : _a.sortMapEntries;
+    const sortEntries = this.schema?.sortMapEntries;
     if (prev) {
       if (!overwrite)
         throw new Error(`Key ${_pair.key} already set`);
@@ -1796,7 +1794,7 @@ class YAMLMap extends Collection {
   }
   get(key, keepScalar) {
     const it = findPair(this.items, key);
-    const node = it == null ? void 0 : it.value;
+    const node = it?.value;
     return (!keepScalar && isScalar(node) ? node.value : node) ?? void 0;
   }
   has(key) {
@@ -1811,8 +1809,8 @@ class YAMLMap extends Collection {
    * @returns Instance of Type, Map, or Object
    */
   toJSON(_, ctx, Type) {
-    const map2 = Type ? new Type() : (ctx == null ? void 0 : ctx.mapAsMap) ? /* @__PURE__ */ new Map() : {};
-    if (ctx == null ? void 0 : ctx.onCreate)
+    const map2 = Type ? new Type() : ctx?.mapAsMap ? /* @__PURE__ */ new Map() : {};
+    if (ctx?.onCreate)
       ctx.onCreate(map2);
     for (const item of this.items)
       addPairToJSMap(ctx, map2, item);
@@ -1910,7 +1908,7 @@ class YAMLSeq extends Collection {
   }
   toJSON(_, ctx) {
     const seq2 = [];
-    if (ctx == null ? void 0 : ctx.onCreate)
+    if (ctx?.onCreate)
       ctx.onCreate(seq2);
     let i = 0;
     for (const item of this.items)
@@ -2190,8 +2188,7 @@ const binary = {
     } else {
       throw new Error("This environment does not support writing binary tags; either Buffer or btoa is required");
     }
-    if (!type)
-      type = Scalar.BLOCK_LITERAL;
+    type ?? (type = Scalar.BLOCK_LITERAL);
     if (type !== Scalar.QUOTE_DOUBLE) {
       const lineWidth = Math.max(ctx.options.lineWidth - ctx.indent.length, ctx.options.minContentWidth);
       const n = Math.ceil(str.length / lineWidth);
@@ -2286,7 +2283,7 @@ class YAMLOMap extends YAMLSeq {
     if (!ctx)
       return super.toJSON(_);
     const map2 = /* @__PURE__ */ new Map();
-    if (ctx == null ? void 0 : ctx.onCreate)
+    if (ctx?.onCreate)
       ctx.onCreate(map2);
     for (const pair of this.items) {
       let key, value;
@@ -2610,7 +2607,7 @@ const timestamp = {
     }
     return new Date(date);
   },
-  stringify: ({ value }) => (value == null ? void 0 : value.toISOString().replace(/(T00:00:00)?\.000Z$/, "")) ?? ""
+  stringify: ({ value }) => value?.toISOString().replace(/(T00:00:00)?\.000Z$/, "") ?? ""
 };
 const schema = [
   map,
@@ -2724,7 +2721,6 @@ class Schema {
   }
 }
 function stringifyDocument(doc, options) {
-  var _a;
   const lines = [];
   let hasDirectives = options.directives === true;
   if (options.directives !== false && doc.directives) {
@@ -2769,7 +2765,7 @@ function stringifyDocument(doc, options) {
   } else {
     lines.push(stringify(doc.contents, ctx));
   }
-  if ((_a = doc.directives) == null ? void 0 : _a.docEnd) {
+  if (doc.directives?.docEnd) {
     if (doc.comment) {
       const cs = commentString(doc.comment);
       if (cs.includes("\n")) {
@@ -2819,7 +2815,7 @@ class Document {
     }, options);
     this.options = opt;
     let { version: version2 } = opt;
-    if (options == null ? void 0 : options._directives) {
+    if (options?._directives) {
       this.directives = options._directives.atDocument();
       if (this.directives.yaml.explicit)
         version2 = this.directives.yaml.version;
@@ -3166,7 +3162,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIn
     }
     switch (token.type) {
       case "space":
-        if (!flow && (indicator !== "doc-start" || (next == null ? void 0 : next.type) !== "flow-collection") && token.source.includes("	")) {
+        if (!flow && (indicator !== "doc-start" || next?.type !== "flow-collection") && token.source.includes("	")) {
           tab = token;
         }
         hasSpace = true;
@@ -3203,8 +3199,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIn
         if (token.source.endsWith(":"))
           onError(token.offset + token.source.length - 1, "BAD_ALIAS", "Anchor ending in : is ambiguous", true);
         anchor = token;
-        if (start === null)
-          start = token.offset;
+        start ?? (start = token.offset);
         atNewline = false;
         hasSpace = false;
         reqSpace = true;
@@ -3213,8 +3208,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIn
         if (tag)
           onError(token, "MULTIPLE_TAGS", "A node can have at most one tag");
         tag = token;
-        if (start === null)
-          start = token.offset;
+        start ?? (start = token.offset);
         atNewline = false;
         hasSpace = false;
         reqSpace = true;
@@ -3250,7 +3244,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIn
   if (reqSpace && next && next.type !== "space" && next.type !== "newline" && next.type !== "comma" && (next.type !== "scalar" || next.source !== "")) {
     onError(next.offset, "MISSING_CHAR", "Tags and anchors must be separated from the next token by white space");
   }
-  if (tab && (atNewline && tab.indent <= parentIndent || (next == null ? void 0 : next.type) === "block-map" || (next == null ? void 0 : next.type) === "block-seq"))
+  if (tab && (atNewline && tab.indent <= parentIndent || next?.type === "block-map" || next?.type === "block-seq"))
     onError(tab, "TAB_AS_INDENT", "Tabs are not allowed as indentation");
   return {
     comma,
@@ -3300,7 +3294,7 @@ function containsNewline(key) {
   }
 }
 function flowIndentCheck(indent, fc, onError) {
-  if ((fc == null ? void 0 : fc.type) === "flow-collection") {
+  if (fc?.type === "flow-collection") {
     const end = fc.end[0];
     if (end.indent === indent && (end.source === "]" || end.source === "}") && containsNewline(fc)) {
       const msg = "Flow end indicator should be more indented than parent";
@@ -3317,8 +3311,7 @@ function mapIncludes(ctx, items, search) {
 }
 const startColMsg = "All mapping items must start at the same column";
 function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bm, onError, tag) {
-  var _a;
-  const NodeClass = (tag == null ? void 0 : tag.nodeClass) ?? YAMLMap;
+  const NodeClass = tag?.nodeClass ?? YAMLMap;
   const map2 = new NodeClass(ctx.schema);
   if (ctx.atRoot)
     ctx.atRoot = false;
@@ -3328,7 +3321,7 @@ function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeE
     const { start, key, sep, value } = collItem;
     const keyProps = resolveProps(start, {
       indicator: "explicit-key-ind",
-      next: key ?? (sep == null ? void 0 : sep[0]),
+      next: key ?? sep?.[0],
       offset,
       onError,
       parentIndent: bm.indent,
@@ -3355,7 +3348,7 @@ function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeE
       if (keyProps.newlineAfterProp || containsNewline(key)) {
         onError(key ?? start[start.length - 1], "MULTILINE_IMPLICIT_KEY", "Implicit keys need to be on a single line");
       }
-    } else if (((_a = keyProps.found) == null ? void 0 : _a.indent) !== bm.indent) {
+    } else if (keyProps.found?.indent !== bm.indent) {
       onError(offset, "BAD_INDENT", startColMsg);
     }
     ctx.atKey = true;
@@ -3377,7 +3370,7 @@ function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeE
     offset = valueProps.end;
     if (valueProps.found) {
       if (implicitKey) {
-        if ((value == null ? void 0 : value.type) === "block-map" && !valueProps.hasNewline)
+        if (value?.type === "block-map" && !valueProps.hasNewline)
           onError(offset, "BLOCK_AS_IMPLICIT_KEY", "Nested mappings are not allowed in compact mappings");
         if (ctx.options.strict && keyProps.start < valueProps.found.offset - 1024)
           onError(keyNode.range, "KEY_OVER_1024_CHARS", "The : indicator must be at most 1024 chars after the start of an implicit block mapping key");
@@ -3411,7 +3404,7 @@ function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeE
   return map2;
 }
 function resolveBlockSeq({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bs, onError, tag) {
-  const NodeClass = (tag == null ? void 0 : tag.nodeClass) ?? YAMLSeq;
+  const NodeClass = tag?.nodeClass ?? YAMLSeq;
   const seq2 = new NodeClass(ctx.schema);
   if (ctx.atRoot)
     ctx.atRoot = false;
@@ -3490,7 +3483,7 @@ const isBlock = (token) => token && (token.type === "block-map" || token.type ==
 function resolveFlowCollection({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, fc, onError, tag) {
   const isMap2 = fc.start.source === "{";
   const fcName = isMap2 ? "flow map" : "flow sequence";
-  const NodeClass = (tag == null ? void 0 : tag.nodeClass) ?? (isMap2 ? YAMLMap : YAMLSeq);
+  const NodeClass = tag?.nodeClass ?? (isMap2 ? YAMLMap : YAMLSeq);
   const coll = new NodeClass(ctx.schema);
   coll.flow = true;
   const atRoot = ctx.atRoot;
@@ -3505,7 +3498,7 @@ function resolveFlowCollection({ composeNode: composeNode2, composeEmptyNode: co
     const props = resolveProps(start, {
       flow: fcName,
       indicator: "explicit-key-ind",
-      next: key ?? (sep == null ? void 0 : sep[0]),
+      next: key ?? sep?.[0],
       offset,
       onError,
       parentIndent: fc.indent,
@@ -3675,7 +3668,6 @@ function resolveCollection(CN2, ctx, token, onError, tagName, tag) {
   return coll;
 }
 function composeCollection(CN2, ctx, token, props, onError) {
-  var _a;
   const tagToken = props.tag;
   const tagName = !tagToken ? null : ctx.directives.tagName(tagToken.source, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg));
   if (token.type === "block-seq") {
@@ -3706,11 +3698,11 @@ function composeCollection(CN2, ctx, token, props, onError) {
     }
   }
   const coll = resolveCollection(CN2, ctx, token, onError, tagName, tag);
-  const res = ((_a = tag.resolve) == null ? void 0 : _a.call(tag, coll, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg), ctx.options)) ?? coll;
+  const res = tag.resolve?.(coll, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg), ctx.options) ?? coll;
   const node = isNode(res) ? res : new Scalar(res);
   node.range = coll.range;
   node.tag = tagName;
-  if (tag == null ? void 0 : tag.format)
+  if (tag?.format)
     node.format = tag.format;
   return node;
 }
@@ -3882,7 +3874,7 @@ function splitLines(source) {
   const split = source.split(/\n( *)/);
   const first = split[0];
   const m = first.match(/^( *)/);
-  const line0 = (m == null ? void 0 : m[1]) ? [m[1], first.slice(m[1].length)] : ["", first];
+  const line0 = m?.[1] ? [m[1], first.slice(m[1].length)] : ["", first];
   const lines = [line0];
   for (let i = 1; i < split.length; i += 2)
     lines.push([split[i], split[i + 1]]);
@@ -3989,7 +3981,7 @@ function foldLines(source) {
   const last = /[ \t]*(.*)/sy;
   last.lastIndex = pos;
   match = last.exec(source);
-  return res + sep + ((match == null ? void 0 : match[1]) ?? "");
+  return res + sep + (match?.[1] ?? "");
 }
 function doubleQuotedValue(source, onError) {
   let res = "";
@@ -4131,7 +4123,6 @@ function composeScalar(ctx, token, tagToken, onError) {
   return scalar;
 }
 function findScalarTagByName(schema2, value, tagName, tagToken, onError) {
-  var _a;
   if (tagName === "!")
     return schema2[SCALAR$1];
   const matchWithTest = [];
@@ -4144,7 +4135,7 @@ function findScalarTagByName(schema2, value, tagName, tagToken, onError) {
     }
   }
   for (const tag of matchWithTest)
-    if ((_a = tag.test) == null ? void 0 : _a.test(value))
+    if (tag.test?.test(value))
       return tag;
   const kt = schema2.knownTags[tagName];
   if (kt && !kt.collection) {
@@ -4155,15 +4146,9 @@ function findScalarTagByName(schema2, value, tagName, tagToken, onError) {
   return schema2[SCALAR$1];
 }
 function findScalarTagByTest({ atKey, directives, schema: schema2 }, value, token, onError) {
-  const tag = schema2.tags.find((tag2) => {
-    var _a;
-    return (tag2.default === true || atKey && tag2.default === "key") && ((_a = tag2.test) == null ? void 0 : _a.test(value));
-  }) || schema2[SCALAR$1];
+  const tag = schema2.tags.find((tag2) => (tag2.default === true || atKey && tag2.default === "key") && tag2.test?.test(value)) || schema2[SCALAR$1];
   if (schema2.compat) {
-    const compat = schema2.compat.find((tag2) => {
-      var _a;
-      return tag2.default && ((_a = tag2.test) == null ? void 0 : _a.test(value));
-    }) ?? schema2[SCALAR$1];
+    const compat = schema2.compat.find((tag2) => tag2.default && tag2.test?.test(value)) ?? schema2[SCALAR$1];
     if (tag.tag !== compat.tag) {
       const ts = directives.tagString(tag.tag);
       const cs = directives.tagString(compat.tag);
@@ -4175,8 +4160,7 @@ function findScalarTagByTest({ atKey, directives, schema: schema2 }, value, toke
 }
 function emptyScalarPosition(offset, before, pos) {
   if (before) {
-    if (pos === null)
-      pos = before.length;
+    pos ?? (pos = before.length);
     for (let i = pos - 1; i >= 0; --i) {
       let st = before[i];
       switch (st.type) {
@@ -4187,7 +4171,7 @@ function emptyScalarPosition(offset, before, pos) {
           continue;
       }
       st = before[++i];
-      while ((st == null ? void 0 : st.type) === "space") {
+      while (st?.type === "space") {
         offset += st.source.length;
         st = before[++i];
       }
@@ -4294,7 +4278,7 @@ function composeDoc(options, directives, { offset, start, value, end }, onError)
   };
   const props = resolveProps(start, {
     indicator: "doc-start",
-    next: value ?? (end == null ? void 0 : end[0]),
+    next: value ?? end?.[0],
     offset,
     onError,
     parentIndent: 0,
@@ -4322,7 +4306,6 @@ function getErrorPos(src) {
   return [offset, offset + (typeof source === "string" ? source.length : 1)];
 }
 function parsePrelude(prelude) {
-  var _a;
   let comment = "";
   let atComment = false;
   let afterEmptyLine = false;
@@ -4335,7 +4318,7 @@ function parsePrelude(prelude) {
         afterEmptyLine = false;
         break;
       case "%":
-        if (((_a = prelude[i + 1]) == null ? void 0 : _a[0]) !== "#")
+        if (prelude[i + 1]?.[0] !== "#")
           i += 1;
         atComment = false;
         break;
@@ -5179,7 +5162,7 @@ function findNonEmptyIndex(list) {
   return -1;
 }
 function isFlowToken(token) {
-  switch (token == null ? void 0 : token.type) {
+  switch (token?.type) {
     case "alias":
     case "scalar":
     case "single-quoted-scalar":
@@ -5206,7 +5189,6 @@ function getPrevProps(parent) {
   }
 }
 function getFirstKeyStartProps(prev) {
-  var _a;
   if (prev.length === 0)
     return [];
   let i = prev.length;
@@ -5220,7 +5202,7 @@ function getFirstKeyStartProps(prev) {
         break loop;
     }
   }
-  while (((_a = prev[++i]) == null ? void 0 : _a.type) === "space") {
+  while (prev[++i]?.type === "space") {
   }
   return prev.splice(i, prev.length);
 }
@@ -5562,7 +5544,6 @@ class Parser {
     }
   }
   *blockMap(map2) {
-    var _a;
     const it = map2.items[map2.items.length - 1];
     switch (this.type) {
       case "newline":
@@ -5570,8 +5551,8 @@ class Parser {
         if (it.value) {
           const end = "end" in it.value ? it.value.end : void 0;
           const last = Array.isArray(end) ? end[end.length - 1] : void 0;
-          if ((last == null ? void 0 : last.type) === "comment")
-            end == null ? void 0 : end.push(this.sourceToken);
+          if (last?.type === "comment")
+            end?.push(this.sourceToken);
           else
             map2.items.push({ start: [this.sourceToken] });
         } else if (it.sep) {
@@ -5589,7 +5570,7 @@ class Parser {
         } else {
           if (this.atIndentedComment(it.start, map2.indent)) {
             const prev = map2.items[map2.items.length - 2];
-            const end = (_a = prev == null ? void 0 : prev.value) == null ? void 0 : _a.end;
+            const end = prev?.value?.end;
             if (Array.isArray(end)) {
               Array.prototype.push.apply(end, it.start);
               end.push(this.sourceToken);
@@ -5757,15 +5738,14 @@ class Parser {
     yield* this.step();
   }
   *blockSequence(seq2) {
-    var _a;
     const it = seq2.items[seq2.items.length - 1];
     switch (this.type) {
       case "newline":
         if (it.value) {
           const end = "end" in it.value ? it.value.end : void 0;
           const last = Array.isArray(end) ? end[end.length - 1] : void 0;
-          if ((last == null ? void 0 : last.type) === "comment")
-            end == null ? void 0 : end.push(this.sourceToken);
+          if (last?.type === "comment")
+            end?.push(this.sourceToken);
           else
             seq2.items.push({ start: [this.sourceToken] });
         } else
@@ -5778,7 +5758,7 @@ class Parser {
         else {
           if (this.atIndentedComment(it.start, seq2.indent)) {
             const prev = seq2.items[seq2.items.length - 2];
-            const end = (_a = prev == null ? void 0 : prev.value) == null ? void 0 : _a.end;
+            const end = prev?.value?.end;
             if (Array.isArray(end)) {
               Array.prototype.push.apply(end, it.start);
               end.push(this.sourceToken);
@@ -6023,7 +6003,7 @@ function parseOptions(options) {
 }
 function parseDocument(source, options = {}) {
   const { lineCounter, prettyErrors } = parseOptions(options);
-  const parser = new Parser(lineCounter == null ? void 0 : lineCounter.addNewLine);
+  const parser = new Parser(lineCounter?.addNewLine);
   const composer = new Composer(options);
   let doc = null;
   for (const _doc of composer.compose(parser.parse(source), true, source.length)) {
@@ -6212,12 +6192,12 @@ function formatVariables(variables) {
   return formattedVariables;
 }
 class StreamlineCardEditor extends HTMLElement {
+  _card = void 0;
+  _hass = void 0;
+  _shadow;
+  _templates = { ...exampleTile };
   constructor(card) {
     super();
-    __publicField(this, "_card");
-    __publicField(this, "_hass");
-    __publicField(this, "_shadow");
-    __publicField(this, "_templates", { ...exampleTile });
     this._card = card;
     this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
     const lovelace = getLovelace() || getLovelaceCast();
@@ -6382,6 +6362,12 @@ class StreamlineCardEditor extends HTMLElement {
       selector: { icon: {} }
     };
   }
+  static getBooleanSchema(name) {
+    return {
+      name,
+      selector: { boolean: {} }
+    };
+  }
   static getDefaultSchema(name) {
     return {
       name,
@@ -6394,6 +6380,8 @@ class StreamlineCardEditor extends HTMLElement {
       childSchema = StreamlineCardEditor.getEntitySchema(variable);
     } else if (variable.toLowerCase().includes("icon")) {
       childSchema = StreamlineCardEditor.getIconSchema(variable);
+    } else if (variable.toLowerCase().includes("bool")) {
+      childSchema = StreamlineCardEditor.getBooleanSchema(variable);
     }
     return childSchema;
   }
@@ -6446,9 +6434,9 @@ if (typeof customElements.get("streamline-card-editor") === "undefined") {
 }
 const functionCache = /* @__PURE__ */ new Map();
 const createEvaluationContext = (hass, variables) => ({
-  areas: hass == null ? void 0 : hass.areas,
-  states: hass == null ? void 0 : hass.states,
-  user: hass == null ? void 0 : hass.user,
+  areas: hass?.areas,
+  states: hass?.states,
+  user: hass?.user,
   variables
 });
 const createFunction = (code, cacheKey) => {
@@ -6460,7 +6448,9 @@ const createFunction = (code, cacheKey) => {
         new Function("states", "user", "variables", "areas", code)
       );
     } catch (error) {
-      throw new Error(`Failed to compile JavaScript: ${error.message}`);
+      throw new Error(`Failed to compile JavaScript: ${error.message}`, {
+        cause: error
+      });
     }
   }
   return functionCache.get(cacheKey);
@@ -6584,22 +6574,22 @@ const thrower = (text) => {
 (async function initializeStreamlineCard() {
   const HELPERS = window.loadCardHelpers ? await window.loadCardHelpers() : void 0;
   class StreamlineCard extends HTMLElement {
+    _editMode = false;
+    _isConnected = false;
+    _config = void 0;
+    _originalConfig = void 0;
+    _hass = void 0;
+    _card = void 0;
+    _shadow;
+    _inlineTemplates = {};
+    _templates = {};
+    _accessedProperties = /* @__PURE__ */ new Set();
+    _hasJavascriptTemplate = false;
+    _pendingUpdates = /* @__PURE__ */ new Set();
+    _updateScheduled = false;
+    _rafId = null;
     constructor() {
       super();
-      __publicField(this, "_editMode", false);
-      __publicField(this, "_isConnected", false);
-      __publicField(this, "_config");
-      __publicField(this, "_originalConfig");
-      __publicField(this, "_hass");
-      __publicField(this, "_card");
-      __publicField(this, "_shadow");
-      __publicField(this, "_inlineTemplates", {});
-      __publicField(this, "_templates", {});
-      __publicField(this, "_accessedProperties", /* @__PURE__ */ new Set());
-      __publicField(this, "_hasJavascriptTemplate", false);
-      __publicField(this, "_pendingUpdates", /* @__PURE__ */ new Set());
-      __publicField(this, "_updateScheduled", false);
-      __publicField(this, "_rafId", null);
       this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
     }
     queueUpdate(type) {
@@ -6634,8 +6624,7 @@ const thrower = (text) => {
       }
     }
     updateCardConfig() {
-      var _a, _b;
-      if (this._isConnected && this._card && this._config) {
+      if (this._card && this._config) {
         if (this._card.nodeName === "HUI-ERROR-CARD") {
           requestAnimationFrame(() => {
             this._shadow.removeChild(this._card);
@@ -6643,7 +6632,7 @@ const thrower = (text) => {
             this._shadow.appendChild(this._card);
           });
         } else {
-          (_b = (_a = this._card).setConfig) == null ? void 0 : _b.call(_a, this._config);
+          this._card.setConfig?.(this._config);
         }
         if (this.parentNode.config === void 0 || this._config.visibility === void 0) {
           return;
@@ -6689,6 +6678,9 @@ const thrower = (text) => {
     }
     set hass(hass) {
       this._hass = hass;
+      if (!this._templateConfig && this._originalConfig) {
+        this.prepareConfig();
+      }
       const hasConfigChanged = this.parseConfig();
       if (hasConfigChanged) {
         this.queueUpdate("config");
@@ -6707,12 +6699,10 @@ const thrower = (text) => {
     }
     getTemplates() {
       const lovelace = getLovelace() || getLovelaceCast();
-      if (!lovelace.config && !lovelace.config.streamline_templates) {
-        thrower(
-          "The object streamline_templates doesn't exist in your main lovelace config."
-        );
+      if (!lovelace || !lovelace.config) {
+        return;
       }
-      this._inlineTemplates = lovelace.config.streamline_templates;
+      this._inlineTemplates = lovelace.config.streamline_templates || {};
       this._templates = {
         ...exampleTile,
         ...remoteTemplates,
@@ -6734,11 +6724,19 @@ const thrower = (text) => {
     }
     prepareConfig() {
       this.getTemplates();
+      if (!this._templates || Object.keys(this._templates).length === 0) {
+        this._templateConfig = void 0;
+        return;
+      }
       this._templateConfig = this._templates[this._originalConfig.template];
       if (!this._templateConfig) {
-        return thrower(
-          `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`
-        );
+        if (isTemplateLoaded === true) {
+          return thrower(
+            `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`
+          );
+        }
+        this._templateConfig = void 0;
+        return;
       } else if (!(this._templateConfig.card || this._templateConfig.element)) {
         return thrower(
           "You should define either a card or an element in the template"
@@ -6784,17 +6782,14 @@ const thrower = (text) => {
       this.queueUpdate("config");
     }
     getCardSize() {
-      var _a, _b;
-      return ((_b = (_a = this._card) == null ? void 0 : _a.getCardSize) == null ? void 0 : _b.call(_a)) ?? 1;
+      return this._card?.getCardSize?.() ?? 1;
     }
     /** @deprecated Use `getGridOptions` instead */
     getLayoutOptions() {
-      var _a, _b;
-      return ((_b = (_a = this._card) == null ? void 0 : _a.getLayoutOptions) == null ? void 0 : _b.call(_a)) ?? {};
+      return this._card?.getLayoutOptions?.() ?? {};
     }
     getGridOptions() {
-      var _a, _b;
-      return ((_b = (_a = this._card) == null ? void 0 : _a.getGridOptions) == null ? void 0 : _b.call(_a)) ?? {};
+      return this._card?.getGridOptions?.() ?? {};
     }
     createCard() {
       if (this._templateConfig.card) {
@@ -6806,6 +6801,12 @@ const thrower = (text) => {
             this.style.setProperty(prop, this._config.style[prop]);
           });
         }
+      }
+      if (this._card && this._config) {
+        this._card.setConfig?.(this._config);
+      }
+      if (this._card && this._hass) {
+        this._card.hass = this._hass;
       }
       if (this._card.getCardSize === void 0) {
         this.getCardSize = void 0;
@@ -6822,7 +6823,7 @@ const thrower = (text) => {
     }
   }
   customElements.define("streamline-card", StreamlineCard);
-  window.customCards || (window.customCards = []);
+  window.customCards ||= [];
   window.customCards.push({
     description: "A config simplifier.",
     name: "Streamline Card",

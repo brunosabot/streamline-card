@@ -82,7 +82,12 @@ const thrower = (text) => {
     }
 
     updateCardConfig() {
-      if (this._isConnected && this._card && this._config) {
+      // Apply the inner card config as soon as we have both the card and the
+      // parsed config, regardless of whether the wrapper is already attached
+      // to the DOM. Home Assistant core cards are also configured before they
+      // are necessarily connected, and some custom cards (like mushroom)
+      // rely on setConfig being called early to render correctly.
+      if (this._card && this._config) {
         // If the card is errored, try to recreate it
         if (this._card.nodeName === "HUI-ERROR-CARD") {
           requestAnimationFrame(() => {
@@ -153,6 +158,14 @@ const thrower = (text) => {
     set hass(hass) {
       this._hass = hass;
 
+      // If the template configuration was not ready when setConfig was first
+      // called (e.g. Lovelace/templates not initialized yet), try to prepare it
+      // again now that hass is available. This allows the card to become
+      // visible once the Home Assistant frontend is fully initialized
+      if (!this._templateConfig && this._originalConfig) {
+        this.prepareConfig();
+      }
+
       const hasConfigChanged = this.parseConfig();
       if (hasConfigChanged) {
         this.queueUpdate("config");
@@ -176,13 +189,15 @@ const thrower = (text) => {
 
     getTemplates() {
       const lovelace = getLovelace() || getLovelaceCast();
-      if (!lovelace.config && !lovelace.config.streamline_templates) {
-        thrower(
-          "The object streamline_templates doesn't exist in your main lovelace config.",
-        );
+
+      // Lovelace may not be ready yet on first load; in that case, do nothing
+      // and let a later call (or the remote template loader) retry.
+      if (!lovelace || !lovelace.config) {
+        return;
       }
 
-      this._inlineTemplates = lovelace.config.streamline_templates;
+      // Inline templates might not yet be defined; treat that as "no inline templates"
+      this._inlineTemplates = lovelace.config.streamline_templates || {};
       this._templates = {
         ...exampleTile,
         ...remoteTemplates,
@@ -209,12 +224,27 @@ const thrower = (text) => {
 
     prepareConfig() {
       this.getTemplates();
+
+      // If templates are not ready yet (e.g. Lovelace not initialized), bail out.
+      if (!this._templates || Object.keys(this._templates).length === 0) {
+        this._templateConfig = undefined;
+        return;
+      }
+
       this._templateConfig = this._templates[this._originalConfig.template];
 
       if (!this._templateConfig) {
-        return thrower(
-          `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`,
-        );
+        // If remote templates have already been loaded, we can safely report
+        // a missing template error. Otherwise, wait for the reload triggered
+        // once templates finish loading.
+        if (isTemplateLoaded === true) {
+          return thrower(
+            `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`,
+          );
+        }
+
+        this._templateConfig = undefined;
+        return;
       } else if (!(this._templateConfig.card || this._templateConfig.element)) {
         return thrower(
           "You should define either a card or an element in the template",
@@ -287,6 +317,7 @@ const thrower = (text) => {
 
     createCard() {
       if (this._templateConfig.card) {
+        // Create the inner card element from the parsed config
         this._card = HELPERS.createCardElement(this._config);
       } else if (this._templateConfig.element) {
         this._card = HELPERS.createHuiElement(this._config);
@@ -295,6 +326,16 @@ const thrower = (text) => {
             this.style.setProperty(prop, this._config.style[prop]);
           });
         }
+      }
+
+      // Some helpers / HA versions may not fully apply the config to custom
+      // cards during createCardElement. To ensure custom cards actually receive their config and render content,
+      // explicitly call setConfig and assign hass here once the element exists.
+      if (this._card && this._config) {
+        this._card.setConfig?.(this._config);
+      }
+      if (this._card && this._hass) {
+        this._card.hass = this._hass;
       }
 
       if (this._card.getCardSize === undefined) {

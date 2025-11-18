@@ -1,5 +1,5 @@
-let lovelaceCache = null;
-let lovelaceCastCache = null;
+let lovelaceCache = { path: null, ref: null };
+let lovelaceCastCache = { path: null, ref: null };
 
 const findLovelaceCast = () => {
   let root = document.querySelector("hc-main");
@@ -39,21 +39,44 @@ const findLovelace = () => {
   return null;
 };
 
-export const getLovelaceCast = () => {
-  if (lovelaceCastCache === null) {
-    lovelaceCastCache = findLovelaceCast();
+export const clearLovelaceCache = () => {
+  lovelaceCache = { path: null, ref: null };
+  lovelaceCastCache = { path: null, ref: null };
+};
+
+const checkLocation = () => {
+  const [, dashboardPath] = window.location.pathname.split("/");
+  if (
+    (lovelaceCache.path && lovelaceCache.path !== dashboardPath) ||
+    (lovelaceCastCache.path && lovelaceCastCache.path !== dashboardPath)
+  ) {
+    clearLovelaceCache();
   }
-  return lovelaceCastCache;
+  return dashboardPath;
+};
+
+export const getLovelaceCast = () => {
+  const dashboardPath = checkLocation();
+  if (lovelaceCastCache.ref) {
+    return lovelaceCastCache.ref;
+  }
+
+  const ll = findLovelaceCast();
+  if (ll) {
+    lovelaceCastCache = { path: dashboardPath, ref: ll };
+  }
+  return ll;
 };
 
 export const getLovelace = () => {
-  if (lovelaceCache === null) {
-    lovelaceCache = findLovelace();
+  const dashboardPath = checkLocation();
+  if (lovelaceCache.ref) {
+    return lovelaceCache.ref;
   }
-  return lovelaceCache;
-};
 
-export const clearLovelaceCache = () => {
-  lovelaceCache = null;
-  lovelaceCastCache = null;
+  const ll = findLovelace();
+  if (ll) {
+    lovelaceCache = { path: dashboardPath, ref: ll };
+  }
+  return ll;
 };

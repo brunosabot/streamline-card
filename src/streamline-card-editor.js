@@ -17,23 +17,19 @@ export class StreamlineCardEditor extends HTMLElement {
     this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
 
     const lovelace = getLovelace() || getLovelaceCast();
+    const inlineTemplates = lovelace?.config?.streamline_templates ?? {};
+    this._templates = { ...exampleTile, ...inlineTemplates };
 
-    const remoteTemplateLoader = loadRemoteTemplates();
-    if (remoteTemplateLoader instanceof Promise) {
-      remoteTemplateLoader.then(() => {
-        this._templates = {
-          ...exampleTile,
-          ...getRemoteTemplates(),
-          ...lovelace.config.streamline_templates,
-        };
-      });
-    } else {
+    loadRemoteTemplates().then(() => {
       this._templates = {
         ...exampleTile,
         ...getRemoteTemplates(),
-        ...lovelace.config.streamline_templates,
+        ...inlineTemplates,
       };
-    }
+      if (this._originalConfig) {
+        this.setConfig(this._originalConfig);
+      }
+    });
 
     if (this._templates === null) {
       throw new Error(
@@ -143,9 +139,7 @@ export class StreamlineCardEditor extends HTMLElement {
 
     const templateConfig = this._templates[template];
     if (typeof templateConfig === "undefined") {
-      throw new Error(
-        `The template "${template}" doesn't exist in streamline_templates`,
-      );
+      return Object.keys(this._config?.variables ?? {});
     }
 
     const stringTemplate = JSON.stringify(templateConfig);

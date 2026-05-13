@@ -1,4 +1,4 @@
-import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
+import { getLovelace, getLovelaceCast } from "./getLovelace-helper";
 import { getRemoteTemplates, loadRemoteTemplates } from "./templateLoader";
 import deepEqual from "./deepEqual-helper";
 import exampleTile from "./templates/exampleTile";

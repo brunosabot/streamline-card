@@ -1,8 +1,8 @@
 import "./streamline-card-editor";
 import { getIsTemplateLoaded, getRemoteTemplates, loadRemoteTemplates } from "./templateLoader";
-import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
+import { getLovelace, getLovelaceCast } from "./getLovelace-helper";
 import deepEqual from "./deepEqual-helper";
-import evaluateConfig from "./evaluteConfig-helper";
+import evaluateConfig from "./evaluateConfig-helper";
 import exampleTile from "./templates/exampleTile";
 import { version } from "../package.json";
 
@@ -27,7 +27,6 @@ const thrower = (text) => {
     _shadow;
     _inlineTemplates = {};
     _templates = {};
-    _accessedProperties = new Set();
     _hasJavascriptTemplate = false;
     _pendingUpdates = new Set();
     _updateScheduled = false;

@@ -1,6 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-import type { StreamlineCardEditor } from "./streamline-card-editor";
 import "./streamline-card-editor";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("./getLovelace.helper");
 
@@ -10,7 +9,7 @@ describe("Given the streamline-card-editor", () => {
       // Arrange
       const editor = document.createElement(
         "streamline-card-editor",
-      ) as StreamlineCardEditor;
+      );
 
       // Assert
       expect(editor._config).toEqual({
@@ -26,7 +25,7 @@ describe("Given the streamline-card-editor", () => {
       // Arrange
       const editor = document.createElement(
         "streamline-card-editor",
-      ) as StreamlineCardEditor;
+      );
 
       editor._templates = {
         example_tile: {
@@ -46,27 +45,27 @@ describe("Given the streamline-card-editor", () => {
       // Arrange
       const editor = document.createElement(
         "streamline-card-editor",
-      ) as StreamlineCardEditor;
+      );
 
       editor._templates = {
         example_tile: {
-          default: {
-            name: "Ashoka Tano",
-            job: "[[jedi]]",
-            jedi: "Jedi",
-          },
           card: {
             card_type: "separator",
             name: "[[name]]",
             type: "custom:bubble-card",
+          },
+          default: {
+            jedi: "Jedi",
+            job: "[[jedi]]",
+            name: "Ashoka Tano",
           },
         },
       };
 
       // Assert
       expect(editor.getVariablesForTemplate("example_tile")).toEqual([
-        "jedi",
         "name",
+        "jedi",
       ]);
     });
   });
@@ -76,16 +75,16 @@ describe("Given the streamline-card-editor", () => {
       // Arrange
       const editor = document.createElement(
         "streamline-card-editor",
-      ) as StreamlineCardEditor;
+      );
 
       // Act
       editor.setConfig({
         template: "example_tile",
         type: "streamline-card",
         variables: {
-          name: "Obi Wan Kenobi",
-          job: "[[job]]",
           jedi: "Jedi",
+          job: "[[job]]",
+          name: "Obi Wan Kenobi",
         },
       });
 
@@ -95,9 +94,9 @@ describe("Given the streamline-card-editor", () => {
         type: "streamline-card",
         variables: {
           entity: "",
-          name: "Obi Wan Kenobi",
-          job: "[[job]]",
           jedi: "Jedi",
+          job: "[[job]]",
+          name: "Obi Wan Kenobi",
         },
       });
     });
@@ -106,7 +105,7 @@ describe("Given the streamline-card-editor", () => {
       // Arrange
       const editor = document.createElement(
         "streamline-card-editor",
-      ) as StreamlineCardEditor;
+      );
 
       // Act
       editor.setConfig({
@@ -125,11 +124,48 @@ describe("Given the streamline-card-editor", () => {
         type: "streamline-card",
         variables: {
           entity: "",
-          name: "Obi Wan Kenobi",
-          job: "[[jedi]]",
           jedi: "Jedi",
+          job: "[[jedi]]",
+          name: "Obi Wan Kenobi",
         },
       });
+    });
+  });
+
+  describe("When extracting variables from a template", () => {
+    it("Then it should sort variables based on the order defined in the config", () => {
+      // Arrange
+      const editor = document.createElement(
+        "streamline-card-editor",
+      );
+
+      editor._templates = {
+        test_template: {
+          card: {
+            name: "[[third]] [[first]] [[second]]",
+            type: "button",
+          },
+        },
+      };
+
+      // The order in the config is: second, first, third
+      editor.setConfig({
+        template: "test_template",
+        type: "custom:streamline-card",
+        variables: {
+          second: "value2",
+          // Expected non alpha order
+          // eslint-disable-next-line sort-keys
+          first: "value1",
+          third: "value3",
+        },
+      });
+
+      // Act
+      const result = editor.getVariablesForTemplate("test_template");
+
+      // Assert
+      expect(result).toEqual(["second", "first", "third"]);
     });
   });
 });

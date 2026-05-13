@@ -156,15 +156,11 @@ export class StreamlineCardEditor extends HTMLElement {
       variables[name] = name;
     });
 
-    return Object.keys(variables).sort((left, right) => {
-      const leftIndex = Object.keys(this._config.variables).find((key) =>
-        Object.hasOwn(this._config.variables[key] ?? "", left),
-      );
-      const rightIndex = Object.keys(this._config.variables).find((key) =>
-        Object.hasOwn(this._config.variables[key] ?? "", right),
-      );
-
-      return leftIndex - rightIndex;
+    const configKeys = Object.keys(this._config.variables);
+    return Object.keys(variables).sort((varA, varB) => {
+      const ai = configKeys.indexOf(varA);
+      const bi = configKeys.indexOf(varB);
+      return (ai === -1 ? Infinity : ai) - (bi === -1 ? Infinity : bi);
     });
   }
 

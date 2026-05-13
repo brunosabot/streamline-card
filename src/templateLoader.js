@@ -4,16 +4,19 @@ let remoteTemplates = {};
 let isTemplateLoaded = null;
 
 export const getRemoteTemplates = () => remoteTemplates;
+export const getIsTemplateLoaded = () => isTemplateLoaded;
 
-const fetchRemoteTemplates = (url) => {
-  if (isTemplateLoaded === null) {
-    isTemplateLoaded = fetch(`${url}?t=${new Date().getTime()}`)
-      .then((response) => response.text())
-      .then((text) => {
-        remoteTemplates = evaluateYaml(text);
-        isTemplateLoaded = true;
-      });
+const fetchRemoteTemplates = async (url) => {
+  const res = await fetch(`${url}?t=${new Date().getTime()}`);
+  if (res.ok === false) {
+    throw new Error('not found');
   }
+
+  const text = await res.text();
+
+  remoteTemplates = evaluateYaml(text);
+  isTemplateLoaded = true;
+
   return isTemplateLoaded;
 };
 

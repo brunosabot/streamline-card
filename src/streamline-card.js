@@ -1,16 +1,13 @@
 import "./streamline-card-editor";
+import { getIsTemplateLoaded, getRemoteTemplates, loadRemoteTemplates } from "./templateLoader";
 import { getLovelace, getLovelaceCast } from "./getLovelace.helper";
 import deepEqual from "./deepEqual-helper";
 import evaluateConfig from "./evaluteConfig-helper";
-import evaluateYaml from "./evaluateYaml";
 import exampleTile from "./templates/exampleTile";
 import { version } from "../package.json";
 
-let isTemplateLoaded = null;
-let remoteTemplates = {};
-
 const thrower = (text) => {
-  if (isTemplateLoaded === true) {
+  if (getIsTemplateLoaded() === true) {
     throw new Error(text);
   }
 };
@@ -161,19 +158,6 @@ const thrower = (text) => {
       this.queueUpdate("hass");
     }
 
-    fetchTemplate(url) {
-      return fetch(`${url}?t=${new Date().getTime()}`)
-        .then((response) => response.text())
-        .then((text) => {
-          remoteTemplates = evaluateYaml(text);
-          this._templates = {
-            ...exampleTile,
-            ...remoteTemplates,
-            ...this._inlineTemplates,
-          };
-        });
-    }
-
     getTemplates() {
       const lovelace = getLovelace() || getLovelaceCast();
       if (!lovelace?.config?.streamline_templates) {
@@ -185,25 +169,20 @@ const thrower = (text) => {
       this._inlineTemplates = lovelace.config.streamline_templates;
       this._templates = {
         ...exampleTile,
-        ...remoteTemplates,
+        ...getRemoteTemplates(),
         ...this._inlineTemplates,
       };
 
-      if (isTemplateLoaded === null) {
-        const filename = "streamline-card/streamline_templates.yaml";
-        isTemplateLoaded = this.fetchTemplate(`/hacsfiles/${filename}`)
-          .catch(() => this.fetchTemplate(`/local/${filename}`))
-          .catch(() => this.fetchTemplate(`/local/community/${filename}`));
-      }
-      if (isTemplateLoaded instanceof Promise) {
-        isTemplateLoaded.then(() => {
-          isTemplateLoaded = true;
-
+      if (getIsTemplateLoaded() !== true) {
+        loadRemoteTemplates().then(() => {
           if (this._card === undefined) {
             this.setConfig(this._originalConfig);
             this.queueUpdate("hass");
           }
-        });
+        })
+      } else if (this._card === undefined) {
+        this.setConfig(this._originalConfig);
+        this.queueUpdate("hass");
       }
     }
 

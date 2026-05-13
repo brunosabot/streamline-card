@@ -17,6 +17,7 @@ export class StreamlineCardEditor extends HTMLElement {
     this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
 
     const lovelace = getLovelace() || getLovelaceCast();
+    const streamlineTemplates = lovelace?.config?.streamline_templates ?? {};
 
     const remoteTemplateLoader = loadRemoteTemplates();
     if (remoteTemplateLoader instanceof Promise) {
@@ -24,14 +25,14 @@ export class StreamlineCardEditor extends HTMLElement {
         this._templates = {
           ...exampleTile,
           ...getRemoteTemplates(),
-          ...lovelace.config.streamline_templates,
+          ...streamlineTemplates,
         };
       });
     } else {
       this._templates = {
         ...exampleTile,
         ...getRemoteTemplates(),
-        ...lovelace.config.streamline_templates,
+        ...streamlineTemplates,
       };
     }
 

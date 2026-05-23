@@ -1,0 +1,20 @@
+{
+  "skill_name": "issue-to-regression-test",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Fix issue #2. Follow the issue-to-regression-test skill.",
+      "expected_output": "A new test file src/tests/issue-2-visibility-settings-from-template-are-not-respected.test.js exists with the correct JSDoc and tests."
+    },
+    {
+      "id": 2,
+      "prompt": "Fix issue #65. Follow the issue-to-regression-test skill.",
+      "expected_output": "A new test file src/tests/issue-65-issue-using-multiple-variables-on-a-single-line.test.js exists with the correct JSDoc and tests."
+    },
+    {
+      "id": 3,
+      "prompt": "Fix issue #69. Follow the issue-to-regression-test skill.",
+      "expected_output": "A new test file src/tests/issue-69-visual-editor-not-supported.test.js exists with the correct JSDoc and tests."
+    }
+  ]
+}

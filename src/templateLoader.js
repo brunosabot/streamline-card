@@ -9,7 +9,7 @@ export const getIsTemplateLoaded = () => isTemplateLoaded;
 const fetchRemoteTemplates = async (url) => {
   const res = await fetch(`${url}?t=${new Date().getTime()}`);
   if (res.ok === false) {
-    throw new Error('not found');
+    throw new Error("not found");
   }
 
   const text = await res.text();

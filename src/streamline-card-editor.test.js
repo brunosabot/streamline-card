@@ -7,9 +7,7 @@ describe("Given the streamline-card-editor", () => {
   describe("When the streamline-card-editor is loaded", () => {
     it("Then it should have a default config", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       // Assert
       expect(editor._config).toEqual({
@@ -23,9 +21,7 @@ describe("Given the streamline-card-editor", () => {
   describe("When getting the default variables for a template", () => {
     it("Then it should return no variables", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       editor._templates = {
         example_tile: {
@@ -43,9 +39,7 @@ describe("Given the streamline-card-editor", () => {
 
     it("Then it should return the default variables", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       editor._templates = {
         example_tile: {
@@ -73,9 +67,7 @@ describe("Given the streamline-card-editor", () => {
   describe("When assigning a config with setConfig", () => {
     it("Then it should assign the config as an object", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       // Act
       editor.setConfig({
@@ -103,9 +95,7 @@ describe("Given the streamline-card-editor", () => {
 
     it("Then it should assign a transformed config as an object", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       // Act
       editor.setConfig({
@@ -135,9 +125,7 @@ describe("Given the streamline-card-editor", () => {
   describe("When extracting variables from a template", () => {
     it("Then it should sort variables based on the order defined in the config", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       editor._templates = {
         test_template: {

@@ -77,6 +77,59 @@ var getLovelace = () => {
 	return ll;
 };
 //#endregion
+//#region src/deepEqual-helper.js
+var compareArraysDeep = (arr1, arr2, compareFn) => {
+	if (arr1.length !== arr2.length) return false;
+	for (let index = 0; index < arr1.length; index += 1) if (compareFn(arr1[index], arr2[index]) === false) return false;
+	return true;
+};
+var compareObjectsDeep = (obj1, obj2, compareFn) => {
+	const keys1 = Object.keys(obj1);
+	const keys2 = Object.keys(obj2);
+	if (keys1.length !== keys2.length) return false;
+	if (keys1.length === 0) return true;
+	for (let index = 0; index < keys1.length; index += 1) {
+		const key = keys1[index];
+		if (Object.hasOwn(obj2, key) === false || compareFn(obj1[key], obj2[key]) === false) return false;
+	}
+	return true;
+};
+var isSpecialType = (obj) => obj instanceof Date || obj instanceof RegExp || obj instanceof Set || obj instanceof Map;
+var compareDates = (date1, date2) => date1.getTime() === date2.getTime();
+var compareRegExps = (regex1, regex2) => regex1.source === regex2.source && regex1.flags === regex2.flags;
+var compareSets = (set1, set2) => {
+	if (set1.size !== set2.size) return false;
+	for (const item of set1) if (set2.has(item) === false) return false;
+	return true;
+};
+var compareMaps = (map1, map2, compareFn) => {
+	if (map1.size !== map2.size) return false;
+	for (const [key, value] of map1) if (map2.has(key) === false || compareFn(map2.get(key), value) === false) return false;
+	return true;
+};
+var compareSpecialTypes = (obj1, obj2, compareFn) => {
+	const isSpecial1 = isSpecialType(obj1);
+	if (isSpecial1 !== isSpecialType(obj2)) return false;
+	if (isSpecial1 === false) return null;
+	if (obj1 instanceof Date && obj2 instanceof Date) return compareDates(obj1, obj2);
+	if (obj1 instanceof RegExp && obj2 instanceof RegExp) return compareRegExps(obj1, obj2);
+	if (obj1 instanceof Set && obj2 instanceof Set) return compareSets(obj1, obj2);
+	if (obj1 instanceof Map && obj2 instanceof Map) return compareMaps(obj1, obj2, compareFn);
+	return false;
+};
+var deepEqual = (obj1, obj2) => {
+	if (obj1 === obj2) return true;
+	if (obj1 === null || obj1 === void 0 || obj2 === null || obj2 === void 0) return false;
+	const type1 = typeof obj1;
+	if (type1 !== typeof obj2) return false;
+	if (type1 !== "object") return obj1 === obj2;
+	const specialResult = compareSpecialTypes(obj1, obj2, deepEqual);
+	if (specialResult !== null) return specialResult;
+	const isArray1 = Array.isArray(obj1);
+	if (isArray1 !== Array.isArray(obj2)) return false;
+	return isArray1 ? compareArraysDeep(obj1, obj2, deepEqual) : compareObjectsDeep(obj1, obj2, deepEqual);
+};
+//#endregion
 //#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/identity.js
 var ALIAS = Symbol.for("yaml.alias");
 var DOC = Symbol.for("yaml.document");
@@ -5771,8 +5824,27 @@ function parse(src, reviver, options) {
 }
 //#endregion
 //#region src/evaluateYaml.js
-function evaluateYaml(yamlString) {
-	return parse(yamlString);
+var includeTag = {
+	resolve: (str) => ({ __streamline_include__: str }),
+	tag: "!include"
+};
+var resolveIncludes = async (obj, baseUrl, evaluateYamlRef, byPassCache = false) => {
+	if (obj === null || typeof obj !== "object") return obj;
+	if (Array.isArray(obj)) return Promise.all(obj.map((item) => resolveIncludes(item, baseUrl, evaluateYamlRef, byPassCache)));
+	if (obj.__streamline_include__) {
+		const includedPath = obj.__streamline_include__;
+		const base = new URL(baseUrl, window.location.href);
+		const url = new URL(includedPath, base).href;
+		const res = await fetch(byPassCache ? `${url}?t=${Date.now()}` : url, { cache: byPassCache ? "no-cache" : "reload" });
+		if (!res.ok) throw new Error(`[streamline-card] Failed to load included file: ${includedPath}`);
+		return await evaluateYamlRef(await res.text(), url, byPassCache);
+	}
+	const keys = Object.keys(obj);
+	const resolvedValues = await Promise.all(keys.map((key) => resolveIncludes(obj[key], baseUrl, evaluateYamlRef, byPassCache)));
+	return Object.fromEntries(keys.map((key, index) => [key, resolvedValues[index]]));
+};
+async function evaluateYaml(yamlString, baseUrl, byPassCache = false) {
+	return await resolveIncludes(parse(yamlString, { customTags: [includeTag] }), baseUrl, evaluateYaml, byPassCache);
 }
 //#endregion
 //#region src/templateLoader.js
@@ -5780,70 +5852,31 @@ var remoteTemplates = {};
 var isTemplateLoaded = null;
 var getRemoteTemplates = () => remoteTemplates;
 var getIsTemplateLoaded = () => isTemplateLoaded;
+var revalidateTemplates = async (url) => {
+	try {
+		const res = await fetch(`${url}?t=${Date.now()}`);
+		if (res.ok === false) return;
+		const newTemplates = await evaluateYaml(await res.text(), url, true);
+		if (deepEqual(remoteTemplates, newTemplates) === false) {
+			remoteTemplates = newTemplates;
+			window.dispatchEvent(new CustomEvent("streamline-templates-updated", { detail: { url } }));
+		}
+	} catch (error) {
+		throw new Error(`[streamline-card] Background revalidation failed: ${error.message}`, { cause: error });
+	}
+};
 var fetchRemoteTemplates = async (url) => {
-	const res = await fetch(`${url}?t=${(/* @__PURE__ */ new Date()).getTime()}`);
+	const res = await fetch(url, { cache: "reload" });
 	if (res.ok === false) throw new Error("not found");
-	remoteTemplates = evaluateYaml(await res.text());
+	remoteTemplates = await evaluateYaml(await res.text(), url);
 	isTemplateLoaded = true;
+	revalidateTemplates(url);
 	return isTemplateLoaded;
 };
 var loadRemoteTemplates = () => {
 	const filename = "streamline-card/streamline_templates.yaml";
 	if (isTemplateLoaded === null) isTemplateLoaded = fetchRemoteTemplates(`/hacsfiles/${filename}`).catch(() => fetchRemoteTemplates(`/local/${filename}`)).catch(() => fetchRemoteTemplates(`/local/community/${filename}`));
 	return isTemplateLoaded;
-};
-//#endregion
-//#region src/deepEqual-helper.js
-var compareArraysDeep = (arr1, arr2, compareFn) => {
-	if (arr1.length !== arr2.length) return false;
-	for (let index = 0; index < arr1.length; index += 1) if (compareFn(arr1[index], arr2[index]) === false) return false;
-	return true;
-};
-var compareObjectsDeep = (obj1, obj2, compareFn) => {
-	const keys1 = Object.keys(obj1);
-	const keys2 = Object.keys(obj2);
-	if (keys1.length !== keys2.length) return false;
-	if (keys1.length === 0) return true;
-	for (let index = 0; index < keys1.length; index += 1) {
-		const key = keys1[index];
-		if (Object.hasOwn(obj2, key) === false || compareFn(obj1[key], obj2[key]) === false) return false;
-	}
-	return true;
-};
-var isSpecialType = (obj) => obj instanceof Date || obj instanceof RegExp || obj instanceof Set || obj instanceof Map;
-var compareDates = (date1, date2) => date1.getTime() === date2.getTime();
-var compareRegExps = (regex1, regex2) => regex1.source === regex2.source && regex1.flags === regex2.flags;
-var compareSets = (set1, set2) => {
-	if (set1.size !== set2.size) return false;
-	for (const item of set1) if (set2.has(item) === false) return false;
-	return true;
-};
-var compareMaps = (map1, map2, compareFn) => {
-	if (map1.size !== map2.size) return false;
-	for (const [key, value] of map1) if (map2.has(key) === false || compareFn(map2.get(key), value) === false) return false;
-	return true;
-};
-var compareSpecialTypes = (obj1, obj2, compareFn) => {
-	const isSpecial1 = isSpecialType(obj1);
-	if (isSpecial1 !== isSpecialType(obj2)) return false;
-	if (isSpecial1 === false) return null;
-	if (obj1 instanceof Date && obj2 instanceof Date) return compareDates(obj1, obj2);
-	if (obj1 instanceof RegExp && obj2 instanceof RegExp) return compareRegExps(obj1, obj2);
-	if (obj1 instanceof Set && obj2 instanceof Set) return compareSets(obj1, obj2);
-	if (obj1 instanceof Map && obj2 instanceof Map) return compareMaps(obj1, obj2, compareFn);
-	return false;
-};
-var deepEqual = (obj1, obj2) => {
-	if (obj1 === obj2) return true;
-	if (obj1 === null || obj1 === void 0 || obj2 === null || obj2 === void 0) return false;
-	const type1 = typeof obj1;
-	if (type1 !== typeof obj2) return false;
-	if (type1 !== "object") return obj1 === obj2;
-	const specialResult = compareSpecialTypes(obj1, obj2, deepEqual);
-	if (specialResult !== null) return specialResult;
-	const isArray1 = Array.isArray(obj1);
-	if (isArray1 !== Array.isArray(obj2)) return false;
-	return isArray1 ? compareArraysDeep(obj1, obj2, deepEqual) : compareObjectsDeep(obj1, obj2, deepEqual);
 };
 //#endregion
 //#region src/templates/exampleTile.js
@@ -5859,9 +5892,9 @@ var fireEvent = (node, type, detail = {}) => {
 	const event = new CustomEvent(type, {
 		bubbles: true,
 		cancelable: false,
-		composed: true
+		composed: true,
+		detail
 	});
-	event.detail = detail;
 	node.dispatchEvent(event);
 	return event;
 };
@@ -6195,7 +6228,7 @@ function evaluateConfig(templateConfig, variables, options) {
 }
 //#endregion
 //#region package.json
-var version = "0.2.1";
+var version = "0.2.2";
 //#endregion
 //#region src/streamline-card.js
 var thrower = (text) => {
@@ -6217,6 +6250,14 @@ var thrower = (text) => {
 		_pendingUpdates = /* @__PURE__ */ new Set();
 		_updateScheduled = false;
 		_rafId = null;
+		_templatesUpdatedListener = () => {
+			this.initTemplates();
+			if (this._card) {
+				this._shadow.removeChild(this._card);
+				this._card = void 0;
+				this.initCard();
+			}
+		};
 		constructor() {
 			super();
 			this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
@@ -6262,9 +6303,11 @@ var thrower = (text) => {
 			this.queueUpdate("config");
 			this.queueUpdate("editMode");
 			this.queueUpdate("hass");
+			window.addEventListener("streamline-templates-updated", this._templatesUpdatedListener);
 		}
 		disconnectedCallback() {
 			this._isConnected = false;
+			window.removeEventListener("streamline-templates-updated", this._templatesUpdatedListener);
 			if (this._rafId !== null) {
 				cancelAnimationFrame(this._rafId);
 				this._rafId = null;
@@ -6289,33 +6332,14 @@ var thrower = (text) => {
 			if (this.parseConfig()) this.queueUpdate("config");
 			this.queueUpdate("hass");
 		}
-		getTemplates() {
-			const lovelace = getLovelace() || getLovelaceCast();
-			if (!lovelace?.config?.streamline_templates) thrower("The object streamline_templates doesn't exist in your main lovelace config.");
-			this._inlineTemplates = lovelace.config.streamline_templates;
-			this._templates = {
-				...exampleTile_default,
-				...getRemoteTemplates(),
-				...this._inlineTemplates
-			};
-			if (getIsTemplateLoaded() !== true) loadRemoteTemplates().then(() => {
-				if (this._card === void 0) {
-					this.setConfig(this._originalConfig);
-					this.queueUpdate("hass");
-				}
+		prepareTemplates() {
+			this.initTemplates();
+			if (this._templateConfig !== void 0) this.initCard();
+			else if (getIsTemplateLoaded() !== true) loadRemoteTemplates().then(() => {
+				this.initTemplates();
+				this.initCard();
+				fireEvent(this.parentNode, "card-updated", { value: true });
 			});
-			else if (this._card === void 0) {
-				this.setConfig(this._originalConfig);
-				this.queueUpdate("hass");
-			}
-		}
-		prepareConfig() {
-			this.getTemplates();
-			this._templateConfig = this._templates[this._originalConfig.template];
-			if (!this._templateConfig) return thrower(`The template "${this._originalConfig.template}" doesn't exist in streamline_templates`);
-			else if (!(this._templateConfig.card || this._templateConfig.element)) return thrower("You should define either a card or an element in the template");
-			else if (this._templateConfig.card && this._templateConfig.element) return thrower("You can define a card and an element in the template");
-			this._hasJavascriptTemplate = JSON.stringify(this._templateConfig ?? "").includes("_javascript");
 		}
 		parseConfig() {
 			if (this._templateConfig === void 0) return false;
@@ -6328,14 +6352,34 @@ var thrower = (text) => {
 		}
 		setConfig(config) {
 			this._originalConfig = config;
-			this.prepareConfig();
-			if (this.parseConfig() === false) return;
-			if (typeof this._card === "undefined") {
-				if (typeof this._config.type === "undefined") thrower("[Streamline Card] You need to define a type");
-				this.createCard();
-				this._shadow.appendChild(this._card);
-			}
+			if (this._card === void 0) return this.prepareTemplates();
+			return this.shouldUpdateChildConfig();
+		}
+		shouldUpdateChildConfig() {
+			if (this.parseConfig() === true) return this.queueUpdate("config");
+		}
+		initCard() {
+			if (this._card !== void 0) return;
+			this.parseConfig();
+			if (this._config.type === void 0) thrower("[Streamline Card] You need to define a type");
+			this.createCard();
+			this._shadow.appendChild(this._card);
 			this.queueUpdate("config");
+			this.queueUpdate("hass");
+		}
+		initTemplates() {
+			const lovelace = getLovelace() || getLovelaceCast();
+			this._inlineTemplates = lovelace.config.streamline_templates ?? {};
+			this._templates = {
+				...exampleTile_default,
+				...getRemoteTemplates(),
+				...this._inlineTemplates
+			};
+			this._templateConfig = this._templates[this._originalConfig.template];
+			if (!this._templateConfig) return thrower(`The template "${this._originalConfig.template}" doesn't exist in streamline_templates`);
+			else if (!(this._templateConfig.card || this._templateConfig.element)) return thrower("You should define either a card or an element in the template");
+			else if (this._templateConfig.card && this._templateConfig.element) return thrower("You can define a card and an element in the template");
+			this._hasJavascriptTemplate = JSON.stringify(this._templateConfig ?? "").includes("_javascript");
 		}
 		getCardSize() {
 			return this._card?.getCardSize?.() ?? 1;

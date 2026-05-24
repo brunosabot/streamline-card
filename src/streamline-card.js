@@ -8,6 +8,7 @@ import { getLovelace, getLovelaceCast } from "./getLovelace-helper";
 import deepEqual from "./deepEqual-helper";
 import evaluateConfig from "./evaluateConfig-helper";
 import exampleTile from "./templates/exampleTile";
+import fireEvent from "./fireEvent-helper";
 import { version } from "../package.json";
 
 const thrower = (text) => {
@@ -161,55 +162,18 @@ const thrower = (text) => {
       this.queueUpdate("hass");
     }
 
-    getTemplates() {
-      const lovelace = getLovelace() || getLovelaceCast();
-      if (!lovelace?.config?.streamline_templates) {
-        thrower(
-          "The object streamline_templates doesn't exist in your main lovelace config.",
-        );
-      }
+    prepareTemplates() {
+      this.initTemplates();
 
-      this._inlineTemplates = lovelace.config.streamline_templates;
-      this._templates = {
-        ...exampleTile,
-        ...getRemoteTemplates(),
-        ...this._inlineTemplates,
-      };
-
-      if (getIsTemplateLoaded() !== true) {
+      if (this._templateConfig !== undefined) {
+        this.initCard();
+      } else if (getIsTemplateLoaded() !== true) {
         loadRemoteTemplates().then(() => {
-          if (this._card === undefined) {
-            this.setConfig(this._originalConfig);
-            this.queueUpdate("hass");
-          }
+          this.initTemplates();
+          this.initCard();
+          fireEvent(this.parentNode, "card-updated", { value: true });
         });
-      } else if (this._card === undefined) {
-        this.setConfig(this._originalConfig);
-        this.queueUpdate("hass");
       }
-    }
-
-    prepareConfig() {
-      this.getTemplates();
-      this._templateConfig = this._templates[this._originalConfig.template];
-
-      if (!this._templateConfig) {
-        return thrower(
-          `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`,
-        );
-      } else if (!(this._templateConfig.card || this._templateConfig.element)) {
-        return thrower(
-          "You should define either a card or an element in the template",
-        );
-      } else if (this._templateConfig.card && this._templateConfig.element) {
-        return thrower("You can define a card and an element in the template");
-      }
-
-      this._hasJavascriptTemplate = JSON.stringify(
-        this._templateConfig ?? "",
-      ).includes("_javascript");
-
-      return undefined;
     }
 
     parseConfig() {
@@ -236,22 +200,67 @@ const thrower = (text) => {
 
     setConfig(config) {
       this._originalConfig = config;
-      this.prepareConfig();
 
+      if (this._card === undefined) {
+        return this.prepareTemplates();
+      }
+
+      return this.shouldUpdateChildConfig();
+    }
+
+    shouldUpdateChildConfig() {
       const hasConfigChanged = this.parseConfig();
-      if (hasConfigChanged === false) {
+      if (hasConfigChanged === true) {
+        return this.queueUpdate("config");
+      }
+      return undefined;
+    }
+
+    initCard() {
+      if (this._card !== undefined) {
         return;
       }
 
-      if (typeof this._card === "undefined") {
-        if (typeof this._config.type === "undefined") {
-          thrower("[Streamline Card] You need to define a type");
-        }
-        this.createCard();
-        this._shadow.appendChild(this._card);
+      this.parseConfig();
+      if (this._config.type === undefined) {
+        thrower("[Streamline Card] You need to define a type");
+      }
+      this.createCard();
+      this._shadow.appendChild(this._card);
+      this.queueUpdate("config");
+      this.queueUpdate("hass");
+
+    }
+
+    initTemplates() {
+      const lovelace = getLovelace() || getLovelaceCast();
+
+      this._inlineTemplates = lovelace.config.streamline_templates ?? {};
+      this._templates = {
+        ...exampleTile,
+        ...getRemoteTemplates(),
+        ...this._inlineTemplates,
+      };
+
+      this._templateConfig = this._templates[this._originalConfig.template];
+
+      if (!this._templateConfig) {
+        return thrower(
+          `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`,
+        );
+      } else if (!(this._templateConfig.card || this._templateConfig.element)) {
+        return thrower(
+          "You should define either a card or an element in the template",
+        );
+      } else if (this._templateConfig.card && this._templateConfig.element) {
+        return thrower("You can define a card and an element in the template");
       }
 
-      this.queueUpdate("config");
+      this._hasJavascriptTemplate = JSON.stringify(
+        this._templateConfig ?? "",
+      ).includes("_javascript");
+
+      return undefined;
     }
 
     getCardSize() {
@@ -313,4 +322,4 @@ const thrower = (text) => {
   );
 })();
 
-export {};
+export { };

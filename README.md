@@ -18,6 +18,7 @@ This card is for [Lovelace](https://www.home-assistant.io/lovelace) on [Home Ass
   - [Step 3: Template Structure](#step-3-template-structure)
   - [Step 4: Using Variables](#step-4-using-variables)
   - [Step 5: Advanced Features - JavaScript Expressions](#step-5-advanced-features---javascript-expressions)
+  - [Step 6: Splitting Configuration with !include](#step-6-splitting-configuration-with-include)
 - [Real-World Examples](#real-world-examples)
 - [Examples](#examples)
 - [Tips and Best Practices](#tips-and-best-practices)
@@ -298,7 +299,35 @@ weather_template:
           };
         }
       `;
+
+### Step 6: Splitting Configuration with !include
+
+---
+
+As your configuration grows, you might want to split your templates into multiple files. You can use the `!include` tag to reference other YAML files. Paths are resolved relative to the file that contains the `!include` tag.
+
+For example, in your main `streamline_templates.yaml`:
+
+```yaml
+# streamline_templates.yaml
+light_template: !include templates/light_template.yaml
+weather_template: !include templates/weather_template.yaml
 ```
+
+And in your `templates/light_template.yaml`:
+
+```yaml
+# templates/light_template.yaml
+default:
+  - light_icon: mdi:ceiling-light
+card:
+  type: custom:bubble-card
+  name: "[[room_name]] Light"
+  icon: "[[light_icon]]"
+  entity: "[[light_entity]]"
+```
+
+This makes it much easier to manage large sets of templates and share them across different projects.
 
 ## Real-World Examples
 

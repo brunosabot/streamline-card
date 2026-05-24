@@ -14,7 +14,7 @@ const fetchRemoteTemplates = async (url) => {
 
   const text = await res.text();
 
-  remoteTemplates = evaluateYaml(text);
+  remoteTemplates = await evaluateYaml(text, url);
   isTemplateLoaded = true;
 
   return isTemplateLoaded;

@@ -229,7 +229,6 @@ const thrower = (text) => {
       this._shadow.appendChild(this._card);
       this.queueUpdate("config");
       this.queueUpdate("hass");
-
     }
 
     initTemplates() {
@@ -322,4 +321,4 @@ const thrower = (text) => {
   );
 })();
 
-export { };
+export {};

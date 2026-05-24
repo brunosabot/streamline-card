@@ -28,6 +28,7 @@ describe("evaluateYaml", () => {
 
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("http://localhost/sub.yaml"),
+      expect.any(Object),
     );
     expect(result).toEqual({
       main: {
@@ -76,6 +77,39 @@ describe("evaluateYaml", () => {
       evaluateYaml(yaml, "http://localhost/main.yaml"),
     ).rejects.toThrow(
       "[streamline-card] Failed to load included file: missing.yaml",
+    );
+  });
+
+  it("should pass fetch options through to !include fetches", async () => {
+    const mainYaml = "sub: !include sub.yaml";
+    const subYaml = "key: value";
+
+    fetch.mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(subYaml),
+    });
+
+    await evaluateYaml(mainYaml, "http://localhost/main.yaml");
+
+    expect(fetch).toHaveBeenCalledWith("http://localhost/sub.yaml", {
+      cache: "reload",
+    });
+  });
+
+  it("should support string as second argument (baseUrl)", async () => {
+    const mainYaml = "sub: !include sub.yaml";
+    const subYaml = "key: value";
+
+    fetch.mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(subYaml),
+    });
+
+    await evaluateYaml(mainYaml, "http://localhost/main.yaml");
+
+    expect(fetch).toHaveBeenCalledWith(
+      "http://localhost/sub.yaml",
+      expect.any(Object),
     );
   });
 });

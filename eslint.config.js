@@ -10,6 +10,7 @@ export default [
       camelcase: ["off"],
       "max-depth": ["off"],
       "max-lines": ["off"],
+      "max-params": ["off"],
       "max-statements": ["off"],
       "no-magic-numbers": ["off"],
       "no-ternary": "off",

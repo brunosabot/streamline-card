@@ -37,6 +37,15 @@ const thrower = (text) => {
     _updateScheduled = false;
     _rafId = null;
 
+    _templatesUpdatedListener = () => {
+      this.initTemplates();
+      if (this._card) {
+        this._shadow.removeChild(this._card);
+        this._card = undefined;
+        this.initCard();
+      }
+    };
+
     constructor() {
       super();
       this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
@@ -122,10 +131,20 @@ const thrower = (text) => {
       this.queueUpdate("config");
       this.queueUpdate("editMode");
       this.queueUpdate("hass");
+
+      window.addEventListener(
+        "streamline-templates-updated",
+        this._templatesUpdatedListener,
+      );
     }
 
     disconnectedCallback() {
       this._isConnected = false;
+
+      window.removeEventListener(
+        "streamline-templates-updated",
+        this._templatesUpdatedListener,
+      );
 
       // Cancel any pending animation frame to prevent updates after disconnect
       if (this._rafId !== null) {

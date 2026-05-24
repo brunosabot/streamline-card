@@ -5,14 +5,21 @@ const includeTag = {
   tag: "!include",
 };
 
-const resolveIncludes = async (obj, baseUrl, evaluateYamlRef) => {
+const resolveIncludes = async (
+  obj,
+  baseUrl,
+  evaluateYamlRef,
+  byPassCache = false,
+) => {
   if (obj === null || typeof obj !== "object") {
     return obj;
   }
 
   if (Array.isArray(obj)) {
     return Promise.all(
-      obj.map((item) => resolveIncludes(item, baseUrl, evaluateYamlRef)),
+      obj.map((item) =>
+        resolveIncludes(item, baseUrl, evaluateYamlRef, byPassCache),
+      ),
     );
   }
 
@@ -20,8 +27,10 @@ const resolveIncludes = async (obj, baseUrl, evaluateYamlRef) => {
     const includedPath = obj.__streamline_include__;
     const base = new URL(baseUrl, window.location.href);
     const url = new URL(includedPath, base).href;
+    const res = await fetch(byPassCache ? `${url}?t=${Date.now()}` : url, {
+      cache: byPassCache ? "no-cache" : "reload",
+    });
 
-    const res = await fetch(`${url}?t=${new Date().getTime()}`);
     if (!res.ok) {
       throw new Error(
         `[streamline-card] Failed to load included file: ${includedPath}`,
@@ -29,12 +38,14 @@ const resolveIncludes = async (obj, baseUrl, evaluateYamlRef) => {
     }
     const text = await res.text();
     // Recursively parse and resolve the included file
-    return await evaluateYamlRef(text, url);
+    return await evaluateYamlRef(text, url, byPassCache);
   }
 
   const keys = Object.keys(obj);
   const resolvedValues = await Promise.all(
-    keys.map((key) => resolveIncludes(obj[key], baseUrl, evaluateYamlRef)),
+    keys.map((key) =>
+      resolveIncludes(obj[key], baseUrl, evaluateYamlRef, byPassCache),
+    ),
   );
 
   return Object.fromEntries(
@@ -44,8 +55,9 @@ const resolveIncludes = async (obj, baseUrl, evaluateYamlRef) => {
 
 export default async function evaluateYaml(
   yamlString,
-  baseUrl = window.location.href,
+  baseUrl,
+  byPassCache = false,
 ) {
   const parsed = parse(yamlString, { customTags: [includeTag] });
-  return await resolveIncludes(parsed, baseUrl, evaluateYaml);
+  return await resolveIncludes(parsed, baseUrl, evaluateYaml, byPassCache);
 }

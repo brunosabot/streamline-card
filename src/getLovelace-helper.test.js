@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { clearLovelaceCache, getLovelace } from "./getLovelace.helper";
+import { clearLovelaceCache, getLovelace } from "./getLovelace-helper";
 import { mockLovelaceDom } from "./__helpers__/lovelace.helper";
 
-describe("getLovelace.helper", () => {
+describe("getLovelace-helper", () => {
   const clearPage = () => {
     document.body.innerHTML = "";
   };

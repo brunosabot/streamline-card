@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import evaluateConfig from "./evaluteConfig-helper";
+import evaluateConfig from "./evaluateConfig-helper";
 
 describe("Given the evaluateConfig function", () => {
   describe("When passing a template config with no variables and no default variable", () => {

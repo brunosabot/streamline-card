@@ -299,6 +299,7 @@ weather_template:
           };
         }
       `;
+```
 
 ### Step 6: Splitting Configuration with !include
 

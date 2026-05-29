@@ -1,82 +1,3 @@
-//#region src/getLovelace-helper.js
-var lovelaceCache = {
-	path: null,
-	ref: null
-};
-var lovelaceCastCache = {
-	path: null,
-	ref: null
-};
-var findLovelaceCast = () => {
-	let root = document.querySelector("hc-main");
-	root &&= root.shadowRoot;
-	root &&= root.querySelector("hc-lovelace");
-	root &&= root.shadowRoot;
-	root &&= root.querySelector("hui-view");
-	if (root) {
-		const ll = root.lovelace;
-		ll.current_view = root.___curView;
-		return ll;
-	}
-	return null;
-};
-var findLovelace = () => {
-	let root = document.querySelector("home-assistant");
-	root &&= root.shadowRoot;
-	root &&= root.querySelector("home-assistant-main");
-	root &&= root.shadowRoot;
-	root &&= root.querySelector("app-drawer-layout partial-panel-resolver, ha-drawer partial-panel-resolver");
-	root = root && root.shadowRoot || root;
-	root &&= root.querySelector("ha-panel-lovelace");
-	root &&= root.shadowRoot;
-	root &&= root.querySelector("hui-root");
-	if (root) {
-		const ll = root.lovelace;
-		ll.current_view = root.___curView;
-		return ll;
-	}
-	return null;
-};
-var clearLovelaceCache = () => {
-	lovelaceCache = {
-		path: null,
-		ref: null
-	};
-	lovelaceCastCache = {
-		path: null,
-		ref: null
-	};
-};
-var getCurrentPath = () => {
-	const [, dashboardPath] = window.location.pathname.split("/");
-	return dashboardPath;
-};
-var clearCacheOnPathChange = (dashboardPath) => {
-	if (lovelaceCache.path && lovelaceCache.path !== dashboardPath || lovelaceCastCache.path && lovelaceCastCache.path !== dashboardPath) clearLovelaceCache();
-};
-var getLovelaceCast = () => {
-	const dashboardPath = getCurrentPath();
-	clearCacheOnPathChange(dashboardPath);
-	if (lovelaceCastCache.ref !== null) return lovelaceCastCache.ref;
-	const ll = findLovelaceCast();
-	if (ll) lovelaceCastCache = {
-		path: dashboardPath,
-		ref: ll
-	};
-	return ll;
-};
-var getLovelace = () => {
-	const dashboardPath = getCurrentPath();
-	clearCacheOnPathChange(dashboardPath);
-	if (lovelaceCache.ref !== null) return lovelaceCache.ref;
-	const ll = findLovelace();
-	if (ll) lovelaceCache = {
-		path: dashboardPath,
-		ref: ll
-	};
-	return ll;
-};
-//#endregion
 //#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/identity.js
 var ALIAS = Symbol.for("yaml.alias");
 var DOC = Symbol.for("yaml.document");
@@ -5859,9 +5780,9 @@ var fireEvent = (node, type, detail = {}) => {
 	const event = new CustomEvent(type, {
 		bubbles: true,
 		cancelable: false,
-		composed: true
+		composed: true,
+		detail
 	});
-	event.detail = detail;
 	node.dispatchEvent(event);
 	return event;
 };
@@ -5878,6 +5799,89 @@ function formatVariables(variables) {
 	return formattedVariables;
 }
 //#endregion
+//#region src/getLovelace-helper.js
+var lovelaceCache = {
+	path: null,
+	ref: null
+};
+var lovelaceCastCache = {
+	path: null,
+	ref: null
+};
+var findLovelaceCast = () => {
+	let root = document.querySelector("hc-main");
+	root &&= root.shadowRoot;
+	root &&= root.querySelector("hc-lovelace");
+	root &&= root.shadowRoot;
+	root &&= root.querySelector("hui-view");
+	if (root) {
+		const ll = root.lovelace;
+		ll.current_view = root.___curView;
+		return ll;
+	}
+	return null;
+};
+var findLovelace = () => {
+	let root = document.querySelector("home-assistant");
+	root &&= root.shadowRoot;
+	root &&= root.querySelector("home-assistant-main");
+	root &&= root.shadowRoot;
+	root &&= root.querySelector("app-drawer-layout partial-panel-resolver, ha-drawer partial-panel-resolver");
+	root = root && root.shadowRoot || root;
+	root &&= root.querySelector("ha-panel-lovelace");
+	root &&= root.shadowRoot;
+	root &&= root.querySelector("hui-root");
+	if (root) {
+		const ll = root.lovelace;
+		ll.current_view = root.___curView;
+		return ll;
+	}
+	return null;
+};
+var clearLovelaceCache = () => {
+	lovelaceCache = {
+		path: null,
+		ref: null
+	};
+	lovelaceCastCache = {
+		path: null,
+		ref: null
+	};
+};
+var getCurrentPath = () => {
+	const [, dashboardPath] = window.location.pathname.split("/");
+	return dashboardPath;
+};
+var clearCacheOnPathChange = (dashboardPath) => {
+	if (lovelaceCache.path && lovelaceCache.path !== dashboardPath || lovelaceCastCache.path && lovelaceCastCache.path !== dashboardPath) clearLovelaceCache();
+};
+var getLovelaceCast = () => {
+	const dashboardPath = getCurrentPath();
+	clearCacheOnPathChange(dashboardPath);
+	if (lovelaceCastCache.ref !== null) return lovelaceCastCache.ref;
+	const ll = findLovelaceCast();
+	if (ll) lovelaceCastCache = {
+		path: dashboardPath,
+		ref: ll
+	};
+	return ll;
+};
+var getLovelace = () => {
+	const dashboardPath = getCurrentPath();
+	clearCacheOnPathChange(dashboardPath);
+	if (lovelaceCache.ref !== null) return lovelaceCache.ref;
+	const ll = findLovelace();
+	if (ll) lovelaceCache = {
+		path: dashboardPath,
+		ref: ll
+	};
+	return ll;
+};
+var refreshLovelace = () => {
+	clearLovelaceCache();
+	return getLovelace() || getLovelaceCast();
+};
+//#endregion
 //#region src/streamline-card-editor.js
 var StreamlineCardEditor = class StreamlineCardEditor extends HTMLElement {
 	_card = void 0;
@@ -5888,27 +5892,30 @@ var StreamlineCardEditor = class StreamlineCardEditor extends HTMLElement {
 		super();
 		this._card = card;
 		this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
-		const streamlineTemplates = (getLovelace() || getLovelaceCast())?.config?.streamline_templates ?? {};
-		const remoteTemplateLoader = loadRemoteTemplates();
-		if (remoteTemplateLoader instanceof Promise) remoteTemplateLoader.then(() => {
-			this._templates = {
-				...exampleTile_default,
-				...getRemoteTemplates(),
-				...streamlineTemplates
-			};
-		});
-		else this._templates = {
-			...exampleTile_default,
-			...getRemoteTemplates(),
-			...streamlineTemplates
-		};
-		if (this._templates === null) throw new Error("The object streamline_templates doesn't exist in your main lovelace config.");
+		this._refreshTemplates();
 		this._config = {
 			template: Object.keys(this._templates)[0],
 			type: "streamline-card",
 			variables: {}
 		};
 		this.initialize();
+		this._loadRemoteTemplatesAndRefresh();
+	}
+	_refreshTemplates() {
+		const streamlineTemplates = refreshLovelace()?.config?.streamline_templates ?? {};
+		this._templates = {
+			...exampleTile_default,
+			...getRemoteTemplates(),
+			...streamlineTemplates
+		};
+	}
+	async _loadRemoteTemplatesAndRefresh() {
+		const remoteTemplateLoader = loadRemoteTemplates();
+		if (remoteTemplateLoader instanceof Promise) {
+			await remoteTemplateLoader;
+			this._refreshTemplates();
+			this.render();
+		}
 	}
 	get hass() {
 		return this._hass;
@@ -5918,6 +5925,7 @@ var StreamlineCardEditor = class StreamlineCardEditor extends HTMLElement {
 		this.render();
 	}
 	setConfig(config) {
+		this._refreshTemplates();
 		const formattedConfig = StreamlineCardEditor.formatConfig(config);
 		const [firstTemplate] = Object.keys(this._templates);
 		const newConfig = {};
@@ -5974,7 +5982,7 @@ var StreamlineCardEditor = class StreamlineCardEditor extends HTMLElement {
 	getVariablesForTemplate(template) {
 		const variables = {};
 		const templateConfig = this._templates[template];
-		if (typeof templateConfig === "undefined") throw new Error(`The template "${template}" doesn't exist in streamline_templates`);
+		if (typeof templateConfig === "undefined") return [];
 		[...JSON.stringify(templateConfig).matchAll(/\[\[(?<name>.*?)\]\]/gu)].forEach(([, name]) => {
 			variables[name] = name;
 		});
@@ -6059,8 +6067,16 @@ var StreamlineCardEditor = class StreamlineCardEditor extends HTMLElement {
 	}
 	render() {
 		const schema = this.getSchema();
-		if (Object.values(this._config.variables).every((value) => typeof value !== "object") === false) {
+		const templateExists = typeof this._templates[this._config.template] !== "undefined";
+		const areAllPrimitives = Object.values(this._config.variables).every((value) => typeof value !== "object");
+		if (!templateExists) {
 			this.elements.error.style.display = "block";
+			this.elements.error.setAttribute("alert-type", "warning");
+			this.elements.error.innerText = `The template "${this._config.template}" doesn't exist in streamline_templates. You can still edit your config using YAML.`;
+			this.elements.form.schema = [schema[0]];
+		} else if (areAllPrimitives === false) {
+			this.elements.error.style.display = "block";
+			this.elements.error.setAttribute("alert-type", "error");
 			this.elements.error.innerText = `Object and array variables are not supported in the visual editor.`;
 			this.elements.form.schema = [schema[0]];
 		} else {

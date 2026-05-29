@@ -1,5 +1,9 @@
 import "./streamline-card-editor";
-import { getIsTemplateLoaded, getRemoteTemplates, loadRemoteTemplates } from "./templateLoader";
+import {
+  getIsTemplateLoaded,
+  getRemoteTemplates,
+  loadRemoteTemplates,
+} from "./templateLoader";
 import { getLovelace, getLovelaceCast } from "./getLovelace-helper";
 import deepEqual from "./deepEqual-helper";
 import evaluateConfig from "./evaluateConfig-helper";
@@ -178,7 +182,7 @@ const thrower = (text) => {
             this.setConfig(this._originalConfig);
             this.queueUpdate("hass");
           }
-        })
+        });
       } else if (this._card === undefined) {
         this.setConfig(this._originalConfig);
         this.queueUpdate("hass");

@@ -3,9 +3,8 @@ const fireEvent = (node, type, detail = {}) => {
     bubbles: true,
     cancelable: false,
     composed: true,
+    detail,
   });
-
-  event.detail = detail;
 
   node.dispatchEvent(event);
 

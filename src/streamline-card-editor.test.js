@@ -1,15 +1,13 @@
 import "./streamline-card-editor";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("./getLovelace.helper");
+vi.mock("./getLovelace-helper");
 
 describe("Given the streamline-card-editor", () => {
   describe("When the streamline-card-editor is loaded", () => {
     it("Then it should have a default config", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       // Assert
       expect(editor._config).toEqual({
@@ -23,9 +21,7 @@ describe("Given the streamline-card-editor", () => {
   describe("When getting the default variables for a template", () => {
     it("Then it should return no variables", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       editor._templates = {
         example_tile: {
@@ -43,9 +39,7 @@ describe("Given the streamline-card-editor", () => {
 
     it("Then it should return the default variables", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       editor._templates = {
         example_tile: {
@@ -73,9 +67,7 @@ describe("Given the streamline-card-editor", () => {
   describe("When assigning a config with setConfig", () => {
     it("Then it should assign the config as an object", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       // Act
       editor.setConfig({
@@ -103,9 +95,7 @@ describe("Given the streamline-card-editor", () => {
 
     it("Then it should assign a transformed config as an object", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       // Act
       editor.setConfig({
@@ -135,9 +125,7 @@ describe("Given the streamline-card-editor", () => {
   describe("When extracting variables from a template", () => {
     it("Then it should sort variables based on the order defined in the config", () => {
       // Arrange
-      const editor = document.createElement(
-        "streamline-card-editor",
-      );
+      const editor = document.createElement("streamline-card-editor");
 
       editor._templates = {
         test_template: {
@@ -161,11 +149,56 @@ describe("Given the streamline-card-editor", () => {
         },
       });
 
+      // Re-set templates after setConfig since _refreshTemplates resets them
+      editor._templates = {
+        test_template: {
+          card: {
+            name: "[[third]] [[first]] [[second]]",
+            type: "button",
+          },
+        },
+      };
+
       // Act
       const result = editor.getVariablesForTemplate("test_template");
 
       // Assert
       expect(result).toEqual(["second", "first", "third"]);
+    });
+
+    it("Then it should return an empty array for a missing template instead of throwing", () => {
+      // Arrange
+      const editor = document.createElement("streamline-card-editor");
+
+      // Act
+      const result = editor.getVariablesForTemplate("nonexistent_template");
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("When setConfig is called with a template added after construction", () => {
+    it("Then it should pick up the template from refreshed lovelace config", () => {
+      // Arrange
+      const editor = document.createElement("streamline-card-editor");
+
+      // Simulate adding a template after the editor was constructed
+      editor._templates.new_template = {
+        card: {
+          entity: "[[entity]]",
+          type: "tile",
+        },
+      };
+
+      // Act & Assert - should not throw
+      expect(() => {
+        editor.setConfig({
+          template: "new_template",
+          type: "custom:streamline-card",
+          variables: {},
+        });
+      }).not.toThrow();
     });
   });
 });

@@ -88,3 +88,8 @@ export const getLovelace = () => {
   }
   return ll;
 };
+
+export const refreshLovelace = () => {
+  clearLovelaceCache();
+  return getLovelace() || getLovelaceCast();
+};

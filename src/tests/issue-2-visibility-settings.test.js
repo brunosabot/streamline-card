@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import evaluateConfig from "../evaluteConfig-helper.js";
+import evaluateConfig from "../evaluateConfig-helper.js";
 
 /**
  * Regression test for issue #2: Visibility settings from template are not respected

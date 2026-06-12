@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { clearLovelaceCache, getLovelace } from "./getLovelace-helper";
+import {
+  clearLovelaceCache,
+  getLovelace,
+  refreshLovelace,
+} from "./getLovelace-helper";
 import { mockLovelaceDom } from "./__helpers__/lovelace.helper";
 
 describe("getLovelace-helper", () => {
@@ -73,5 +77,24 @@ describe("getLovelace-helper", () => {
 
     const result2 = getLovelace();
     expect(result2).toBe(mockLovelace);
+  });
+
+  it("should return fresh lovelace after refreshLovelace clears cache", () => {
+    const mockLovelace1 = { config: { title: "Before Edit" } };
+    mockLovelaceDom(mockLovelace1);
+
+    const result1 = getLovelace();
+    expect(result1).toBe(mockLovelace1);
+
+    // Simulate a raw YAML edit by replacing the DOM lovelace object
+    document.body.innerHTML = "";
+    const mockLovelace2 = { config: { title: "After Edit" } };
+    mockLovelaceDom(mockLovelace2);
+
+    // Without refresh, cache would return the old reference
+    // RefreshLovelace should clear cache and get new one
+    const result2 = refreshLovelace();
+    expect(result2).toBe(mockLovelace2);
+    expect(result2.config.title).toBe("After Edit");
   });
 });

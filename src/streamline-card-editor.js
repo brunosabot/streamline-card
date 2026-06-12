@@ -1,9 +1,9 @@
-import { getLovelace, getLovelaceCast } from "./getLovelace-helper";
 import { getRemoteTemplates, loadRemoteTemplates } from "./templateLoader";
 import deepEqual from "./deepEqual-helper";
 import exampleTile from "./templates/exampleTile";
 import fireEvent from "./fireEvent-helper";
 import formatVariables from "./formatVariables-helper";
+import { refreshLovelace } from "./getLovelace-helper";
 
 export class StreamlineCardEditor extends HTMLElement {
   _card = undefined;
@@ -15,32 +15,7 @@ export class StreamlineCardEditor extends HTMLElement {
     super();
     this._card = card;
     this._shadow = this.shadowRoot || this.attachShadow({ mode: "open" });
-
-    const lovelace = getLovelace() || getLovelaceCast();
-    const streamlineTemplates = lovelace?.config?.streamline_templates ?? {};
-
-    const remoteTemplateLoader = loadRemoteTemplates();
-    if (remoteTemplateLoader instanceof Promise) {
-      remoteTemplateLoader.then(() => {
-        this._templates = {
-          ...exampleTile,
-          ...getRemoteTemplates(),
-          ...streamlineTemplates,
-        };
-      });
-    } else {
-      this._templates = {
-        ...exampleTile,
-        ...getRemoteTemplates(),
-        ...streamlineTemplates,
-      };
-    }
-
-    if (this._templates === null) {
-      throw new Error(
-        "The object streamline_templates doesn't exist in your main lovelace config.",
-      );
-    }
+    this._refreshTemplates();
 
     this._config = {
       template: Object.keys(this._templates)[0],
@@ -49,6 +24,26 @@ export class StreamlineCardEditor extends HTMLElement {
     };
 
     this.initialize();
+    this._loadRemoteTemplatesAndRefresh();
+  }
+
+  _refreshTemplates() {
+    const lovelace = refreshLovelace();
+    const streamlineTemplates = lovelace?.config?.streamline_templates ?? {};
+    this._templates = {
+      ...exampleTile,
+      ...getRemoteTemplates(),
+      ...streamlineTemplates,
+    };
+  }
+
+  async _loadRemoteTemplatesAndRefresh() {
+    const remoteTemplateLoader = loadRemoteTemplates();
+    if (remoteTemplateLoader instanceof Promise) {
+      await remoteTemplateLoader;
+      this._refreshTemplates();
+      this.render();
+    }
   }
 
   get hass() {
@@ -61,6 +56,7 @@ export class StreamlineCardEditor extends HTMLElement {
   }
 
   setConfig(config) {
+    this._refreshTemplates();
     const formattedConfig = StreamlineCardEditor.formatConfig(config);
     const [firstTemplate] = Object.keys(this._templates);
 
@@ -144,9 +140,7 @@ export class StreamlineCardEditor extends HTMLElement {
 
     const templateConfig = this._templates[template];
     if (typeof templateConfig === "undefined") {
-      throw new Error(
-        `The template "${template}" doesn't exist in streamline_templates`,
-      );
+      return [];
     }
 
     const stringTemplate = JSON.stringify(templateConfig);
@@ -272,13 +266,21 @@ export class StreamlineCardEditor extends HTMLElement {
 
   render() {
     const schema = this.getSchema();
+    const templateExists =
+      typeof this._templates[this._config.template] !== "undefined";
 
     const areAllPrimitives = Object.values(this._config.variables).every(
       (value) => typeof value !== "object",
     );
 
-    if (areAllPrimitives === false) {
+    if (!templateExists) {
       this.elements.error.style.display = "block";
+      this.elements.error.setAttribute("alert-type", "warning");
+      this.elements.error.innerText = `The template "${this._config.template}" doesn't exist in streamline_templates. You can still edit your config using YAML.`;
+      this.elements.form.schema = [schema[0]];
+    } else if (areAllPrimitives === false) {
+      this.elements.error.style.display = "block";
+      this.elements.error.setAttribute("alert-type", "error");
       this.elements.error.innerText = `Object and array variables are not supported in the visual editor.`;
       this.elements.form.schema = [schema[0]];
     } else {

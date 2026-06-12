@@ -1,7 +1,7 @@
 import "./streamline-card-editor";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("./getLovelace.helper");
+vi.mock("./getLovelace-helper");
 
 describe("Given the streamline-card-editor", () => {
   describe("When the streamline-card-editor is loaded", () => {
@@ -149,11 +149,56 @@ describe("Given the streamline-card-editor", () => {
         },
       });
 
+      // Re-set templates after setConfig since _refreshTemplates resets them
+      editor._templates = {
+        test_template: {
+          card: {
+            name: "[[third]] [[first]] [[second]]",
+            type: "button",
+          },
+        },
+      };
+
       // Act
       const result = editor.getVariablesForTemplate("test_template");
 
       // Assert
       expect(result).toEqual(["second", "first", "third"]);
+    });
+
+    it("Then it should return an empty array for a missing template instead of throwing", () => {
+      // Arrange
+      const editor = document.createElement("streamline-card-editor");
+
+      // Act
+      const result = editor.getVariablesForTemplate("nonexistent_template");
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("When setConfig is called with a template added after construction", () => {
+    it("Then it should pick up the template from refreshed lovelace config", () => {
+      // Arrange
+      const editor = document.createElement("streamline-card-editor");
+
+      // Simulate adding a template after the editor was constructed
+      editor._templates.new_template = {
+        card: {
+          entity: "[[entity]]",
+          type: "tile",
+        },
+      };
+
+      // Act & Assert - should not throw
+      expect(() => {
+        editor.setConfig({
+          template: "new_template",
+          type: "custom:streamline-card",
+          variables: {},
+        });
+      }).not.toThrow();
     });
   });
 });

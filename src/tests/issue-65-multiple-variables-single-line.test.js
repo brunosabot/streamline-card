@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import evaluateConfig from "../evaluateConfig-helper.js";
+import evaluateConfig from "../evaluateConfig-helper";
 
 /**
  * Regression test for issue #65: Issue using multiple variables on a single line

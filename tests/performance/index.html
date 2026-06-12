@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Streamline Card Performance Test</title>
+</head>
+<body>
+  <script>
+    // 1. Mock window.loadCardHelpers
+    window.loadCardHelpers = async () => {
+      return {
+        createCardElement: (config) => {
+          const el = document.createElement("div");
+          el.className = "dummy-card";
+          el.setConfig = () => {}; // Dummy setConfig
+          return el;
+        },
+        createHuiElement: (config) => {
+          const el = document.createElement("div");
+          el.className = "dummy-element";
+          el.setConfig = () => {}; // Dummy setConfig
+          return el;
+        }
+      };
+    };
+
+    // 2. Construct the Home Assistant DOM structure required by getLovelace()
+    const ha = document.createElement("home-assistant");
+    const haMain = document.createElement("home-assistant-main");
+    ha.attachShadow({ mode: "open" }).appendChild(haMain);
+    
+    const haDrawer = document.createElement("ha-drawer");
+    haMain.attachShadow({ mode: "open" }).appendChild(haDrawer);
+
+    const resolver1 = document.createElement("partial-panel-resolver");
+    haDrawer.appendChild(resolver1); // append to drawer, not its shadow root, based on the selector "ha-drawer partial-panel-resolver"
+    
+    const panel = document.createElement("ha-panel-lovelace");
+    // Wait, the selector is: root = (root && root.shadowRoot) || root; root &&= root.querySelector("ha-panel-lovelace");
+    // This implies partial-panel-resolver might have a shadow root, or not. We'll attach shadow root.
+    resolver1.attachShadow({ mode: "open" }).appendChild(panel);
+    
+    const huiRoot = document.createElement("hui-root");
+    panel.attachShadow({ mode: "open" }).appendChild(huiRoot);
+
+    document.body.appendChild(ha);
+
+    // 3. Inject Lovelace config with complex templates
+    huiRoot.lovelace = {
+      config: {
+        streamline_templates: {
+          complex_template: {
+            card: {
+              type: "custom:button-card",
+              name: "[[ name ]]",
+              state: "[[ state ]]",
+              _javascript: {
+                label: "return variables.state === 'on' ? 'Active' : 'Inactive';",
+                icon: "return variables.state === 'on' ? 'mdi:check' : 'mdi:close';"
+              },
+              styles: {
+                card: [
+                  { background: "[[ bg_color ]]" }
+                ]
+              }
+            }
+          }
+        }
+      }
+    };
+
+    // Set config on the body for "this.parentNode.config" tests in StreamlineCard
+    document.body.config = { visibility: [] };
+  </script>
+
+  <!-- Load the card source. Vite handles ESM -->
+  <script type="module" src="/src/streamline-card.js"></script>
+
+  <div id="test-container" style="display: flex; flex-wrap: wrap;"></div>
+</body>
+</html>

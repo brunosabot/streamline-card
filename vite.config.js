@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       environment: "happy-dom",
+      include: ["**/*.test.js"],
       setupFiles: ["./test-setup.js"],
     },
   };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import evaluateConfig from "./evaluateJavascript-helper.js";
-import hass from "./__fixtures__/hass.fixture.js";
+import evaluateConfig from "./evaluateJavascript-helper";
+import hass from "./__fixtures__/hass.fixture";
 
 describe("Given the evaluateConfig function", () => {
   describe("When passing an object with a javascript suffix with states usage", () => {

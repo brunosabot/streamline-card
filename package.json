@@ -1,6 +1,6 @@
 {
   "name": "streamline-card",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "",
   "type": "module",
   "main": "src/streamline-card.js",
@@ -13,12 +13,14 @@
     "fix:format": "prettier --write src/",
     "fix:lint": "eslint --fix src/",
     "test:unit": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:perf": "playwright test"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.60.0",
     "@vitest/coverage-v8": "^4.1.6",
     "eslint": "~10.3.0",
     "eslint-config-standard": "^17.1.0",

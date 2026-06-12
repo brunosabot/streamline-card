@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { StreamlineCardEditor } from "../streamline-card-editor.js";
+import { StreamlineCardEditor } from "../streamline-card-editor";
 
 /**
  * Regression test for issue #69: Visual editor not supported

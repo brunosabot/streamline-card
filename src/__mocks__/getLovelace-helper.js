@@ -14,6 +14,6 @@ export const getLovelace = () => ({
   },
 });
 
-export const clearLovelaceCache = () => {};
+export const clearLovelaceCache = () => undefined;
 
 export const refreshLovelace = () => getLovelace() || getLovelaceCast();

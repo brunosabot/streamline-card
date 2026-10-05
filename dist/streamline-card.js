@@ -6289,6 +6289,8 @@ var thrower = (text) => {
 					this._shadow.removeChild(this._card);
 					this.createCard();
 					this._shadow.appendChild(this._card);
+					this.updateCardHass();
+					fireEvent(this.parentNode, "card-updated", { value: true });
 				});
 				else this._card.setConfig?.(this._config);
 				if (this.parentNode.config === void 0 || this._config.visibility === void 0) return;

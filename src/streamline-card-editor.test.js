@@ -1,9 +1,16 @@
-import "./streamline-card-editor";
 import { describe, expect, it, vi } from "vitest";
+import { StreamlineCardEditor } from "./streamline-card-editor";
 
 vi.mock("./getLovelace.helper");
 
 describe("Given the streamline-card-editor", () => {
+  it("Then it should use the Home Assistant area selector for area variables", () => {
+    expect(StreamlineCardEditor.getVariableSchema("target_area")).toEqual({
+      name: "target_area",
+      selector: { area: {} },
+    });
+  });
+
   describe("When the streamline-card-editor is loaded", () => {
     it("Then it should have a default config", () => {
       // Arrange

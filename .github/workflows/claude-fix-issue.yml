@@ -11,10 +11,11 @@ on:
 jobs:
   claude-fix:
     name: Claude issue fix
-    # The action only runs for users with write access to the repository.
+    # Only maintainers can add labels; comments are filtered here so outsiders don't start a job.
     if: |
       (github.event_name == 'issues' && github.event.label.name == 'ai-fix') ||
-      (github.event_name != 'issues' && contains(github.event.comment.body, '@claude'))
+      (github.event_name != 'issues' && contains(github.event.comment.body, '@claude') &&
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     concurrency:

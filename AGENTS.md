@@ -38,3 +38,6 @@ Transform imperative tasks into verifiable goals using the following loop:
 ### 3. Constraints & Quirks
 - **Home Assistant Environment:** Strict reliance on the simulated `hass` API defined in `src/__fixtures__/hass.fixture.js`.
 - **Linter Deference:** Never introduce explicit style rules in planning. Run formatting commands to finalize code structure.
+
+## Automated Issue Fixing
+`.github/workflows/claude-fix-issue.yml` runs Claude Code on GitHub when a maintainer adds the `ai-fix` label to an issue, or comments `@claude` on an issue or pull request. Claude pushes a `claude/…` branch and comments with a link to open the pull request. It needs the `CLAUDE_CODE_OAUTH_TOKEN` secret and the Claude GitHub App.

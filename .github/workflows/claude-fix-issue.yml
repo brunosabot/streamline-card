@@ -1,0 +1,59 @@
+name: Claude issue fix workflow
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  claude-fix:
+    name: Claude issue fix
+    # The action only runs for users with write access to the repository.
+    if: |
+      (github.event_name == 'issues' && github.event.label.name == 'ai-fix') ||
+      (github.event_name != 'issues' && contains(github.event.comment.body, '@claude'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    concurrency:
+      group: claude-fix-${{ github.event.issue.number || github.event.pull_request.number }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - name: Code Checkout
+        uses: "actions/checkout@v4"
+        with:
+          fetch-depth: 1
+
+      - name: Pnpm Installation
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.x
+
+      - name: NodeJS Initialization
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Dependencies Installation
+        run: pnpm i
+        shell: bash
+
+      - name: Claude Code
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          label_trigger: "ai-fix"
+          track_progress: true
+          claude_args: |
+            --allowedTools "Bash(pnpm run test:unit:*),Bash(pnpm test:unit:*),Bash(npx vitest run:*),Bash(pnpm run audit:lint),Bash(pnpm run audit:format),Bash(pnpm run fix:lint),Bash(pnpm run fix:format),Bash(pnpm run build),Bash(node .agents/skills/issue-to-regression-test/scripts/scaffold-test.js:*),Bash(gh issue view:*)"
+            --append-system-prompt "You fix bugs reported in streamline-card issues. Follow AGENTS.md. For a bug, follow .agents/skills/issue-to-regression-test/SKILL.md: scaffold the regression test, make it fail against the current code, then write the smallest fix in src/. Before committing, run pnpm run test:unit --run, pnpm run fix:lint, pnpm run fix:format, pnpm run audit:lint, pnpm run audit:format and pnpm run build (commit the rebuilt dist/streamline-card.js). If the issue is not a reproducible bug, is a feature request or lacks the information needed (YAML, version), do not change any code: explain what is missing in your comment instead. Never bump the version or edit the changelog."

@@ -167,6 +167,10 @@ card:
 streamline_templates: !include_dir_named ../streamline_templates/
 ```
 
+> [!NOTE]
+>
+> `!include_dir_named` is read by Home Assistant itself, so it only works in dashboards in YAML mode (`ui-lovelace.yaml` or a dashboard declared with `mode: yaml`). The raw configuration editor of a UI dashboard rejects it: use the `streamline_templates.yaml` file below, with [`!include`](#step-6-splitting-configuration-with-include) to split it.
+
 ---
 
 ##### ⚡️ Automatic Template File Loading and Fallback Locations
@@ -299,12 +303,17 @@ weather_template:
           };
         }
       `;
+```
 
 ### Step 6: Splitting Configuration with !include
 
 ---
 
 As your configuration grows, you might want to split your templates into multiple files. You can use the `!include` tag to reference other YAML files. Paths are resolved relative to the file that contains the `!include` tag.
+
+> [!IMPORTANT]
+>
+> The card downloads included files from your browser, like `streamline_templates.yaml` itself. They must therefore live under `/config/www/` (served by Home Assistant at `/local/`), for instance in a `templates/` folder next to your `streamline_templates.yaml`. A path that leaves `/config/www/`, such as `../../../config/streamline_templates/my_template.yaml`, can't be loaded.
 
 For example, in your main `streamline_templates.yaml`:
 

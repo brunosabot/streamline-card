@@ -291,7 +291,12 @@ const thrower = (text) => {
     }
 
     getGridOptions() {
-      return this._card?.getGridOptions?.() ?? {};
+      // Home Assistant only reads grid_options from the streamline-card config:
+      // The ones defined in the template must be exposed here
+      return {
+        ...this._card?.getGridOptions?.(),
+        ...this._config?.grid_options,
+      };
     }
 
     createCard() {
@@ -309,7 +314,10 @@ const thrower = (text) => {
       if (this._card.getCardSize === undefined) {
         this.getCardSize = undefined;
       }
-      if (this._card.getGridOptions === undefined) {
+      if (
+        this._card.getGridOptions === undefined &&
+        this._config.grid_options === undefined
+      ) {
         this.getGridOptions = undefined;
       }
       if (this._card.getLayoutOptions === undefined) {

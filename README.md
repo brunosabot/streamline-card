@@ -250,6 +250,13 @@ card: # Use 'card' for normal cards
 element: # Use 'element' for picture-elements
   type: icon
   icon: "[[icon]]"
+
+# OR
+
+badge: # Use 'badge' for the badges section of a view
+  type: entity
+  entity: "[[entity]]"
+  show_name: false
 ```
 
 ### Step 4: Using Variables

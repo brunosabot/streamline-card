@@ -18,22 +18,25 @@ export class StreamlineCardEditor extends HTMLElement {
 
     const lovelace = getLovelace() || getLovelaceCast();
     const streamlineTemplates = lovelace?.config?.streamline_templates ?? {};
-
-    const remoteTemplateLoader = loadRemoteTemplates();
-    if (remoteTemplateLoader instanceof Promise) {
-      remoteTemplateLoader.then(() => {
-        this._templates = {
-          ...exampleTile,
-          ...getRemoteTemplates(),
-          ...streamlineTemplates,
-        };
-      });
-    } else {
+    const updateTemplates = () => {
       this._templates = {
         ...exampleTile,
         ...getRemoteTemplates(),
         ...streamlineTemplates,
       };
+    };
+
+    updateTemplates();
+    const remoteTemplateLoader = loadRemoteTemplates();
+    if (remoteTemplateLoader instanceof Promise) {
+      remoteTemplateLoader
+        .catch(() => undefined)
+        .then(() => {
+          updateTemplates();
+          if (this._templates[this._config.template] !== undefined) {
+            this.render();
+          }
+        });
     }
 
     if (this._templates === null) {

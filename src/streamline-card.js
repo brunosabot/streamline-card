@@ -266,12 +266,18 @@ const thrower = (text) => {
         return thrower(
           `The template "${this._originalConfig.template}" doesn't exist in streamline_templates`,
         );
-      } else if (!(this._templateConfig.card || this._templateConfig.element)) {
+      }
+
+      const { badge, card, element } = this._templateConfig;
+      const definedCount = [badge, card, element].filter(Boolean).length;
+      if (definedCount === 0) {
         return thrower(
-          "You should define either a card or an element in the template",
+          "You should define either a card, an element or a badge in the template",
         );
-      } else if (this._templateConfig.card && this._templateConfig.element) {
-        return thrower("You can define a card and an element in the template");
+      } else if (definedCount > 1) {
+        return thrower(
+          "You can only define one of card, element or badge in the template",
+        );
       }
 
       this._hasJavascriptTemplate = JSON.stringify(
@@ -304,6 +310,8 @@ const thrower = (text) => {
             this.style.setProperty(prop, this._config.style[prop]);
           });
         }
+      } else if (this._templateConfig.badge) {
+        this._card = HELPERS.createBadgeElement(this._config);
       }
 
       if (this._card.getCardSize === undefined) {

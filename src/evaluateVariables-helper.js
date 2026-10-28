@@ -46,15 +46,16 @@ export const replaceWithKeyValue = (stringTemplate, key, value) => {
 };
 
 export default function evaluateVariables(templateConfig, variables) {
+  const content =
+    templateConfig.card ?? templateConfig.element ?? templateConfig.badge;
+
   if (!variables && !templateConfig.default) {
-    return templateConfig.card;
+    return content;
   }
 
   const cacheKey = JSON.stringify({ templateConfig, variables });
   if (variableCache.has(cacheKey) === false) {
-    let stringTemplate = templateConfig.card
-      ? JSON.stringify(templateConfig.card)
-      : JSON.stringify(templateConfig.element);
+    let stringTemplate = JSON.stringify(content);
 
     const variablesObject = {
       ...formatVariables(templateConfig.default ?? {}),

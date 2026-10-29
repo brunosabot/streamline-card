@@ -11,7 +11,10 @@ export const replaceWithKeyValue = (stringTemplate, key, value) => {
   if (typeof value === "number" || typeof value === "boolean") {
     let rxp = primitiveRegexMap.get(key);
     if (rxp === undefined) {
-      rxp = new RegExp(`["'\`]?\\[\\[${key}\\]\\]["'\`]?`, "gmu");
+      rxp = new RegExp(
+        `(["'\`])\\[\\[${key}\\]\\]\\1|\\[\\[${key}\\]\\]`,
+        "gmu",
+      );
       primitiveRegexMap.set(key, rxp);
     }
 

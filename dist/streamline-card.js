@@ -1,4 +1,4 @@
-//#region src/getLovelace-helper.js
+// src/getLovelace-helper.js
 var lovelaceCache = {
 	path: null,
 	ref: null
@@ -76,8 +76,7 @@ var getLovelace = () => {
 	};
 	return ll;
 };
-//#endregion
-//#region src/deepEqual-helper.js
+// src/deepEqual-helper.js
 var compareArraysDeep = (arr1, arr2, compareFn) => {
 	if (arr1.length !== arr2.length) return false;
 	for (let index = 0; index < arr1.length; index += 1) if (compareFn(arr1[index], arr2[index]) === false) return false;
@@ -129,8 +128,7 @@ var deepEqual = (obj1, obj2) => {
 	if (isArray1 !== Array.isArray(obj2)) return false;
 	return isArray1 ? compareArraysDeep(obj1, obj2, deepEqual) : compareObjectsDeep(obj1, obj2, deepEqual);
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/identity.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/nodes/identity.js
 var ALIAS = Symbol.for("yaml.alias");
 var DOC = Symbol.for("yaml.document");
 var MAP = Symbol.for("yaml.map");
@@ -161,8 +159,7 @@ function isNode(node) {
 	return false;
 }
 var hasAnchor = (node) => (isScalar(node) || isCollection(node)) && !!node.anchor;
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/visit.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/visit.js
 var BREAK$1 = Symbol("break visit");
 var SKIP$1 = Symbol("skip children");
 var REMOVE$1 = Symbol("remove node");
@@ -338,16 +335,16 @@ function callVisitor(key, node, visitor, path) {
 function replaceNode(key, path, node) {
 	const parent = path[path.length - 1];
 	if (isCollection(parent)) parent.items[key] = node;
-	else if (isPair(parent)) if (key === "key") parent.key = node;
-	else parent.value = node;
-	else if (isDocument(parent)) parent.contents = node;
+	else if (isPair(parent)) {
+		if (key === "key") parent.key = node;
+		else parent.value = node;
+	} else if (isDocument(parent)) parent.contents = node;
 	else {
 		const pt = isAlias(parent) ? "alias" : "scalar";
 		throw new Error(`Cannot replace node with ${pt} parent`);
 	}
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/doc/directives.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/doc/directives.js
 var escapeChars = {
 	"!": "%21",
 	",": "%2C",
@@ -391,7 +388,6 @@ var Directives = class Directives {
 					version: "1.2"
 				};
 				this.tags = Object.assign({}, Directives.defaultTags);
-				break;
 		}
 		return res;
 	}
@@ -506,8 +502,7 @@ Directives.defaultYaml = {
 	version: "1.2"
 };
 Directives.defaultTags = { "!!": "tag:yaml.org,2002:" };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/doc/anchors.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/doc/anchors.js
 /**
 * Verify that the input string is a valid anchor.
 *
@@ -565,8 +560,7 @@ function createNodeAnchors(doc, prefix) {
 		sourceObjects
 	};
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/doc/applyReviver.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/doc/applyReviver.js
 /**
 * Applies the JSON.parse reviver algorithm as defined in the ECMA-262 spec,
 * in section 24.5.1.1 "Runtime Semantics: InternalizeJSONProperty" of the
@@ -575,35 +569,36 @@ function createNodeAnchors(doc, prefix) {
 * Includes extensions for handling Map and Set objects.
 */
 function applyReviver(reviver, obj, key, val) {
-	if (val && typeof val === "object") if (Array.isArray(val)) for (let i = 0, len = val.length; i < len; ++i) {
-		const v0 = val[i];
-		const v1 = applyReviver(reviver, val, String(i), v0);
-		if (v1 === void 0) delete val[i];
-		else if (v1 !== v0) val[i] = v1;
-	}
-	else if (val instanceof Map) for (const k of Array.from(val.keys())) {
-		const v0 = val.get(k);
-		const v1 = applyReviver(reviver, val, k, v0);
-		if (v1 === void 0) val.delete(k);
-		else if (v1 !== v0) val.set(k, v1);
-	}
-	else if (val instanceof Set) for (const v0 of Array.from(val)) {
-		const v1 = applyReviver(reviver, val, v0, v0);
-		if (v1 === void 0) val.delete(v0);
-		else if (v1 !== v0) {
-			val.delete(v0);
-			val.add(v1);
+	if (val && typeof val === "object") {
+		if (Array.isArray(val)) for (let i = 0, len = val.length; i < len; ++i) {
+			const v0 = val[i];
+			const v1 = applyReviver(reviver, val, String(i), v0);
+			if (v1 === void 0) delete val[i];
+			else if (v1 !== v0) val[i] = v1;
 		}
-	}
-	else for (const [k, v0] of Object.entries(val)) {
-		const v1 = applyReviver(reviver, val, k, v0);
-		if (v1 === void 0) delete val[k];
-		else if (v1 !== v0) val[k] = v1;
+		else if (val instanceof Map) for (const k of Array.from(val.keys())) {
+			const v0 = val.get(k);
+			const v1 = applyReviver(reviver, val, k, v0);
+			if (v1 === void 0) val.delete(k);
+			else if (v1 !== v0) val.set(k, v1);
+		}
+		else if (val instanceof Set) for (const v0 of Array.from(val)) {
+			const v1 = applyReviver(reviver, val, v0, v0);
+			if (v1 === void 0) val.delete(v0);
+			else if (v1 !== v0) {
+				val.delete(v0);
+				val.add(v1);
+			}
+		}
+		else for (const [k, v0] of Object.entries(val)) {
+			const v1 = applyReviver(reviver, val, k, v0);
+			if (v1 === void 0) delete val[k];
+			else if (v1 !== v0) val[k] = v1;
+		}
 	}
 	return reviver.call(obj, key, val);
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/toJS.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/nodes/toJS.js
 /**
 * Recursively convert any node or its contents to native JavaScript
 *
@@ -635,8 +630,7 @@ function toJS(value, arg, ctx) {
 	if (typeof value === "bigint" && !ctx?.keep) return Number(value);
 	return value;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/Node.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/nodes/Node.js
 var NodeBase = class {
 	constructor(type) {
 		Object.defineProperty(this, NODE_TYPE, { value: type });
@@ -663,8 +657,7 @@ var NodeBase = class {
 		return typeof reviver === "function" ? applyReviver(reviver, { "": res }, "", res) : res;
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/Alias.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/nodes/Alias.js
 var Alias = class extends NodeBase {
 	constructor(source) {
 		super(ALIAS);
@@ -693,29 +686,31 @@ var Alias = class extends NodeBase {
 			if (node === this) break;
 			if (node.anchor === this.source) found = node;
 		}
+		if (found && ctx) {
+			const { anchors, doc, maxAliasCount } = ctx;
+			let data = anchors.get(found);
+			if (!data) {
+				toJS(found, null, ctx);
+				data = anchors.get(found);
+			}
+			/* istanbul ignore if */
+			if (data?.res === void 0) throw new ReferenceError("This should not happen: Alias anchor was not resolved?");
+			if (maxAliasCount >= 0) {
+				data.count += 1;
+				if (data.aliasCount === 0) data.aliasCount = getAliasCount(doc, found, anchors);
+				if (data.count * data.aliasCount > maxAliasCount) throw new ReferenceError("Excessive alias count indicates a resource exhaustion attack");
+			}
+		}
 		return found;
 	}
 	toJSON(_arg, ctx) {
 		if (!ctx) return { source: this.source };
-		const { anchors, doc, maxAliasCount } = ctx;
-		const source = this.resolve(doc, ctx);
+		const source = this.resolve(ctx.doc, ctx);
 		if (!source) {
 			const msg = `Unresolved alias (the anchor must be set before the alias): ${this.source}`;
 			throw new ReferenceError(msg);
 		}
-		let data = anchors.get(source);
-		if (!data) {
-			toJS(source, null, ctx);
-			data = anchors.get(source);
-		}
-		/* istanbul ignore if */
-		if (data?.res === void 0) throw new ReferenceError("This should not happen: Alias anchor was not resolved?");
-		if (maxAliasCount >= 0) {
-			data.count += 1;
-			if (data.aliasCount === 0) data.aliasCount = getAliasCount(doc, source, anchors);
-			if (data.count * data.aliasCount > maxAliasCount) throw new ReferenceError("Excessive alias count indicates a resource exhaustion attack");
-		}
-		return data.res;
+		return ctx.anchors.get(source).res;
 	}
 	toString(ctx, _onComment, _onChompKeep) {
 		const src = `*${this.source}`;
@@ -749,8 +744,7 @@ function getAliasCount(doc, node, anchors) {
 	}
 	return 1;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/Scalar.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/nodes/Scalar.js
 var isScalarValue = (value) => !value || typeof value !== "function" && typeof value !== "object";
 var Scalar = class extends NodeBase {
 	constructor(value) {
@@ -769,8 +763,7 @@ Scalar.BLOCK_LITERAL = "BLOCK_LITERAL";
 Scalar.PLAIN = "PLAIN";
 Scalar.QUOTE_DOUBLE = "QUOTE_DOUBLE";
 Scalar.QUOTE_SINGLE = "QUOTE_SINGLE";
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/doc/createNode.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/doc/createNode.js
 var defaultTagPrefix = "tag:yaml.org,2002:";
 function findTagObject(value, tagName, tags) {
 	if (tagName) {
@@ -826,8 +819,7 @@ function createNode(value, tagName, ctx) {
 	if (ref) ref.node = node;
 	return node;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/Collection.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/nodes/Collection.js
 function collectionFromPath(schema, path, value) {
 	let v = value;
 	for (let i = path.length - 1; i >= 0; --i) {
@@ -836,7 +828,7 @@ function collectionFromPath(schema, path, value) {
 			const a = [];
 			a[k] = v;
 			v = a;
-		} else v = new Map([[k, v]]);
+		} else v = /* @__PURE__ */ new Map([[k, v]]);
 	}
 	return createNode(v, void 0, {
 		aliasDuplicateObjects: false,
@@ -939,8 +931,7 @@ var Collection = class extends NodeBase {
 		}
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/stringify/stringifyComment.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/stringify/stringifyComment.js
 /**
 * Stringifies a comment.
 *
@@ -954,8 +945,7 @@ function indentComment(comment, indent) {
 	return indent ? comment.replace(/^(?! *$)/gm, indent) : comment;
 }
 var lineComment = (str, indent, comment) => str.endsWith("\n") ? indentComment(comment, indent) : comment.includes("\n") ? "\n" + indentComment(comment, indent) : (str.endsWith(" ") ? "" : " ") + comment;
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/stringify/foldFlowLines.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/stringify/foldFlowLines.js
 var FOLD_FLOW = "flow";
 var FOLD_BLOCK = "block";
 var FOLD_QUOTED = "quoted";
@@ -972,8 +962,10 @@ function foldFlowLines(text, indent, mode = "flow", { indentAtStart, lineWidth =
 	const folds = [];
 	const escapedFolds = {};
 	let end = lineWidth - indent.length;
-	if (typeof indentAtStart === "number") if (indentAtStart > lineWidth - Math.max(2, minContentWidth)) folds.push(0);
-	else end = lineWidth - indentAtStart;
+	if (typeof indentAtStart === "number") {
+		if (indentAtStart > lineWidth - Math.max(2, minContentWidth)) folds.push(0);
+		else end = lineWidth - indentAtStart;
+	}
 	let split = void 0;
 	let prev = void 0;
 	let overflow = false;
@@ -1010,23 +1002,25 @@ function foldFlowLines(text, indent, mode = "flow", { indentAtStart, lineWidth =
 				const next = text[i + 1];
 				if (next && next !== " " && next !== "\n" && next !== "	") split = i;
 			}
-			if (i >= end) if (split) {
-				folds.push(split);
-				end = split + endStep;
-				split = void 0;
-			} else if (mode === "quoted") {
-				while (prev === " " || prev === "	") {
-					prev = ch;
-					ch = text[i += 1];
-					overflow = true;
-				}
-				const j = i > escEnd + 1 ? i - 2 : escStart - 1;
-				if (escapedFolds[j]) return text;
-				folds.push(j);
-				escapedFolds[j] = true;
-				end = j + endStep;
-				split = void 0;
-			} else overflow = true;
+			if (i >= end) {
+				if (split) {
+					folds.push(split);
+					end = split + endStep;
+					split = void 0;
+				} else if (mode === "quoted") {
+					while (prev === " " || prev === "	") {
+						prev = ch;
+						ch = text[i += 1];
+						overflow = true;
+					}
+					const j = i > escEnd + 1 ? i - 2 : escStart - 1;
+					if (escapedFolds[j]) return text;
+					folds.push(j);
+					escapedFolds[j] = true;
+					end = j + endStep;
+					split = void 0;
+				} else overflow = true;
+			}
 		}
 		prev = ch;
 	}
@@ -1064,8 +1058,7 @@ function consumeMoreIndentedLines(text, i, indent) {
 	}
 	return end;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/stringify/stringifyString.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/stringify/stringifyString.js
 var getFoldOptions = (ctx, isBlock) => ({
 	indentAtStart: isBlock ? ctx.indent.length : ctx.indentAtStart,
 	lineWidth: ctx.options.lineWidth,
@@ -1283,8 +1276,7 @@ function stringifyString(item, ctx, onComment, onChompKeep) {
 	}
 	return res;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/stringify/stringify.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/stringify/stringify.js
 function createStringifyContext(doc, options) {
 	const opt = Object.assign({
 		blockQuote: true,
@@ -1370,7 +1362,7 @@ function stringify(item, ctx, onComment, onChompKeep) {
 		if (ctx.resolvedAliases?.has(item)) throw new TypeError(`Cannot stringify circular structure without alias nodes`);
 		else {
 			if (ctx.resolvedAliases) ctx.resolvedAliases.add(item);
-			else ctx.resolvedAliases = new Set([item]);
+			else ctx.resolvedAliases = /* @__PURE__ */ new Set([item]);
 			item = item.resolve(ctx.doc);
 		}
 	}
@@ -1383,8 +1375,7 @@ function stringify(item, ctx, onComment, onChompKeep) {
 	if (!props) return str;
 	return isScalar(node) || str[0] === "{" || str[0] === "[" ? `${props} ${str}` : `${props}\n${ctx.indent}${str}`;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/stringify/stringifyPair.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/stringify/stringifyPair.js
 function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
 	const { allNullValues, doc, indent, indentStep, options: { commentString, indentSeq, simpleKeys } } = ctx;
 	let keyComment = isNode(key) && key.comment || null;
@@ -1473,13 +1464,11 @@ function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
 	else if (chompKeep && onChompKeep) onChompKeep();
 	return str;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/log.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/log.js
 function warn(logLevel, warning) {
 	if (logLevel === "debug" || logLevel === "warn") console.warn(warning);
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js
 var MERGE_KEY = "<<";
 var merge = {
 	identify: (value) => value === MERGE_KEY || typeof value === "symbol" && value.description === MERGE_KEY,
@@ -1514,8 +1503,7 @@ function mergeValue(ctx, map, value) {
 function resolveAliasValue(ctx, value) {
 	return ctx && isAlias(value) ? value.resolve(ctx.doc, ctx) : value;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js
 function addPairToJSMap(ctx, map, { key, value }) {
 	if (isNode(key) && key.addToJSMap) key.addToJSMap(ctx, map, value);
 	else if (isMergeKey(ctx, key)) addMergeToJSMap(ctx, map, value);
@@ -1557,8 +1545,7 @@ function stringifyKey(key, jsKey, ctx) {
 	}
 	return JSON.stringify(jsKey);
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/Pair.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/nodes/Pair.js
 function createPair(key, value, ctx) {
 	return new Pair(createNode(key, void 0, ctx), createNode(value, void 0, ctx));
 }
@@ -1581,8 +1568,7 @@ var Pair = class Pair {
 		return ctx?.doc ? stringifyPair(this, ctx, onComment, onChompKeep) : JSON.stringify(this);
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/stringify/stringifyCollection.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/stringify/stringifyCollection.js
 function stringifyCollection(collection, ctx, options) {
 	return (ctx.inFlow ?? collection.flow ? stringifyFlowCollection : stringifyBlockCollection)(collection, ctx, options);
 }
@@ -1693,8 +1679,7 @@ function addCommentBefore({ indent, options: { commentString } }, lines, comment
 		lines.push(ic.trimStart());
 	}
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/YAMLMap.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/nodes/YAMLMap.js
 function findPair(items, key) {
 	const k = isScalar(key) ? key.value : key;
 	for (const it of items) if (isPair(it)) {
@@ -1792,8 +1777,7 @@ var YAMLMap = class extends Collection {
 		});
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/common/map.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/common/map.js
 var map = {
 	collection: "map",
 	default: true,
@@ -1805,8 +1789,7 @@ var map = {
 	},
 	createNode: (schema, obj, ctx) => YAMLMap.from(schema, obj, ctx)
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/nodes/YAMLSeq.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/nodes/YAMLSeq.js
 var YAMLSeq = class extends Collection {
 	static get tagName() {
 		return "tag:yaml.org,2002:seq";
@@ -1902,8 +1885,7 @@ function asItemIndex(key) {
 	if (idx && typeof idx === "string") idx = Number(idx);
 	return typeof idx === "number" && Number.isInteger(idx) && idx >= 0 ? idx : null;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/common/seq.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/common/seq.js
 var seq = {
 	collection: "seq",
 	default: true,
@@ -1915,8 +1897,7 @@ var seq = {
 	},
 	createNode: (schema, obj, ctx) => YAMLSeq.from(schema, obj, ctx)
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/common/string.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/common/string.js
 var string = {
 	identify: (value) => typeof value === "string",
 	default: true,
@@ -1927,8 +1908,7 @@ var string = {
 		return stringifyString(item, ctx, onComment, onChompKeep);
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/common/null.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/common/null.js
 var nullTag = {
 	identify: (value) => value == null,
 	createNode: () => new Scalar(null),
@@ -1938,8 +1918,7 @@ var nullTag = {
 	resolve: () => new Scalar(null),
 	stringify: ({ source }, ctx) => typeof source === "string" && nullTag.test.test(source) ? source : ctx.options.nullStr
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/core/bool.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/core/bool.js
 var boolTag = {
 	identify: (value) => typeof value === "boolean",
 	default: true,
@@ -1953,8 +1932,7 @@ var boolTag = {
 		return value ? ctx.options.trueStr : ctx.options.falseStr;
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/stringify/stringifyNumber.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/stringify/stringifyNumber.js
 function stringifyNumber({ format, minFractionDigits, tag, value }) {
 	if (typeof value === "bigint") return String(value);
 	const num = typeof value === "number" ? value : Number(value);
@@ -1971,8 +1949,7 @@ function stringifyNumber({ format, minFractionDigits, tag, value }) {
 	}
 	return n;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/core/float.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/core/float.js
 var floatNaN$1 = {
 	identify: (value) => typeof value === "number",
 	default: true,
@@ -2006,8 +1983,7 @@ var float$1 = {
 	},
 	stringify: stringifyNumber
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/core/int.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/core/int.js
 var intIdentify$2 = (value) => typeof value === "bigint" || Number.isInteger(value);
 var intResolve$1 = (str, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str) : parseInt(str.substring(offset), radix);
 function intStringify$1(node, radix, prefix) {
@@ -2041,8 +2017,7 @@ var intHex$1 = {
 	resolve: (str, _onError, opt) => intResolve$1(str, 2, 16, opt),
 	stringify: (node) => intStringify$1(node, 16, "0x")
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/core/schema.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/core/schema.js
 var schema$2 = [
 	map,
 	seq,
@@ -2056,8 +2031,7 @@ var schema$2 = [
 	floatExp$1,
 	float$1
 ];
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/json/schema.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/json/schema.js
 function intIdentify$1(value) {
 	return typeof value === "bigint" || Number.isInteger(value);
 }
@@ -2113,8 +2087,7 @@ var schema$1 = [map, seq].concat(jsonScalars, {
 		return str;
 	}
 });
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js
 var binary = {
 	identify: (value) => value instanceof Uint8Array,
 	default: false,
@@ -2162,8 +2135,7 @@ var binary = {
 		}, ctx, onComment, onChompKeep);
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js
 function resolvePairs(seq, onError) {
 	if (isSeq(seq)) for (let i = 0; i < seq.items.length; ++i) {
 		let item = seq.items[i];
@@ -2191,11 +2163,12 @@ function createPairs(schema, iterable, ctx) {
 	if (iterable && Symbol.iterator in Object(iterable)) for (let it of iterable) {
 		if (typeof replacer === "function") it = replacer.call(iterable, String(i++), it);
 		let key, value;
-		if (Array.isArray(it)) if (it.length === 2) {
-			key = it[0];
-			value = it[1];
-		} else throw new TypeError(`Expected [key, value] tuple: ${it}`);
-		else if (it && it instanceof Object) {
+		if (Array.isArray(it)) {
+			if (it.length === 2) {
+				key = it[0];
+				value = it[1];
+			} else throw new TypeError(`Expected [key, value] tuple: ${it}`);
+		} else if (it && it instanceof Object) {
 			const keys = Object.keys(it);
 			if (keys.length === 1) {
 				key = keys[0];
@@ -2213,8 +2186,7 @@ var pairs = {
 	resolve: resolvePairs,
 	createNode: createPairs
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js
 var YAMLOMap = class YAMLOMap extends YAMLSeq {
 	constructor() {
 		super();
@@ -2261,14 +2233,15 @@ var omap = {
 	resolve(seq, onError) {
 		const pairs = resolvePairs(seq, onError);
 		const seenKeys = [];
-		for (const { key } of pairs.items) if (isScalar(key)) if (seenKeys.includes(key.value)) onError(`Ordered maps must not include duplicate keys: ${key.value}`);
-		else seenKeys.push(key.value);
+		for (const { key } of pairs.items) if (isScalar(key)) {
+			if (seenKeys.includes(key.value)) onError(`Ordered maps must not include duplicate keys: ${key.value}`);
+			else seenKeys.push(key.value);
+		}
 		return Object.assign(new YAMLOMap(), pairs);
 	},
 	createNode: (schema, iterable, ctx) => YAMLOMap.from(schema, iterable, ctx)
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js
 function boolStringify({ value, source }, ctx) {
 	if (source && (value ? trueTag : falseTag).test.test(source)) return source;
 	return value ? ctx.options.trueStr : ctx.options.falseStr;
@@ -2289,8 +2262,7 @@ var falseTag = {
 	resolve: () => new Scalar(false),
 	stringify: boolStringify
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js
 var floatNaN = {
 	identify: (value) => typeof value === "number",
 	default: true,
@@ -2327,8 +2299,7 @@ var float = {
 	},
 	stringify: stringifyNumber
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js
 var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
 function intResolve(str, offset, radix, { intAsBigInt }) {
 	const sign = str[0];
@@ -2342,9 +2313,7 @@ function intResolve(str, offset, radix, { intAsBigInt }) {
 			case 8:
 				str = `0o${str}`;
 				break;
-			case 16:
-				str = `0x${str}`;
-				break;
+			case 16: str = `0x${str}`;
 		}
 		const n = BigInt(str);
 		return sign === "-" ? BigInt(-1) * n : n;
@@ -2395,8 +2364,7 @@ var intHex = {
 	resolve: (str, _onError, opt) => intResolve(str, 2, 16, opt),
 	stringify: (node) => intStringify(node, 16, "0x")
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js
 var YAMLSet = class YAMLSet extends YAMLMap {
 	constructor(schema) {
 		super(schema);
@@ -2450,14 +2418,14 @@ var set = {
 	tag: "tag:yaml.org,2002:set",
 	createNode: (schema, iterable, ctx) => YAMLSet.from(schema, iterable, ctx),
 	resolve(map, onError) {
-		if (isMap(map)) if (map.hasAllNullValues(true)) return Object.assign(new YAMLSet(), map);
-		else onError("Set items must all have null values");
-		else onError("Expected a mapping for this tag");
+		if (isMap(map)) {
+			if (map.hasAllNullValues(true)) return Object.assign(new YAMLSet(), map);
+			else onError("Set items must all have null values");
+		} else onError("Expected a mapping for this tag");
 		return map;
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js
 /** Internal types handle bigint as number, because TS can't figure it out. */
 function parseSexagesimal(str, asBigInt) {
 	const sign = str[0];
@@ -2533,8 +2501,7 @@ var timestamp = {
 	},
 	stringify: ({ value }) => value?.toISOString().replace(/(T00:00:00)?\.000Z$/, "") ?? ""
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js
 var schema = [
 	map,
 	seq,
@@ -2558,9 +2525,8 @@ var schema = [
 	floatTime,
 	timestamp
 ];
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/tags.js
-var schemas = new Map([
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/tags.js
+var schemas = /* @__PURE__ */ new Map([
 	["core", schema$2],
 	["failsafe", [
 		map,
@@ -2603,10 +2569,12 @@ function getTags(customTags, schemaName, addMergeTag) {
 	const schemaTags = schemas.get(schemaName);
 	if (schemaTags && !customTags) return addMergeTag && !schemaTags.includes(merge) ? schemaTags.concat(merge) : schemaTags.slice();
 	let tags = schemaTags;
-	if (!tags) if (Array.isArray(customTags)) tags = [];
-	else {
-		const keys = Array.from(schemas.keys()).filter((key) => key !== "yaml11").map((key) => JSON.stringify(key)).join(", ");
-		throw new Error(`Unknown schema "${schemaName}"; use one of ${keys} or define customTags array`);
+	if (!tags) {
+		if (Array.isArray(customTags)) tags = [];
+		else {
+			const keys = Array.from(schemas.keys()).filter((key) => key !== "yaml11").map((key) => JSON.stringify(key)).join(", ");
+			throw new Error(`Unknown schema "${schemaName}"; use one of ${keys} or define customTags array`);
+		}
 	}
 	if (Array.isArray(customTags)) for (const tag of customTags) tags = tags.concat(tag);
 	else if (typeof customTags === "function") tags = customTags(tags.slice());
@@ -2622,8 +2590,7 @@ function getTags(customTags, schemaName, addMergeTag) {
 		return tags;
 	}, []);
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/schema/Schema.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/schema/Schema.js
 var sortMapEntriesByKey = (a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
 var Schema = class Schema {
 	constructor({ compat, customTags, merge, resolveKnownTags, schema, sortMapEntries, toStringDefaults }) {
@@ -2643,8 +2610,7 @@ var Schema = class Schema {
 		return copy;
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/stringify/stringifyDocument.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/stringify/stringifyDocument.js
 function stringifyDocument(doc, options) {
 	const lines = [];
 	let hasDirectives = options.directives === true;
@@ -2681,14 +2647,15 @@ function stringifyDocument(doc, options) {
 		if ((body[0] === "|" || body[0] === ">") && lines[lines.length - 1] === "---") lines[lines.length - 1] = `--- ${body}`;
 		else lines.push(body);
 	} else lines.push(stringify(doc.contents, ctx));
-	if (doc.directives?.docEnd) if (doc.comment) {
-		const cs = commentString(doc.comment);
-		if (cs.includes("\n")) {
-			lines.push("...");
-			lines.push(indentComment(cs, ""));
-		} else lines.push(`... ${cs}`);
-	} else lines.push("...");
-	else {
+	if (doc.directives?.docEnd) {
+		if (doc.comment) {
+			const cs = commentString(doc.comment);
+			if (cs.includes("\n")) {
+				lines.push("...");
+				lines.push(indentComment(cs, ""));
+			} else lines.push(`... ${cs}`);
+		} else lines.push("...");
+	} else {
 		let dc = doc.comment;
 		if (dc && chompKeep) dc = dc.replace(/^\n+/, "");
 		if (dc) {
@@ -2698,8 +2665,7 @@ function stringifyDocument(doc, options) {
 	}
 	return lines.join("\n") + "\n";
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/doc/Document.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/doc/Document.js
 var Document = class Document {
 	constructor(value, replacer, options) {
 		/** A comment before this Document */
@@ -2963,8 +2929,7 @@ function assertCollection(contents) {
 	if (isCollection(contents)) return true;
 	throw new Error("Expected a YAML collection as document contents");
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/errors.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/errors.js
 var YAMLError = class extends Error {
 	constructor(name, pos, code, message) {
 		super();
@@ -3010,8 +2975,7 @@ var prettifyError = (src, lc) => (error) => {
 		error.message += `:\n\n${lineStr}\n${pointer}\n`;
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/resolve-props.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/resolve-props.js
 function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
 	let spaceBefore = false;
 	let atNewline = startOnNewline;
@@ -3114,8 +3078,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIn
 		start: start ?? end
 	};
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/util-contains-newline.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/util-contains-newline.js
 function containsNewline(key) {
 	if (!key) return null;
 	switch (key.type) {
@@ -3140,27 +3103,24 @@ function containsNewline(key) {
 		default: return true;
 	}
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
 function flowIndentCheck(indent, fc, onError) {
 	if (fc?.type === "flow-collection") {
 		const end = fc.end[0];
 		if (end.indent === indent && (end.source === "]" || end.source === "}") && containsNewline(fc)) onError(end, "BAD_INDENT", "Flow end indicator should be more indented than parent", true);
 	}
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/util-map-includes.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/util-map-includes.js
 function mapIncludes(ctx, items, search) {
 	const { uniqueKeys } = ctx.options;
 	if (uniqueKeys === false) return false;
 	const isEqual = typeof uniqueKeys === "function" ? uniqueKeys : (a, b) => a === b || isScalar(a) && isScalar(b) && a.value === b.value;
 	return items.some((pair) => isEqual(pair.key, search));
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/resolve-block-map.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/resolve-block-map.js
 var startColMsg = "All mapping items must start at the same column";
 function resolveBlockMap({ composeNode, composeEmptyNode }, ctx, bm, onError, tag) {
-	const map = new (tag?.nodeClass ?? YAMLMap)(ctx.schema);
+	const map = new ((tag?.nodeClass) ?? YAMLMap)(ctx.schema);
 	if (ctx.atRoot) ctx.atRoot = false;
 	let offset = bm.offset;
 	let commentEnd = null;
@@ -3182,8 +3142,10 @@ function resolveBlockMap({ composeNode, composeEmptyNode }, ctx, bm, onError, ta
 			}
 			if (!keyProps.anchor && !keyProps.tag && !sep) {
 				commentEnd = keyProps.end;
-				if (keyProps.comment) if (map.comment) map.comment += "\n" + keyProps.comment;
-				else map.comment = keyProps.comment;
+				if (keyProps.comment) {
+					if (map.comment) map.comment += "\n" + keyProps.comment;
+					else map.comment = keyProps.comment;
+				}
 				continue;
 			}
 			if (keyProps.newlineAfterProp || containsNewline(key)) onError(key ?? start[start.length - 1], "MULTILINE_IMPLICIT_KEY", "Implicit keys need to be on a single line");
@@ -3216,8 +3178,10 @@ function resolveBlockMap({ composeNode, composeEmptyNode }, ctx, bm, onError, ta
 			map.items.push(pair);
 		} else {
 			if (implicitKey) onError(keyNode.range, "MISSING_CHAR", "Implicit map keys need to be followed by map values");
-			if (valueProps.comment) if (keyNode.comment) keyNode.comment += "\n" + valueProps.comment;
-			else keyNode.comment = valueProps.comment;
+			if (valueProps.comment) {
+				if (keyNode.comment) keyNode.comment += "\n" + valueProps.comment;
+				else keyNode.comment = valueProps.comment;
+			}
 			const pair = new Pair(keyNode);
 			if (ctx.options.keepSourceTokens) pair.srcToken = collItem;
 			map.items.push(pair);
@@ -3231,10 +3195,9 @@ function resolveBlockMap({ composeNode, composeEmptyNode }, ctx, bm, onError, ta
 	];
 	return map;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/resolve-block-seq.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/resolve-block-seq.js
 function resolveBlockSeq({ composeNode, composeEmptyNode }, ctx, bs, onError, tag) {
-	const seq = new (tag?.nodeClass ?? YAMLSeq)(ctx.schema);
+	const seq = new ((tag?.nodeClass) ?? YAMLSeq)(ctx.schema);
 	if (ctx.atRoot) ctx.atRoot = false;
 	if (ctx.atKey) ctx.atKey = false;
 	let offset = bs.offset;
@@ -3248,12 +3211,15 @@ function resolveBlockSeq({ composeNode, composeEmptyNode }, ctx, bs, onError, ta
 			parentIndent: bs.indent,
 			startOnNewline: true
 		});
-		if (!props.found) if (props.anchor || props.tag || value) if (value?.type === "block-seq") onError(props.end, "BAD_INDENT", "All sequence items must start at the same column");
-		else onError(offset, "MISSING_CHAR", "Sequence item without - indicator");
-		else {
-			commentEnd = props.end;
-			if (props.comment) seq.comment = props.comment;
-			continue;
+		if (!props.found) {
+			if (props.anchor || props.tag || value) {
+				if (value?.type === "block-seq") onError(props.end, "BAD_INDENT", "All sequence items must start at the same column");
+				else onError(offset, "MISSING_CHAR", "Sequence item without - indicator");
+			} else {
+				commentEnd = props.end;
+				if (props.comment) seq.comment = props.comment;
+				continue;
+			}
 		}
 		const node = value ? composeNode(ctx, value, props, onError) : composeEmptyNode(ctx, props.end, start, null, props, onError);
 		if (ctx.schema.compat) flowIndentCheck(bs.indent, value, onError);
@@ -3267,8 +3233,7 @@ function resolveBlockSeq({ composeNode, composeEmptyNode }, ctx, bs, onError, ta
 	];
 	return seq;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/resolve-end.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/resolve-end.js
 function resolveEnd(end, offset, reqSpace, onError) {
 	let comment = "";
 	if (end) {
@@ -3302,14 +3267,13 @@ function resolveEnd(end, offset, reqSpace, onError) {
 		offset
 	};
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js
 var blockMsg = "Block collections are not allowed within flow collections";
 var isBlock = (token) => token && (token.type === "block-map" || token.type === "block-seq");
 function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onError, tag) {
 	const isMap = fc.start.source === "{";
 	const fcName = isMap ? "flow map" : "flow sequence";
-	const coll = new (tag?.nodeClass ?? (isMap ? YAMLMap : YAMLSeq))(ctx.schema);
+	const coll = new ((tag?.nodeClass) ?? (isMap ? YAMLMap : YAMLSeq))(ctx.schema);
 	coll.flow = true;
 	const atRoot = ctx.atRoot;
 	if (atRoot) ctx.atRoot = false;
@@ -3331,8 +3295,10 @@ function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onErr
 			if (!props.anchor && !props.tag && !sep && !value) {
 				if (i === 0 && props.comma) onError(props.comma, "UNEXPECTED_TOKEN", `Unexpected , in ${fcName}`);
 				else if (i < fc.items.length - 1) onError(props.start, "UNEXPECTED_TOKEN", `Unexpected empty item in ${fcName}`);
-				if (props.comment) if (coll.comment) coll.comment += "\n" + props.comment;
-				else coll.comment = props.comment;
+				if (props.comment) {
+					if (coll.comment) coll.comment += "\n" + props.comment;
+					else coll.comment = props.comment;
+				}
 				offset = props.end;
 				continue;
 			}
@@ -3392,13 +3358,17 @@ function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onErr
 					}
 					if (props.start < valueProps.found.offset - 1024) onError(valueProps.found, "KEY_OVER_1024_CHARS", "The : indicator must be at most 1024 chars after the start of an implicit flow sequence key");
 				}
-			} else if (value) if ("source" in value && value.source?.[0] === ":") onError(value, "MISSING_CHAR", `Missing space after : in ${fcName}`);
-			else onError(valueProps.start, "MISSING_CHAR", `Missing , or : between ${fcName} items`);
+			} else if (value) {
+				if ("source" in value && value.source?.[0] === ":") onError(value, "MISSING_CHAR", `Missing space after : in ${fcName}`);
+				else onError(valueProps.start, "MISSING_CHAR", `Missing , or : between ${fcName} items`);
+			}
 			const valueNode = value ? composeNode(ctx, value, valueProps, onError) : valueProps.found ? composeEmptyNode(ctx, valueProps.end, sep, null, valueProps, onError) : null;
 			if (valueNode) {
 				if (isBlock(value)) onError(valueNode.range, "BLOCK_IN_FLOW", blockMsg);
-			} else if (valueProps.comment) if (keyNode.comment) keyNode.comment += "\n" + valueProps.comment;
-			else keyNode.comment = valueProps.comment;
+			} else if (valueProps.comment) {
+				if (keyNode.comment) keyNode.comment += "\n" + valueProps.comment;
+				else keyNode.comment = valueProps.comment;
+			}
 			const pair = new Pair(keyNode, valueNode);
 			if (ctx.options.keepSourceTokens) pair.srcToken = collItem;
 			if (isMap) {
@@ -3432,8 +3402,10 @@ function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onErr
 	}
 	if (ee.length > 0) {
 		const end = resolveEnd(ee, cePos, ctx.options.strict, onError);
-		if (end.comment) if (coll.comment) coll.comment += "\n" + end.comment;
-		else coll.comment = end.comment;
+		if (end.comment) {
+			if (coll.comment) coll.comment += "\n" + end.comment;
+			else coll.comment = end.comment;
+		}
 		coll.range = [
 			fc.offset,
 			cePos,
@@ -3446,8 +3418,7 @@ function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onErr
 	];
 	return coll;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/compose-collection.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/compose-collection.js
 function resolveCollection(CN, ctx, token, onError, tagName, tag) {
 	const coll = token.type === "block-map" ? resolveBlockMap(CN, ctx, token, onError, tag) : token.type === "block-seq" ? resolveBlockSeq(CN, ctx, token, onError, tag) : resolveFlowCollection(CN, ctx, token, onError, tag);
 	const Coll = coll.constructor;
@@ -3488,8 +3459,7 @@ function composeCollection(CN, ctx, token, props, onError) {
 	if (tag?.format) node.format = tag.format;
 	return node;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js
 function resolveBlockScalar(ctx, scalar, onError) {
 	const start = scalar.offset;
 	const header = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
@@ -3567,9 +3537,10 @@ function resolveBlockScalar(ctx, scalar, onError) {
 			value += sep + indent.slice(trimIndent) + content;
 			sep = "\n";
 			prevMoreIndented = true;
-		} else if (content === "") if (sep === "\n") value += "\n";
-		else sep = "\n";
-		else {
+		} else if (content === "") {
+			if (sep === "\n") value += "\n";
+			else sep = "\n";
+		} else {
 			value += sep + content;
 			sep = " ";
 			prevMoreIndented = false;
@@ -3660,8 +3631,7 @@ function splitLines(source) {
 	for (let i = 1; i < split.length; i += 2) lines.push([split[i], split[i + 1]]);
 	return lines;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js
 function resolveFlowScalar(scalar, strict, onError) {
 	const { offset, type, source, end } = scalar;
 	let _type;
@@ -3725,44 +3695,44 @@ function plainValue(source, onError) {
 			badChar = `block scalar indicator ${source[0]}`;
 			break;
 		case "@":
-		case "`":
-			badChar = `reserved character ${source[0]}`;
-			break;
+		case "`": badChar = `reserved character ${source[0]}`;
 	}
 	if (badChar) onError(0, "BAD_SCALAR_START", `Plain value cannot start with ${badChar}`);
-	return foldLines(source);
+	return unfoldLines(source);
 }
 function singleQuotedValue(source, onError) {
 	if (source[source.length - 1] !== "'" || source.length === 1) onError(source.length, "MISSING_CHAR", "Missing closing 'quote");
-	return foldLines(source.slice(1, -1)).replace(/''/g, "'");
+	return unfoldLines(source.slice(1, -1)).replace(/''/g, "'");
 }
-function foldLines(source) {
+function unfoldLines(source) {
+	const line = /(.*?)\r?\n/sy;
+	let match = line.exec(source);
+	if (!match) return source;
 	/**
-	* The negative lookbehind here and in the `re` RegExp is to
+	* The negative lookbehinds in these RegExps are to
 	* prevent causing a polynomial search time in certain cases.
 	*
-	* The try-catch is for Safari, which doesn't support this yet:
+	* The try-catch is for Safari < 16.4 and other old browsers:
 	* https://caniuse.com/js-regexp-lookbehind
 	*/
-	let first, line;
+	let trimEnd, trimBoth;
 	try {
-		first = /* @__PURE__ */ new RegExp("(.*?)(?<![ 	])[ 	]*\r?\n", "sy");
-		line = /* @__PURE__ */ new RegExp("[ 	]*(.*?)(?:(?<![ 	])[ 	]*)?\r?\n", "sy");
+		trimEnd = /* @__PURE__ */ new RegExp("(?<![ 	])[ 	]+$");
+		trimBoth = /* @__PURE__ */ new RegExp("^[ 	]+|(?<![ 	])[ 	]+$", "g");
 	} catch {
-		first = /(.*?)[ \t]*\r?\n/sy;
-		line = /[ \t]*(.*?)[ \t]*\r?\n/sy;
+		trimEnd = /[ \t]+$/;
+		trimBoth = /^[ \t]+|[ \t]+$/g;
 	}
-	let match = first.exec(source);
-	if (!match) return source;
-	let res = match[1];
+	let res = match[1].replace(trimEnd, "");
 	let sep = " ";
-	let pos = first.lastIndex;
-	line.lastIndex = pos;
+	let pos = line.lastIndex;
 	while (match = line.exec(source)) {
-		if (match[1] === "") if (sep === "\n") res += sep;
-		else sep = "\n";
-		else {
-			res += sep + match[1];
+		const lm = match[1].replace(trimBoth, "");
+		if (lm === "") {
+			if (sep === "\n") res += sep;
+			else sep = "\n";
+		} else {
+			res += sep + lm;
 			sep = " ";
 		}
 		pos = line.lastIndex;
@@ -3860,8 +3830,7 @@ function parseCharCode(source, offset, length, onError) {
 		return raw;
 	}
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/compose-scalar.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/compose-scalar.js
 function composeScalar(ctx, token, tagToken, onError) {
 	const { value, type, comment, range } = token.type === "block-scalar" ? resolveBlockScalar(ctx, token, onError) : resolveFlowScalar(token, ctx.options.strict, onError);
 	const tagName = tagToken ? ctx.directives.tagName(tagToken.source, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg)) : null;
@@ -3890,8 +3859,10 @@ function composeScalar(ctx, token, tagToken, onError) {
 function findScalarTagByName(schema, value, tagName, tagToken, onError) {
 	if (tagName === "!") return schema[SCALAR$1];
 	const matchWithTest = [];
-	for (const tag of schema.tags) if (!tag.collection && tag.tag === tagName) if (tag.default && tag.test) matchWithTest.push(tag);
-	else return tag;
+	for (const tag of schema.tags) if (!tag.collection && tag.tag === tagName) {
+		if (tag.default && tag.test) matchWithTest.push(tag);
+		else return tag;
+	}
 	for (const tag of matchWithTest) if (tag.test?.test(value)) return tag;
 	const kt = schema.knownTags[tagName];
 	if (kt && !kt.collection) {
@@ -3912,8 +3883,7 @@ function findScalarTagByTest({ atKey, directives, schema }, value, token, onErro
 	}
 	return tag;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
 function emptyScalarPosition(offset, before, pos) {
 	if (before) {
 		pos ?? (pos = before.length);
@@ -3936,8 +3906,7 @@ function emptyScalarPosition(offset, before, pos) {
 	}
 	return offset;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/compose-node.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/compose-node.js
 var CN = {
 	composeNode,
 	composeEmptyNode
@@ -3977,8 +3946,10 @@ function composeNode(ctx, token, props, onError) {
 	if (anchor && node.anchor === "") onError(anchor, "BAD_ALIAS", "Anchor cannot be an empty string");
 	if (atKey && ctx.options.stringKeys && (!isScalar(node) || typeof node.value !== "string" || node.tag && node.tag !== "tag:yaml.org,2002:str")) onError(tag ?? token, "NON_STRING_KEY", "With stringKeys, all keys must be strings");
 	if (spaceBefore) node.spaceBefore = true;
-	if (comment) if (token.type === "scalar" && token.source === "") node.comment = comment;
-	else node.commentBefore = comment;
+	if (comment) {
+		if (token.type === "scalar" && token.source === "") node.comment = comment;
+		else node.commentBefore = comment;
+	}
 	if (ctx.options.keepSourceTokens && isSrcToken) node.srcToken = token;
 	return node;
 }
@@ -4014,8 +3985,7 @@ function composeAlias({ options }, { offset, source, end }, onError) {
 	if (re.comment) alias.comment = re.comment;
 	return alias;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/compose-doc.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/compose-doc.js
 function composeDoc(options, directives, { offset, start, value, end }, onError) {
 	const doc = new Document(void 0, Object.assign({ _directives: directives }, options));
 	const ctx = {
@@ -4048,8 +4018,7 @@ function composeDoc(options, directives, { offset, start, value, end }, onError)
 	];
 	return doc;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/compose/composer.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/compose/composer.js
 function getErrorPos(src) {
 	if (typeof src === "number") return [src, src + 1];
 	if (Array.isArray(src)) return src.length === 2 ? src : [src[0], src[1]];
@@ -4234,8 +4203,7 @@ var Composer = class {
 		}
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/parse/cst-visit.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/parse/cst-visit.js
 var BREAK = Symbol("break visit");
 var SKIP = Symbol("skip children");
 var REMOVE = Symbol("remove item");
@@ -4358,8 +4326,7 @@ function tokenType(source) {
 	}
 	return null;
 }
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/parse/lexer.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/parse/lexer.js
 function isEmpty(ch) {
 	switch (ch) {
 		case void 0:
@@ -4777,11 +4744,13 @@ var Lexer = class {
 			end = i;
 		} else if (isEmpty(ch)) {
 			let next = this.buffer[i + 1];
-			if (ch === "\r") if (next === "\n") {
-				i += 1;
-				ch = "\n";
-				next = this.buffer[i + 1];
-			} else end = i;
+			if (ch === "\r") {
+				if (next === "\n") {
+					i += 1;
+					ch = "\n";
+					next = this.buffer[i + 1];
+				} else end = i;
+			}
 			if (next === "#" || inFlow && flowIndicatorChars.has(next)) break;
 			if (ch === "\n") {
 				const cs = this.continueScalar(i + 1);
@@ -4885,8 +4854,7 @@ var Lexer = class {
 		return yield* this.pushToIndex(i, false);
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/parse/line-counter.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/parse/line-counter.js
 /**
 * Tracks newlines during parsing in order to provide an efficient API for
 * determining the one-indexed `{ line, col }` position for any offset
@@ -4929,8 +4897,7 @@ var LineCounter = class {
 		};
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/parse/parser.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/parse/parser.js
 function includesToken(list, type) {
 	for (let i = 0; i < list.length; ++i) if (list[i].type === type) return true;
 	return false;
@@ -4989,9 +4956,10 @@ function fixFlowSeqItems(fc) {
 		for (const it of fc.items) if (it.sep && !it.value && !includesToken(it.start, "explicit-key-ind") && !includesToken(it.sep, "map-value-ind")) {
 			if (it.key) it.value = it.key;
 			delete it.key;
-			if (isFlowToken(it.value)) if (it.value.end) arrayPushArray(it.value.end, it.sep);
-			else it.value.end = it.sep;
-			else arrayPushArray(it.start, it.sep);
+			if (isFlowToken(it.value)) {
+				if (it.value.end) arrayPushArray(it.value.end, it.sep);
+				else it.value.end = it.sep;
+			} else arrayPushArray(it.start, it.sep);
 			delete it.sep;
 		}
 	}
@@ -5425,13 +5393,31 @@ var Parser = class {
 					this.onKeyLine = true;
 					return;
 				case "map-value-ind":
-					if (it.explicitKey) if (!it.sep) if (includesToken(it.start, "newline")) Object.assign(it, {
-						key: null,
-						sep: [this.sourceToken]
-					});
-					else {
-						const start = getFirstKeyStartProps(it.start);
-						this.stack.push({
+					if (it.explicitKey) {
+						if (!it.sep) {
+							if (includesToken(it.start, "newline")) Object.assign(it, {
+								key: null,
+								sep: [this.sourceToken]
+							});
+							else {
+								const start = getFirstKeyStartProps(it.start);
+								this.stack.push({
+									type: "block-map",
+									offset: this.offset,
+									indent: this.indent,
+									items: [{
+										start,
+										key: null,
+										sep: [this.sourceToken]
+									}]
+								});
+							}
+						} else if (it.value) map.items.push({
+							start: [],
+							key: null,
+							sep: [this.sourceToken]
+						});
+						else if (includesToken(it.sep, "map-value-ind")) this.stack.push({
 							type: "block-map",
 							offset: this.offset,
 							indent: this.indent,
@@ -5441,42 +5427,26 @@ var Parser = class {
 								sep: [this.sourceToken]
 							}]
 						});
-					}
-					else if (it.value) map.items.push({
-						start: [],
-						key: null,
-						sep: [this.sourceToken]
-					});
-					else if (includesToken(it.sep, "map-value-ind")) this.stack.push({
-						type: "block-map",
-						offset: this.offset,
-						indent: this.indent,
-						items: [{
-							start,
-							key: null,
-							sep: [this.sourceToken]
-						}]
-					});
-					else if (isFlowToken(it.key) && !includesToken(it.sep, "newline")) {
-						const start = getFirstKeyStartProps(it.start);
-						const key = it.key;
-						const sep = it.sep;
-						sep.push(this.sourceToken);
-						delete it.key;
-						delete it.sep;
-						this.stack.push({
-							type: "block-map",
-							offset: this.offset,
-							indent: this.indent,
-							items: [{
-								start,
-								key,
-								sep
-							}]
-						});
-					} else if (start.length > 0) it.sep = it.sep.concat(start, this.sourceToken);
-					else it.sep.push(this.sourceToken);
-					else if (!it.sep) Object.assign(it, {
+						else if (isFlowToken(it.key) && !includesToken(it.sep, "newline")) {
+							const start = getFirstKeyStartProps(it.start);
+							const key = it.key;
+							const sep = it.sep;
+							sep.push(this.sourceToken);
+							delete it.key;
+							delete it.sep;
+							this.stack.push({
+								type: "block-map",
+								offset: this.offset,
+								indent: this.indent,
+								items: [{
+									start,
+									key,
+									sep
+								}]
+							});
+						} else if (start.length > 0) it.sep = it.sep.concat(start, this.sourceToken);
+						else it.sep.push(this.sourceToken);
+					} else if (!it.sep) Object.assign(it, {
 						key: null,
 						sep: [this.sourceToken]
 					});
@@ -5785,8 +5755,7 @@ var Parser = class {
 		}
 	}
 };
-//#endregion
-//#region node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/browser/dist/public-api.js
+// node_modules/.pnpm/yaml@2.9.1/node_modules/yaml/browser/dist/public-api.js
 function parseOptions(options) {
 	const prettyErrors = options.prettyErrors !== false;
 	return {
@@ -5818,12 +5787,13 @@ function parse(src, reviver, options) {
 	const doc = parseDocument(src, options);
 	if (!doc) return null;
 	doc.warnings.forEach((warning) => warn(doc.options.logLevel, warning));
-	if (doc.errors.length > 0) if (doc.options.logLevel !== "silent") throw doc.errors[0];
-	else doc.errors = [];
+	if (doc.errors.length > 0) {
+		if (doc.options.logLevel !== "silent") throw doc.errors[0];
+		else doc.errors = [];
+	}
 	return doc.toJS(Object.assign({ reviver: _reviver }, options));
 }
-//#endregion
-//#region src/evaluateYaml.js
+// src/evaluateYaml.js
 var includeTag = {
 	resolve: (str) => ({ __streamline_include__: str }),
 	tag: "!include"
@@ -5846,8 +5816,7 @@ var resolveIncludes = async (obj, baseUrl, evaluateYamlRef, byPassCache = false)
 async function evaluateYaml(yamlString, baseUrl, byPassCache = false) {
 	return await resolveIncludes(parse(yamlString, { customTags: [includeTag] }), baseUrl, evaluateYaml, byPassCache);
 }
-//#endregion
-//#region src/templateLoader.js
+// src/templateLoader.js
 var remoteTemplates = {};
 var isTemplateLoaded = null;
 var getRemoteTemplates = () => remoteTemplates;
@@ -5878,16 +5847,14 @@ var loadRemoteTemplates = () => {
 	if (isTemplateLoaded === null) isTemplateLoaded = fetchRemoteTemplates(`/hacsfiles/${filename}`).catch(() => fetchRemoteTemplates(`/local/${filename}`)).catch(() => fetchRemoteTemplates(`/local/community/${filename}`));
 	return isTemplateLoaded;
 };
-//#endregion
-//#region src/templates/exampleTile.js
+// src/templates/exampleTile.js
 var exampleTile_default = { example_tile: { card: {
 	entity: "[[entity]]",
 	features_position: "bottom",
 	type: "tile",
 	vertical: false
 } } };
-//#endregion
-//#region src/fireEvent-helper.js
+// src/fireEvent-helper.js
 var fireEvent = (node, type, detail = {}) => {
 	const event = new CustomEvent(type, {
 		bubbles: true,
@@ -5898,8 +5865,7 @@ var fireEvent = (node, type, detail = {}) => {
 	node.dispatchEvent(event);
 	return event;
 };
-//#endregion
-//#region src/formatVariables-helper.js
+// src/formatVariables-helper.js
 function formatVariables(variables) {
 	const formattedVariables = {};
 	if (variables instanceof Array) variables.forEach((variable) => {
@@ -5910,8 +5876,7 @@ function formatVariables(variables) {
 	else return variables;
 	return formattedVariables;
 }
-//#endregion
-//#region src/streamline-card-editor.js
+// src/streamline-card-editor.js
 var StreamlineCardEditor = class StreamlineCardEditor extends HTMLElement {
 	_card = void 0;
 	_hass = void 0;
@@ -6109,8 +6074,7 @@ var StreamlineCardEditor = class StreamlineCardEditor extends HTMLElement {
 	}
 };
 if (typeof customElements.get("streamline-card-editor") === "undefined") customElements.define("streamline-card-editor", StreamlineCardEditor);
-//#endregion
-//#region src/evaluateJavascript-helper.js
+// src/evaluateJavascript-helper.js
 var functionCache = /* @__PURE__ */ new Map();
 var createEvaluationContext = (hass, variables) => ({
 	areas: hass?.areas,
@@ -6156,8 +6120,7 @@ var evaluateJavascript = (config, hass, variables = {}) => {
 	processConfig(config, hass, variables);
 	return config;
 };
-//#endregion
-//#region src/evaluateVariables-helper.js
+// src/evaluateVariables-helper.js
 var primitiveRegexMap = /* @__PURE__ */ new Map();
 var objectQuotesRegexMap = /* @__PURE__ */ new Map();
 var objectRegexMap = /* @__PURE__ */ new Map();
@@ -6213,8 +6176,7 @@ function evaluateVariables(templateConfig, variables) {
 	}
 	return JSON.parse(variableCache.get(cacheKey));
 }
-//#endregion
-//#region src/evaluateConfig-helper.js
+// src/evaluateConfig-helper.js
 function evaluateConfig(templateConfig, variables, options) {
 	let config = evaluateVariables(templateConfig, variables ?? {});
 	const { hasJavascript, hass } = options;
@@ -6227,11 +6189,9 @@ function evaluateConfig(templateConfig, variables, options) {
 	}
 	return config;
 }
-//#endregion
-//#region package.json
+// package.json
 var version = "0.2.2";
-//#endregion
-//#region src/streamline-card.js
+// src/streamline-card.js
 var thrower = (text) => {
 	if (getIsTemplateLoaded() === true) throw new Error(text);
 };
@@ -6424,4 +6384,3 @@ var thrower = (text) => {
 	});
 	console.info(`%c Streamline Card %c ${version}`, "background-color:#c2b280;color:#242424;padding:4px 4px 4px 8px;border-radius:20px 0 0 20px;font-family:sans-serif;", "background-color:#5297ff;color:#242424;padding:4px 8px 4px 4px;border-radius:0 20px 20px 0;font-family:sans-serif;");
 })();
-//#endregion

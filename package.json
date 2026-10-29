@@ -21,17 +21,17 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
-    "@vitest/coverage-v8": "^4.1.12",
-    "eslint": "~10.3.0",
+    "@vitest/coverage-v8": "^5.0.5",
+    "eslint": "~10.13.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^18.5.0",
     "eslint-plugin-promise": "^7.3.0",
     "globals": "^17.13.0",
-    "happy-dom": "^20.14.6",
+    "happy-dom": "^21.0.4",
     "prettier": "^3.9.10",
     "vite": "^8.3.5",
-    "vitest": "^4.1.12"
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "yaml": "^2.9.1"

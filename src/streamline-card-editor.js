@@ -150,7 +150,7 @@ export class StreamlineCardEditor extends HTMLElement {
     }
 
     const stringTemplate = JSON.stringify(templateConfig);
-    const variablesRegex = /\[\[(?<name>.*?)\]\]/gu;
+    const variablesRegex = /\[\[(?<name>[^[\]",]+?)\]\]/gu;
 
     [...stringTemplate.matchAll(variablesRegex)].forEach(([, name]) => {
       variables[name] = name;

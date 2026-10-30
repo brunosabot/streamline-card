@@ -28,4 +28,6 @@ export const mockLovelaceDom = (lovelaceObject) => {
 
   element.lovelace = lovelaceObject;
   element.___curView = "default_view";
+
+  return element;
 };

@@ -193,6 +193,9 @@ const thrower = (text) => {
       } else if (getIsTemplateLoaded() !== true) {
         loadRemoteTemplates().then(() => {
           this.initTemplates();
+          if (this._isWaitingForLovelace) {
+            return;
+          }
           this.initCard();
           fireEvent(this.parentNode, "card-updated", { value: true });
         });

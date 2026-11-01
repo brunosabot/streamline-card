@@ -61,7 +61,7 @@ jobs:
         run: pnpm run audit:format
 
   code-linting:
-    name: Eslint code linting
+    name: Oxlint code linting
     runs-on: ubuntu-24.04
     steps:
       - name: Code Checkout

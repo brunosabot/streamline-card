@@ -173,6 +173,10 @@ const thrower = (text) => {
     set hass(hass) {
       this._hass = hass;
 
+      if (this._isWaitingForLovelace === true) {
+        this.retryTemplates();
+      }
+
       const hasConfigChanged = this.parseConfig();
       if (hasConfigChanged) {
         this.queueUpdate("config");
@@ -192,6 +196,17 @@ const thrower = (text) => {
           this.initCard();
           fireEvent(this.parentNode, "card-updated", { value: true });
         });
+      }
+    }
+
+    retryTemplates() {
+      if (!(getLovelace() || getLovelaceCast())) {
+        return;
+      }
+
+      this.prepareTemplates();
+      if (this._card !== undefined && this.parentNode) {
+        fireEvent(this.parentNode, "card-updated", { value: true });
       }
     }
 
@@ -253,7 +268,7 @@ const thrower = (text) => {
     initTemplates() {
       const lovelace = getLovelace() || getLovelaceCast();
 
-      this._inlineTemplates = lovelace.config.streamline_templates ?? {};
+      this._inlineTemplates = lovelace?.config?.streamline_templates ?? {};
       this._templates = {
         ...exampleTile,
         ...getRemoteTemplates(),
@@ -261,6 +276,13 @@ const thrower = (text) => {
       };
 
       this._templateConfig = this._templates[this._originalConfig.template];
+
+      // View badges and footers get their config before hui-root exposes
+      // Lovelace: wait for a hass update instead of failing for good
+      this._isWaitingForLovelace = !this._templateConfig && !lovelace;
+      if (this._isWaitingForLovelace) {
+        return undefined;
+      }
 
       if (!this._templateConfig) {
         return thrower(

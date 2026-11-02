@@ -36,7 +36,7 @@ jobs:
         run: pnpm run test:unit --sequence.seed=$CURRENT_TIME
 
   code-formatting:
-    name: Prettier code formatting
+    name: Oxfmt code formatting
     runs-on: ubuntu-24.04
     steps:
       - name: Code Checkout

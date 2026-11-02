@@ -46,8 +46,7 @@ export const replaceWithKeyValue = (stringTemplate, key, value) => {
 };
 
 export default function evaluateVariables(templateConfig, variables) {
-  const content =
-    templateConfig.card ?? templateConfig.element ?? templateConfig.badge;
+  const content = templateConfig.card ?? templateConfig.element ?? templateConfig.badge;
 
   if (!variables && !templateConfig.default) {
     return content;

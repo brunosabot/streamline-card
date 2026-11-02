@@ -24,10 +24,7 @@ const compareObjectsDeep = (obj1, obj2, compareFn) => {
 
   for (let index = 0; index < keys1.length; index += 1) {
     const key = keys1[index];
-    if (
-      Object.hasOwn(obj2, key) === false ||
-      compareFn(obj1[key], obj2[key]) === false
-    ) {
+    if (Object.hasOwn(obj2, key) === false || compareFn(obj1[key], obj2[key]) === false) {
       return false;
     }
   }
@@ -36,10 +33,7 @@ const compareObjectsDeep = (obj1, obj2, compareFn) => {
 };
 
 const isSpecialType = (obj) =>
-  obj instanceof Date ||
-  obj instanceof RegExp ||
-  obj instanceof Set ||
-  obj instanceof Map;
+  obj instanceof Date || obj instanceof RegExp || obj instanceof Set || obj instanceof Map;
 
 const compareDates = (date1, date2) => date1.getTime() === date2.getTime();
 
@@ -109,12 +103,7 @@ const deepEqual = (obj1, obj2) => {
   }
 
   // Fast path: null/undefined checks
-  if (
-    obj1 === null ||
-    obj1 === undefined ||
-    obj2 === null ||
-    obj2 === undefined
-  ) {
+  if (obj1 === null || obj1 === undefined || obj2 === null || obj2 === undefined) {
     return false;
   }
 

@@ -19,15 +19,12 @@ const revalidateTemplates = async (url) => {
 
     if (deepEqual(remoteTemplates, newTemplates) === false) {
       remoteTemplates = newTemplates;
-      window.dispatchEvent(
-        new CustomEvent("streamline-templates-updated", { detail: { url } }),
-      );
+      window.dispatchEvent(new CustomEvent("streamline-templates-updated", { detail: { url } }));
     }
   } catch (error) {
-    throw new Error(
-      `[streamline-card] Background revalidation failed: ${error.message}`,
-      { cause: error },
-    );
+    throw new Error(`[streamline-card] Background revalidation failed: ${error.message}`, {
+      cause: error,
+    });
   }
 };
 

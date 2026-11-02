@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import evaluateVariables, {
-  replaceWithKeyValue,
-} from "./evaluateVariables-helper";
+import evaluateVariables, { replaceWithKeyValue } from "./evaluateVariables-helper";
 
 describe("Given the replaceWithKeyValue function", () => {
   describe("When passing a string template with a string variable", () => {
@@ -234,9 +232,7 @@ describe("Given the evaluateVariables function", () => {
       const variables = [{ maquina: "bathroom" }];
       const templateConfig = {
         card: {
-          entities: [
-            { entity: "sensor.aqara_temperature_[[maquina]]_pressure" },
-          ],
+          entities: [{ entity: "sensor.aqara_temperature_[[maquina]]_pressure" }],
           hours_to_show: "[[hours]]",
           title: "[[maquina]] - [[hours]] h",
           type: "history-graph",

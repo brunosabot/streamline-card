@@ -11,7 +11,7 @@ A Home Assistant Lovelace custom card that leverages advanced JavaScript and YAM
 ## Operational Commands
 - **Install dependencies:** `pnpm install`
 - **Run tests:** `pnpm test`
-- **Enforce styling:** `pnpm lint --fix` (Rely entirely on this command for code style determinism. Do not manually format code.)
+- **Enforce styling:** `pnpm fix:lint` (Rely entirely on this command for code style determinism. Do not manually format code.)
 - **Build project:** `pnpm build`
 
 ## Key Directories & Progressive Disclosure

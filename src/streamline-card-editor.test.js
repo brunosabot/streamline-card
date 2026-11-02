@@ -140,10 +140,10 @@ describe("Given the streamline-card-editor", () => {
       editor.setConfig({
         template: "test_template",
         type: "custom:streamline-card",
+        // Expected non alpha order
+        // eslint-disable-next-line sort-keys
         variables: {
           second: "value2",
-          // Expected non alpha order
-          // eslint-disable-next-line sort-keys
           first: "value1",
           third: "value3",
         },

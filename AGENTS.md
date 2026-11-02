@@ -10,8 +10,8 @@ A Home Assistant Lovelace custom card that leverages advanced JavaScript and YAM
 
 ## Operational Commands
 - **Install dependencies:** `pnpm install`
-- **Run tests:** `pnpm test`
-- **Enforce styling:** `pnpm fix:lint` (Rely entirely on this command for code style determinism. Do not manually format code.)
+- **Run tests:** `pnpm test:unit`
+- **Enforce styling:** `pnpm fix:lint && pnpm fix:format` (Rely entirely on this command for code style determinism. Do not manually format code.)
 - **Build project:** `pnpm build`
 
 ## Key Directories & Progressive Disclosure
@@ -33,7 +33,7 @@ Transform imperative tasks into verifiable goals using the following loop:
 1. **Explore:** Map data flow and identify dependencies (especially the `hass` object).
 2. **Plan:** Define explicit, verifiable success criteria.
 3. **Implement:** Write code. If fixing a bug, write a failing regression test first.
-4. **Commit:** Verify `pnpm test` and linters pass before concluding.
+4. **Commit:** Verify `pnpm test:unit` and linters pass before concluding.
 
 ### 3. Constraints & Quirks
 - **Home Assistant Environment:** Strict reliance on the simulated `hass` API defined in `src/__fixtures__/hass.fixture.js`.

@@ -88,13 +88,9 @@ export class StreamlineCardEditor extends HTMLElement {
     const variables = this.getVariablesForTemplate(newConfig.template);
 
     variables.forEach((variable) => {
-      if (
-        variable.toLowerCase().includes("entity") &&
-        newConfig.variables[variable] === ""
-      ) {
+      if (variable.toLowerCase().includes("entity") && newConfig.variables[variable] === "") {
         const entityList = Object.keys(this._hass.states);
-        const randomEntity =
-          entityList[Math.floor(Math.random() * entityList.length)];
+        const randomEntity = entityList[Math.floor(Math.random() * entityList.length)];
 
         newConfig.variables[variable] = randomEntity;
       } else if (!newConfig.variables[variable]) {
@@ -144,9 +140,7 @@ export class StreamlineCardEditor extends HTMLElement {
 
     const templateConfig = this._templates[template];
     if (typeof templateConfig === "undefined") {
-      throw new Error(
-        `The template "${template}" doesn't exist in streamline_templates`,
-      );
+      throw new Error(`The template "${template}" doesn't exist in streamline_templates`);
     }
 
     const stringTemplate = JSON.stringify(templateConfig);
@@ -250,9 +244,7 @@ export class StreamlineCardEditor extends HTMLElement {
       {
         expanded: true,
         name: "variables",
-        schema: variables.map((key) =>
-          StreamlineCardEditor.getVariableSchema(key),
-        ),
+        schema: variables.map((key) => StreamlineCardEditor.getVariableSchema(key)),
         title: "Variables",
         type: "expandable",
       },
@@ -261,11 +253,8 @@ export class StreamlineCardEditor extends HTMLElement {
 
   static computeLabel(schema) {
     const schemaName = schema.name.replace(/[-_]+/gu, " ");
-    const defaultLabel =
-      schemaName.charAt(0).toUpperCase() + schemaName.slice(1);
-    const translation = this.hass.localize(
-      `ui.panel.lovelace.editor.card.generic.${schema.name}`,
-    );
+    const defaultLabel = schemaName.charAt(0).toUpperCase() + schemaName.slice(1);
+    const translation = this.hass.localize(`ui.panel.lovelace.editor.card.generic.${schema.name}`);
 
     return translation || defaultLabel;
   }

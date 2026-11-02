@@ -57,10 +57,7 @@ describe("Given the streamline-card-editor", () => {
       };
 
       // Assert
-      expect(editor.getVariablesForTemplate("example_tile")).toEqual([
-        "name",
-        "jedi",
-      ]);
+      expect(editor.getVariablesForTemplate("example_tile")).toEqual(["name", "jedi"]);
     });
   });
 
@@ -101,11 +98,7 @@ describe("Given the streamline-card-editor", () => {
       editor.setConfig({
         template: "example_tile",
         type: "streamline-card",
-        variables: [
-          { name: "Obi Wan Kenobi" },
-          { job: "[[jedi]]" },
-          { jedi: "Jedi" },
-        ],
+        variables: [{ name: "Obi Wan Kenobi" }, { job: "[[jedi]]" }, { jedi: "Jedi" }],
       });
 
       // Assert

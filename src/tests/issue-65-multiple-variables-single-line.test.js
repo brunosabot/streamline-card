@@ -72,8 +72,6 @@ describe("Issue #65 - Multiple variables on a single line", () => {
 
     const result = evaluateConfig(templateConfig, variables, { hass });
 
-    expect(result.entity).toBe(
-      "number.basement_office_multisensor_g8_move_threshold",
-    );
+    expect(result.entity).toBe("number.basement_office_multisensor_g8_move_threshold");
   });
 });

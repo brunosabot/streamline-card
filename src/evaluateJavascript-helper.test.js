@@ -108,8 +108,7 @@ describe("Given the evaluateConfig function", () => {
   describe("When passing variables", () => {
     it("should evaluate the javascript with the variables", () => {
       const config = {
-        saber_count_javascript:
-          "return `${variables.saber_count + variables.saber_count}`",
+        saber_count_javascript: "return `${variables.saber_count + variables.saber_count}`",
       };
 
       evaluateConfig(config, hass, { saber_count: 7 });

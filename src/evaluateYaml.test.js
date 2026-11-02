@@ -73,9 +73,7 @@ describe("evaluateYaml", () => {
       ok: false,
     });
 
-    await expect(
-      evaluateYaml(yaml, "http://localhost/main.yaml"),
-    ).rejects.toThrow(
+    await expect(evaluateYaml(yaml, "http://localhost/main.yaml")).rejects.toThrow(
       "[streamline-card] Failed to load included file: missing.yaml",
     );
   });
@@ -107,9 +105,6 @@ describe("evaluateYaml", () => {
 
     await evaluateYaml(mainYaml, "http://localhost/main.yaml");
 
-    expect(fetch).toHaveBeenCalledWith(
-      "http://localhost/sub.yaml",
-      expect.any(Object),
-    );
+    expect(fetch).toHaveBeenCalledWith("http://localhost/sub.yaml", expect.any(Object));
   });
 });

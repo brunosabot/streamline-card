@@ -33,8 +33,7 @@ vi.mock("../getLovelace-helper", () => ({
   getLovelaceCast: () => null,
 }));
 
-window.loadCardHelpers = () =>
-  Promise.resolve({ createBadgeElement, createCardElement });
+window.loadCardHelpers = () => Promise.resolve({ createBadgeElement, createCardElement });
 
 describe("Issue #119 - Badge template", () => {
   it("should render a badge template with createBadgeElement", async () => {

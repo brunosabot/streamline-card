@@ -1,9 +1,5 @@
 import "./streamline-card-editor";
-import {
-  getIsTemplateLoaded,
-  getRemoteTemplates,
-  loadRemoteTemplates,
-} from "./templateLoader";
+import { getIsTemplateLoaded, getRemoteTemplates, loadRemoteTemplates } from "./templateLoader";
 import { getLovelace, getLovelaceCast } from "./getLovelace-helper";
 import deepEqual from "./deepEqual-helper";
 import evaluateConfig from "./evaluateConfig-helper";
@@ -18,9 +14,7 @@ const thrower = (text) => {
 };
 
 (async function initializeStreamlineCard() {
-  const HELPERS = window.loadCardHelpers
-    ? await window.loadCardHelpers()
-    : undefined;
+  const HELPERS = window.loadCardHelpers ? await window.loadCardHelpers() : undefined;
 
   class StreamlineCard extends HTMLElement {
     _editMode = false;
@@ -104,18 +98,12 @@ const thrower = (text) => {
           this._card.setConfig?.(this._config);
         }
 
-        if (
-          this.parentNode.config === undefined ||
-          this._config.visibility === undefined
-        ) {
+        if (this.parentNode.config === undefined || this._config.visibility === undefined) {
           return;
         }
 
         const hasVisibilityChanged =
-          deepEqual(
-            this._config.visibility,
-            this.parentNode.config.visibility,
-          ) === false;
+          deepEqual(this._config.visibility, this.parentNode.config.visibility) === false;
 
         if (hasVisibilityChanged) {
           this.parentNode.config = {
@@ -132,19 +120,13 @@ const thrower = (text) => {
       this.queueUpdate("editMode");
       this.queueUpdate("hass");
 
-      window.addEventListener(
-        "streamline-templates-updated",
-        this._templatesUpdatedListener,
-      );
+      window.addEventListener("streamline-templates-updated", this._templatesUpdatedListener);
     }
 
     disconnectedCallback() {
       this._isConnected = false;
 
-      window.removeEventListener(
-        "streamline-templates-updated",
-        this._templatesUpdatedListener,
-      );
+      window.removeEventListener("streamline-templates-updated", this._templatesUpdatedListener);
 
       // Cancel any pending animation frame to prevent updates after disconnect
       if (this._rafId !== null) {
@@ -202,17 +184,12 @@ const thrower = (text) => {
 
       const oldParsedConfig = this._config ?? {};
 
-      this._config = evaluateConfig(
-        this._templateConfig,
-        this._originalConfig.variables,
-        {
-          hasJavascript: this._hasJavascriptTemplate,
-          hass: this._hass,
-        },
-      );
+      this._config = evaluateConfig(this._templateConfig, this._originalConfig.variables, {
+        hasJavascript: this._hasJavascriptTemplate,
+        hass: this._hass,
+      });
 
-      const hasConfigChanged =
-        deepEqual(oldParsedConfig, this._config) === false;
+      const hasConfigChanged = deepEqual(oldParsedConfig, this._config) === false;
 
       return hasConfigChanged;
     }
@@ -271,18 +248,14 @@ const thrower = (text) => {
       const { badge, card, element } = this._templateConfig;
       const definedCount = [badge, card, element].filter(Boolean).length;
       if (definedCount === 0) {
-        return thrower(
-          "You should define either a card, an element or a badge in the template",
-        );
+        return thrower("You should define either a card, an element or a badge in the template");
       } else if (definedCount > 1) {
-        return thrower(
-          "You can only define one of card, element or badge in the template",
-        );
+        return thrower("You can only define one of card, element or badge in the template");
       }
 
-      this._hasJavascriptTemplate = JSON.stringify(
-        this._templateConfig ?? "",
-      ).includes("_javascript");
+      this._hasJavascriptTemplate = JSON.stringify(this._templateConfig ?? "").includes(
+        "_javascript",
+      );
 
       return undefined;
     }

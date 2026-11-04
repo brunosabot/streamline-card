@@ -8,13 +8,7 @@ const findLovelaceCast = () => {
   root &&= root.shadowRoot;
   root &&= root.querySelector("hui-view");
 
-  if (root) {
-    const ll = root.lovelace;
-    ll.current_view = root.___curView;
-    return ll;
-  }
-
-  return null;
+  return root || null;
 };
 
 const findLovelace = () => {
@@ -30,13 +24,15 @@ const findLovelace = () => {
   root &&= root.shadowRoot;
   root &&= root.querySelector("hui-root");
 
-  if (root) {
-    const ll = root.lovelace;
-    ll.current_view = root.___curView;
-    return ll;
-  }
+  return root || null;
+};
 
-  return null;
+// Home Assistant replaces the element's lovelace object on save.
+// Read it on each call instead of caching it.
+const readLovelace = (root) => {
+  const ll = root.lovelace;
+  ll.current_view = root.___curView;
+  return ll;
 };
 
 export const clearLovelaceCache = () => {
@@ -64,14 +60,15 @@ export const getLovelaceCast = () => {
   clearCacheOnPathChange(dashboardPath);
 
   if (lovelaceCastCache.ref !== null) {
-    return lovelaceCastCache.ref;
+    return readLovelace(lovelaceCastCache.ref);
   }
 
-  const ll = findLovelaceCast();
-  if (ll) {
-    lovelaceCastCache = { path: dashboardPath, ref: ll };
+  const root = findLovelaceCast();
+  if (root) {
+    lovelaceCastCache = { path: dashboardPath, ref: root };
+    return readLovelace(root);
   }
-  return ll;
+  return null;
 };
 
 export const getLovelace = () => {
@@ -79,12 +76,13 @@ export const getLovelace = () => {
   clearCacheOnPathChange(dashboardPath);
 
   if (lovelaceCache.ref !== null) {
-    return lovelaceCache.ref;
+    return readLovelace(lovelaceCache.ref);
   }
 
-  const ll = findLovelace();
-  if (ll) {
-    lovelaceCache = { path: dashboardPath, ref: ll };
+  const root = findLovelace();
+  if (root) {
+    lovelaceCache = { path: dashboardPath, ref: root };
+    return readLovelace(root);
   }
-  return ll;
+  return null;
 };

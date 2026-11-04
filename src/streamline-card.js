@@ -22,6 +22,7 @@ const thrower = (text) => {
     _config = undefined;
     _originalConfig = undefined;
     _hass = undefined;
+    _layout = undefined;
     _card = undefined;
     _shadow;
     _inlineTemplates = {};
@@ -82,6 +83,12 @@ const thrower = (text) => {
     updateCardEditMode() {
       if (this._isConnected && this._card) {
         this._card.editMode = this._editMode;
+      }
+    }
+
+    updateCardLayout() {
+      if (this._card && this._layout !== undefined) {
+        this._card.layout = this._layout;
       }
     }
 
@@ -146,6 +153,17 @@ const thrower = (text) => {
         this._editMode = editMode;
         this.queueUpdate("editMode");
       }
+    }
+
+    // Home Assistant sets `layout` (e.g. "grid", "panel") on every card it renders.
+    // Layout-aware cards size themselves from it, so we should pass it down.
+    get layout() {
+      return this._layout;
+    }
+
+    set layout(layout) {
+      this._layout = layout;
+      this.updateCardLayout();
     }
 
     get hass() {
@@ -286,6 +304,8 @@ const thrower = (text) => {
       } else if (this._templateConfig.badge) {
         this._card = HELPERS.createBadgeElement(this._config);
       }
+
+      this.updateCardLayout();
 
       if (this._card.getCardSize === undefined) {
         this.getCardSize = undefined;

@@ -20,6 +20,12 @@ describe("getLovelace-helper", () => {
     expect(result).toBe(mockLovelace);
   });
 
+  it("should return null when hui-root has no lovelace yet", () => {
+    mockLovelaceDom(undefined);
+
+    expect(getLovelace()).toBeNull();
+  });
+
   it("should cache the lovelace object", () => {
     const mockLovelace = { config: { title: "My Home" } };
     mockLovelaceDom(mockLovelace);

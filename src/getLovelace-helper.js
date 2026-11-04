@@ -8,7 +8,7 @@ const findLovelaceCast = () => {
   root &&= root.shadowRoot;
   root &&= root.querySelector("hui-view");
 
-  if (root) {
+  if (root?.lovelace) {
     const ll = root.lovelace;
     ll.current_view = root.___curView;
     return ll;
@@ -30,7 +30,7 @@ const findLovelace = () => {
   root &&= root.shadowRoot;
   root &&= root.querySelector("hui-root");
 
-  if (root) {
+  if (root?.lovelace) {
     const ll = root.lovelace;
     ll.current_view = root.___curView;
     return ll;

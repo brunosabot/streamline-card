@@ -6021,6 +6021,12 @@ var StreamlineCardEditor = class StreamlineCardEditor extends HTMLElement {
 			selector: { icon: {} }
 		};
 	}
+	static getAreaSchema(name) {
+		return {
+			name,
+			selector: { area: {} }
+		};
+	}
 	static getBooleanSchema(name) {
 		return {
 			name,
@@ -6037,6 +6043,7 @@ var StreamlineCardEditor = class StreamlineCardEditor extends HTMLElement {
 		let childSchema = StreamlineCardEditor.getDefaultSchema(variable);
 		if (variable.toLowerCase().includes("entity")) childSchema = StreamlineCardEditor.getEntitySchema(variable);
 		else if (variable.toLowerCase().includes("icon")) childSchema = StreamlineCardEditor.getIconSchema(variable);
+		else if (variable.toLowerCase().includes("area")) childSchema = StreamlineCardEditor.getAreaSchema(variable);
 		else if (variable.toLowerCase().includes("bool")) childSchema = StreamlineCardEditor.getBooleanSchema(variable);
 		return childSchema;
 	}

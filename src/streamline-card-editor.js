@@ -208,6 +208,13 @@ export class StreamlineCardEditor extends HTMLElement {
     };
   }
 
+  static getAreaSchema(name) {
+    return {
+      name,
+      selector: { area: {} },
+    };
+  }
+
   static getBooleanSchema(name) {
     return {
       name,
@@ -229,6 +236,8 @@ export class StreamlineCardEditor extends HTMLElement {
       childSchema = StreamlineCardEditor.getEntitySchema(variable);
     } else if (variable.toLowerCase().includes("icon")) {
       childSchema = StreamlineCardEditor.getIconSchema(variable);
+    } else if (variable.toLowerCase().includes("area")) {
+      childSchema = StreamlineCardEditor.getAreaSchema(variable);
     } else if (variable.toLowerCase().includes("bool")) {
       childSchema = StreamlineCardEditor.getBooleanSchema(variable);
     }

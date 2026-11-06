@@ -19,6 +19,7 @@ This card is for [Lovelace](https://www.home-assistant.io/lovelace) on [Home Ass
   - [Step 4: Using Variables](#step-4-using-variables)
   - [Step 5: Advanced Features - JavaScript Expressions](#step-5-advanced-features---javascript-expressions)
   - [Step 6: Splitting Configuration with !include](#step-6-splitting-configuration-with-include)
+  - [Step 7: Using Templates in the Visual Editor](#step-7-using-templates-in-the-visual-editor)
 - [Real-World Examples](#real-world-examples)
 - [Examples](#examples)
 - [Tips and Best Practices](#tips-and-best-practices)
@@ -155,6 +156,7 @@ default:
   - light_icon: mdi:ceiling-light
 card:
   type: custom:bubble-card
+  card_type: button
   name: "[[room_name]] Light"
   icon: "[[light_icon]]"
   entity: "[[light_entity]]"
@@ -167,6 +169,9 @@ card:
 streamline_templates: !include_dir_named ../streamline_templates/
 ```
 
+> [!WARNING]
+> `!include_dir_named` only works when the dashboard is in YAML mode (Lovelace YAML). It is not available in UI mode. In UI mode, use Method 2 or the `streamline_templates.yaml` file described below. `!include` (Step 6) works inside that template file, not in the dashboard configuration.
+
 ---
 
 ##### ⚡️ Automatic Template File Loading and Fallback Locations
@@ -175,8 +180,9 @@ streamline_templates: !include_dir_named ../streamline_templates/
 
 The `streamline-card` will automatically attempt to load the `streamline_templates.yaml` file from several locations, in the following order:
 
-1. `/config/www/community/streamline-card/streamline_templates.yaml` (default for HACS installations)
-2. `/config/www/streamline-card/streamline_templates.yaml` (commonly used for manual installations)
+1. `/hacsfiles/streamline-card/streamline_templates.yaml` (HACS installations, served by HACS)
+2. `/config/www/streamline-card/streamline_templates.yaml` (URL `/local/streamline-card/...`, manual installations)
+3. `/config/www/community/streamline-card/streamline_templates.yaml` (URL `/local/community/streamline-card/...`, HACS folder)
 
 If the file is not found in the first location, the card will try the next, and so on. This fallback mechanism ensures maximum compatibility with different Home Assistant setups.
 
@@ -207,6 +213,7 @@ streamline_templates:
       - light_icon: mdi:ceiling-light
     card:
       type: custom:bubble-card
+      card_type: button
       name: "[[room_name]] Light"
       icon: "[[light_icon]]"
       entity: "[[light_entity]]"
@@ -241,6 +248,7 @@ default:
 ```yaml
 card: # Use 'card' for normal cards
   type: custom:bubble-card
+  card_type: button
   name: "[[room_name]] Light"
   icon: "[[light_icon]]"
   entity: "[[light_entity]]"
@@ -339,12 +347,24 @@ default:
   - light_icon: mdi:ceiling-light
 card:
   type: custom:bubble-card
+  card_type: button
   name: "[[room_name]] Light"
   icon: "[[light_icon]]"
   entity: "[[light_entity]]"
 ```
 
 This makes it much easier to manage large sets of templates and share them across different projects.
+
+### Step 7: Using Templates in the Visual Editor
+
+---
+
+When you add the card from the dashboard, the visual editor merges three sources into the Template dropdown: the built-in `example_tile`, the `streamline_templates.yaml` file, and the `streamline_templates` block of your dashboard.
+
+- Choose the template in the **Template** dropdown. The editor shows one field per `[[variable]]`, typed from its name: names containing `entity` get an entity picker, `icon` an icon picker, `bool` a toggle, anything else a text field.
+- Object and array variables are not supported in the visual editor: write such cards in YAML.
+- Empty fields are not saved, so the template default applies.
+- A template added to the YAML file may only appear after a browser reload.
 
 ## Real-World Examples
 

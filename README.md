@@ -274,6 +274,16 @@ Variables are placeholders in your template that get replaced with actual values
 > - Variables can be used anywhere in the template
 > - You can set default values for variables in the `default` section
 
+A variable value (typically a default) can reference another variable. References are resolved whatever the declaration order, and a default that references a variable the card overrides gets the card's value:
+
+```yaml
+default:
+  - room_name: Kitchen
+  - name: "[[room_name]] Light"
+```
+
+Circular references (`a` → `b` → `a`) and unknown references are left unresolved (`[[a]]` stays as is); circular ones also log a warning in the browser console.
+
 ### Step 5: Advanced Features - JavaScript Expressions
 
 ---

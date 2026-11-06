@@ -98,6 +98,17 @@ describe("Issue #83 - Variables referencing other variables", () => {
     expect(result.title).toBe("me [[self]]");
   });
 
+  it("should give resolved values to the JavaScript variables", () => {
+    const templateConfig = {
+      card: { title_javascript: "return variables.greeting;", type: "markdown" },
+      default: [{ greeting: "Hello [[name]]" }, { name: "Ashoka" }],
+    };
+
+    const result = evaluateConfig(templateConfig, {}, { hasJavascript: true, hass });
+
+    expect(result.title).toBe("Hello Ashoka");
+  });
+
   it("should leave an unknown reference untouched", () => {
     const templateConfig = {
       card: { title: "[[label]]", type: "markdown" },
